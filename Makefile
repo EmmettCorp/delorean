@@ -16,11 +16,10 @@ build: ## Build binary.
 
 install: ## Install binary.
 	@echo -e "\033[2m→ Installing binary...\033[0m"
-	go install -o delorean ./cmd/delorean
-
+	go install
 run: ## Run without building
 	@echo -e "\033[2m→ Running without building...\033[0m"
-	go run ./cmd/delorean/main.go
+	go run main.go
 
 ##@ Other
 #------------------------------------------------------------------------------

@@ -29,7 +29,7 @@ func (gui Gui) Run() error {
 
 	defer g.Close()
 
-	gui.g = g // TODO: always use gui.g rather than passing g around everywhere
+	gui.g = g
 
 	if err := gui.SetColorScheme(); err != nil {
 		return err

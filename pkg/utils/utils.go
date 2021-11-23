@@ -15,10 +15,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/fatih/color"
 	"github.com/go-errors/errors"
 	"github.com/jesseduffield/gocui"
-
-	"github.com/fatih/color"
 )
 
 // SplitLines takes a multiline string and splits it on newlines
