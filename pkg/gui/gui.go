@@ -5,6 +5,7 @@ package gui
 
 import (
 	"github.com/EmmettCorp/delorean/pkg/config"
+	"github.com/EmmettCorp/delorean/pkg/i18n"
 	"github.com/EmmettCorp/delorean/pkg/utils"
 	"github.com/jesseduffield/gocui"
 	"github.com/sirupsen/logrus"
@@ -15,6 +16,7 @@ type Gui struct {
 	g      *gocui.Gui
 	Log    *logrus.Entry
 	Config *config.AppConfig
+	Tr     *i18n.TranslationSet
 }
 
 // New creates a new gui handler.

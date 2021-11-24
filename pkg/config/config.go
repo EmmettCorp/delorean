@@ -1,9 +1,5 @@
 package config
 
-import (
-	"os"
-)
-
 // GuiConfig is for configuring visual things like colors and whether we show or
 // hide things
 type GuiConfig struct {
@@ -48,6 +44,13 @@ type UserConfig struct {
 	// Gui is for configuring visual things like colors and whether we show or
 	// hide things
 	Gui GuiConfig `yaml:"gui,omitempty"`
+
+	// OS determines what defaults are set for opening files and links
+	OS OSConfig `yaml:"oS,omitempty"`
+
+	// CommandTemplates determines what commands actually get called when we run
+	// certain commands
+	CommandTemplates CommandTemplatesConfig `yaml:"commandTemplates,omitempty"`
 }
 
 // ThemeConfig is for setting the colors of panels and some text.
@@ -59,31 +62,41 @@ type ThemeConfig struct {
 
 // AppConfig contains the base configuration fields required for lazydocker.
 type AppConfig struct {
-	Debug       bool   `long:"debug" env:"DEBUG" default:"false"`
-	Version     string `long:"version" env:"VERSION" default:"unversioned"`
-	Commit      string `long:"commit" env:"COMMIT"`
-	BuildDate   string `long:"build-date" env:"BUILD_DATE"`
-	Name        string `long:"name" env:"NAME" default:"lazydocker"`
-	BuildSource string `long:"build-source" env:"BUILD_SOURCE" default:""`
-	UserConfig  *UserConfig
-	ConfigDir   string
-	ProjectDir  string
+	Name       string `long:"name" env:"NAME" default:"lazydocker"`
+	Version    string `long:"version" env:"VERSION" default:"unversioned"`
+	UserConfig *UserConfig
 }
 
 // NewAppConfig makes a new app config
-func NewAppConfig(name, version, commit, date string, buildSource string, debuggingFlag bool, composeFiles []string, projectDir string) (*AppConfig, error) {
+func NewAppConfig(name, version string) (*AppConfig, error) {
 	userConfig := UserConfig{}
 
 	appConfig := &AppConfig{
-		Name:        name,
-		Version:     version,
-		Commit:      commit,
-		BuildDate:   date,
-		Debug:       debuggingFlag || os.Getenv("DEBUG") == "TRUE",
-		BuildSource: buildSource,
-		UserConfig:  &userConfig,
-		ProjectDir:  projectDir,
+		Name:       name,
+		Version:    version,
+		UserConfig: &userConfig,
 	}
 
 	return appConfig, nil
+}
+
+// OSConfig contains config on the level of the os
+type OSConfig struct {
+	// OpenCommand is the command for opening a file
+	OpenCommand string `yaml:"openCommand,omitempty"`
+
+	// OpenCommand is the command for opening a link
+	OpenLinkCommand string `yaml:"openLinkCommand,omitempty"`
+}
+
+// CommandTemplatesConfig determines what commands actually get called when we
+// run certain commands
+type CommandTemplatesConfig struct {
+	// Restore restores chosen snapshot.
+	Restore string `yaml:"restore,omitempty"`
+
+	BtrfsPath string `yaml:"btrfsPath,omitempty"`
+
+	// CheckBtrfsPath
+	CheckBtrfsPath string `yaml:"checkBtrfsPath,omitempty"`
 }
