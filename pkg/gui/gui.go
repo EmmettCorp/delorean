@@ -11,12 +11,33 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+// OverlappingEdges determines if panel edges overlap
+var OverlappingEdges = false
+
 // Gui wraps the gocui Gui object which handles rendering.
 type Gui struct {
 	g      *gocui.Gui
 	Log    *logrus.Entry
 	Config *config.AppConfig
 	Tr     *i18n.TranslationSet
+	Views  Views
+}
+
+type Views struct {
+	Main         *gocui.View
+	Secondary    *gocui.View
+	Options      *gocui.View
+	Confirmation *gocui.View
+	Menu         *gocui.View
+	Credentials  *gocui.View
+	Extras       *gocui.View
+}
+
+// A Manager is in charge of GUI's layout and can be used to build widgets.
+type Manager interface {
+	// Layout is called every time the GUI is redrawn, it must contain the
+	// base views and its initializations.
+	Layout(*Gui) error
 }
 
 // New creates a new gui handler.
@@ -26,17 +47,30 @@ func New(log *logrus.Entry) (*Gui, error) {
 	}, nil
 }
 
+var RuneReplacements = map[rune]string{}
+
 func (gui Gui) Run() error {
-	g := gocui.NewGui()
+	playMode := gocui.NORMAL
+
+	g, err := gocui.NewGui(gocui.OutputTrue, OverlappingEdges, playMode, headless(), RuneReplacements)
+	if err != nil {
+		return err
+	}
 
 	defer g.Close()
 
 	gui.g = g
+	g.Mouse = true
 
 	if err := gui.SetColorScheme(); err != nil {
 		return err
 	}
-	return nil
+
+	g.SetManager(gocui.ManagerFunc(gui.layout), gocui.ManagerFunc(gui.getFocusLayout()))
+
+	gui.Log.Info("starting main loop")
+
+	return g.MainLoop()
 }
 
 // SetColorScheme sets the color scheme for the app based on the user config
