@@ -35,9 +35,6 @@ func NewApp(config *config.AppConfig) (*App, error) {
 	app.Log = log.NewLogger(config, "23432119147a4367abf7c0de2aa99a2d")
 	app.Tr = i18n.NewTranslationSet(app.Log)
 	app.OSCommand = commands.NewOSCommand(app.Log, config)
-
-	// here is the place to make use of the docker-compose.yml file in the current directory
-
 	app.BtrfsCommand, err = commands.NewBtrfsCommand(app.Log, app.OSCommand, app.Tr, app.Config, app.ErrorChan)
 	if err != nil {
 		return app, err

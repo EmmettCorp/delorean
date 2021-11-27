@@ -10,7 +10,6 @@ import (
 	"html/template"
 	"math"
 	"reflect"
-	"regexp"
 	"sort"
 	"strings"
 	"time"
@@ -175,12 +174,6 @@ func RenderTable(stringArrays [][]string) (string, error) {
 	paddedDisplayStrings := getPaddedDisplayStrings(stringArrays, padWidths)
 
 	return strings.Join(paddedDisplayStrings, "\n"), nil
-}
-
-// Decolorise strips a string of color
-func Decolorise(str string) string {
-	re := regexp.MustCompile(`\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[m|K]`)
-	return re.ReplaceAllString(str, "")
 }
 
 func getPadWidths(stringArrays [][]string) []int {

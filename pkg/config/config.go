@@ -55,9 +55,14 @@ type UserConfig struct {
 
 // ThemeConfig is for setting the colors of panels and some text.
 type ThemeConfig struct {
-	ActiveBorderColor   []string `yaml:"activeBorderColor,omitempty"`
-	InactiveBorderColor []string `yaml:"inactiveBorderColor,omitempty"`
-	OptionsTextColor    []string `yaml:"optionsTextColor,omitempty"`
+	LightTheme                bool     `yaml:"lightTheme"`
+	ActiveBorderColor         []string `yaml:"activeBorderColor"`
+	InactiveBorderColor       []string `yaml:"inactiveBorderColor"`
+	OptionsTextColor          []string `yaml:"optionsTextColor"`
+	SelectedLineBgColor       []string `yaml:"selectedLineBgColor"`
+	SelectedRangeBgColor      []string `yaml:"selectedRangeBgColor"`
+	CherryPickedCommitBgColor []string `yaml:"cherryPickedCommitBgColor"`
+	CherryPickedCommitFgColor []string `yaml:"cherryPickedCommitFgColor"`
 }
 
 // AppConfig contains the base configuration fields required for lazydocker.

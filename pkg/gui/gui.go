@@ -21,16 +21,21 @@ type Gui struct {
 	Config *config.AppConfig
 	Tr     *i18n.TranslationSet
 	Views  Views
+	// this tells us whether our views have been initially set up
+	ViewsSetup bool
 }
 
 type Views struct {
-	Main         *gocui.View
-	Secondary    *gocui.View
-	Options      *gocui.View
-	Confirmation *gocui.View
-	Menu         *gocui.View
-	Credentials  *gocui.View
-	Extras       *gocui.View
+	Main     *gocui.View
+	Settings *gocui.View
+	Prompt   *gocui.View
+
+	Options *gocui.View
+	// Secondary    *gocui.View
+	// Confirmation *gocui.View
+	// Menu         *gocui.View
+	// Credentials  *gocui.View
+	// Extras       *gocui.View
 }
 
 // A Manager is in charge of GUI's layout and can be used to build widgets.
