@@ -31,6 +31,7 @@ type Views struct {
 	Prompt   *gocui.View
 
 	Options *gocui.View
+	Limit   *gocui.View
 	// Secondary    *gocui.View
 	// Confirmation *gocui.View
 	// Menu         *gocui.View
@@ -80,8 +81,8 @@ func (gui Gui) Run() error {
 
 // SetColorScheme sets the color scheme for the app based on the user config
 func (gui *Gui) SetColorScheme() error {
-	gui.g.FgColor = gui.GetColor(gui.Config.UserConfig.Gui.Theme.InactiveBorderColor)
-	gui.g.SelFgColor = gui.GetColor(gui.Config.UserConfig.Gui.Theme.ActiveBorderColor)
+	// gui.g.FgColor = gui.GetColor(gui.Config.UserConfig.Gui.Theme.InactiveBorderColor)
+	// gui.g.SelFgColor = gui.GetColor(gui.Config.UserConfig.Gui.Theme.ActiveBorderColor)
 	return nil
 }
 

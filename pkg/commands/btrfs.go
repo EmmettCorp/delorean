@@ -5,7 +5,6 @@ import (
 
 	"github.com/EmmettCorp/delorean/pkg/config"
 	"github.com/EmmettCorp/delorean/pkg/i18n"
-	"github.com/EmmettCorp/delorean/pkg/utils"
 	"github.com/imdario/mergo"
 	"github.com/sirupsen/logrus"
 )
@@ -36,23 +35,23 @@ func NewBtrfsCommand(log *logrus.Entry, osCommand *OSCommand, tr *i18n.Translati
 		InDockerComposeProject: true,
 	}
 
-	command := utils.ApplyTemplate(
-		config.UserConfig.CommandTemplates.CheckBtrfsPath,
-		btrfsCommand.NewCommandObject(CommandObject{}),
-	)
+	// command := utils.ApplyTemplate(
+	// 	config.UserConfig.CommandTemplates.CheckBtrfsPath,
+	// 	btrfsCommand.NewCommandObject(CommandObject{}),
+	// )
 
-	log.Warn(command)
+	// log.Warn(command)
 
-	err := osCommand.RunCommand(
-		utils.ApplyTemplate(
-			config.UserConfig.CommandTemplates.CheckBtrfsPath,
-			btrfsCommand.NewCommandObject(CommandObject{}),
-		),
-	)
-	if err != nil {
-		btrfsCommand.InDockerComposeProject = false
-		log.Warn(err.Error())
-	}
+	// err := osCommand.RunCommand(
+	// 	utils.ApplyTemplate(
+	// 		config.UserConfig.CommandTemplates.CheckBtrfsPath,
+	// 		btrfsCommand.NewCommandObject(CommandObject{}),
+	// 	),
+	// )
+	// if err != nil {
+	// 	btrfsCommand.InDockerComposeProject = false
+	// 	log.Warn(err.Error())
+	// }
 
 	return btrfsCommand, nil
 }
