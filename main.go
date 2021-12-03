@@ -4,8 +4,6 @@ import (
 	"log"
 
 	"github.com/EmmettCorp/delorean/pkg/app"
-	"github.com/EmmettCorp/delorean/pkg/config"
-	"github.com/EmmettCorp/delorean/pkg/version"
 )
 
 const appName = "delorean"
@@ -18,12 +16,7 @@ func main() {
 }
 
 func run() error {
-	appConfig, err := config.NewAppConfig(appName, version.Number)
-	if err != nil {
-		return err
-	}
-
-	app, err := app.NewApp(appConfig)
+	app, err := app.NewApp()
 	if err != nil {
 		return err
 	}
