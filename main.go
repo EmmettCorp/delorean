@@ -16,7 +16,7 @@ func main() {
 }
 
 func run() error {
-	app, err := app.NewApp()
+	app, err := app.New()
 	if err != nil {
 		return err
 	}
