@@ -38,7 +38,15 @@ func (gui *Gui) Run() error {
 	// close gocui.Gui on close
 	defer gui.g.Close()
 
+	// manager
 	gui.g.SetManager(gocui.ManagerFunc(gui.layout))
+
+	// keybindings
+	bb := gui.GetInitialKeybindings()
+	err := gui.setKeybindings(bb)
+	if err != nil {
+		return fmt.Errorf("can't set keybindings: %v", err)
+	}
 
 	return gui.g.MainLoop()
 }

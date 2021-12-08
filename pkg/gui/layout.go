@@ -1,8 +1,6 @@
 package gui
 
 import (
-	"fmt"
-
 	"github.com/jroimartin/gocui"
 )
 
@@ -37,8 +35,8 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 	g.Highlight = true
 	width, height := g.Size()
 
-	minimumHeight := 9
-	minimumWidth := 10
+	// minimumHeight := 9
+	// minimumWidth := 10
 
 	var err error
 	_, err = g.SetView("limit", 0, 0, width-1, height-1)
@@ -46,6 +44,5 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		return err
 	}
 
-	fmt.Println(width, height, minimumWidth, minimumHeight)
 	return nil
 }
