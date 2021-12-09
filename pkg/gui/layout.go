@@ -35,14 +35,14 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 	g.Highlight = true
 	width, height := g.Size()
 
-	// minimumHeight := 9
-	// minimumWidth := 10
-
 	var err error
 	_, err = g.SetView("limit", 0, 0, width-1, height-1)
 	if err != nil && err.Error() != errUnknownView {
 		return err
 	}
+
+	// minimumHeight := 9
+	// minimumWidth := 10
 
 	return nil
 }
