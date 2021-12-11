@@ -14,10 +14,8 @@ type (
 	Gui struct {
 		g *gocui.Gui
 
-		Views Views
-
-		// this tells us whether our views have been initially set up
-		ViewsSetup bool
+		views   views
+		buttons buttons
 	}
 )
 
@@ -38,8 +36,10 @@ func (gui *Gui) Run() error {
 	// close gocui.Gui on close
 	defer gui.g.Close()
 
+	gui.initButtons()
+	vv := gocui.ManagerFunc(gui.layout)
 	// manager
-	gui.g.SetManager(gocui.ManagerFunc(gui.layout))
+	gui.g.SetManager(gui.buttons.create, gui.buttons.restore, gui.buttons.delete, gui.buttons.settings, vv)
 
 	// keybindings
 	bb := gui.GetInitialKeybindings()
