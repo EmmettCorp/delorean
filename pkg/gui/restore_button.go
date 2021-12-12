@@ -9,7 +9,7 @@ import (
 func (gui *Gui) restoreButton() (*gocui.View, error) {
 	buttonName := "restore"
 	x := gui.buttons.width
-	view, err := gui.g.SetView(buttonName, x, -1, x+len(buttonName)+1, headerHight-1)
+	view, err := gui.g.SetView(buttonName, x, -1, x+len(buttonName)+1, gui.headerHight-1)
 	if err != nil {
 		if err != gocui.ErrUnknownView {
 			gui.log.Errorf("can't build %s button: %v", buttonName, err)
