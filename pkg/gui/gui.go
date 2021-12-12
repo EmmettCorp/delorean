@@ -4,9 +4,12 @@ Pakcage gui is responsible user interface.
 package gui
 
 import (
+	"errors"
 	"fmt"
 
+	"github.com/EmmettCorp/delorean/pkg/config"
 	"github.com/jroimartin/gocui"
+	"go.uber.org/zap"
 )
 
 // Gui wraps the gocui Gui object which handles rendering and events
@@ -16,41 +19,68 @@ type (
 
 		views   views
 		buttons buttons
+
+		config *config.Config
+
+		log *zap.SugaredLogger
+
+		state *state
 	}
 )
 
 // New creates and returns a new gui handler.
-func New() (*Gui, error) {
+func New(config *config.Config, log *zap.SugaredLogger) (*Gui, error) {
 	g, err := gocui.NewGui(gocui.OutputNormal)
 	if err != nil {
+		log.Errorf("can't get new gui: %v", err)
 		return nil, fmt.Errorf("can't get new gui: %v", err)
 	}
 
+	g.Cursor = true
+	g.Mouse = true
+
 	return &Gui{
-		g: g,
+		g:      g,
+		config: config,
+		log:    log,
+		state:  initState(),
+		buttons: buttons{
+			indent: 2,
+		},
 	}, nil
 }
 
 // Run setup the gui with keybindings and start the mainloop
 func (gui *Gui) Run() error {
-	// close gocui.Gui on close
+	// close gocui.Gui on exit from main loop.
 	defer gui.g.Close()
 
-	gui.initButtons()
 	vv := gocui.ManagerFunc(gui.layout)
-	// manager
-	gui.g.SetManager(gui.buttons.create, gui.buttons.restore, gui.buttons.delete, gui.buttons.settings, vv)
 
+	// manager
+	gui.g.SetManager(vv)
+
+	gui.log.Info("in run")
 	// keybindings
 	bb := gui.GetInitialKeybindings()
 	err := gui.setKeybindings(bb)
 	if err != nil {
+		gui.log.Errorf("can't set keybindings: %v", err)
 		return fmt.Errorf("can't set keybindings: %v", err)
 	}
 
-	return gui.g.MainLoop()
-}
+	err = gui.g.MainLoop()
+	if err != nil {
+		if errors.Is(err, gocui.ErrQuit) {
+			gui.log.Info("quit")
+			return nil
+		}
 
-func (gui *Gui) Stop() {
-	gui.g.Close()
+		gui.log.Errorf("main loop failed: %v", err)
+		for _, v := range gui.allViews() {
+			quit(gui.g, v)
+		}
+	}
+
+	return err
 }

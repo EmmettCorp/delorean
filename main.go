@@ -6,8 +6,6 @@ import (
 	"github.com/EmmettCorp/delorean/pkg/app"
 )
 
-const appName = "delorean"
-
 func main() {
 	err := run()
 	if err != nil {
