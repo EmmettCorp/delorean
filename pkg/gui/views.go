@@ -8,36 +8,63 @@ const (
 )
 
 type views struct {
-	snapshots *gocui.View
-	path      *gocui.View
-	termital  *gocui.View
-	status    *gocui.View
+	snapshots  *gocui.View
+	schedule   *gocui.View
+	storage    *gocui.View
+	status     *gocui.View
+	createBtn  *gocui.View
+	restoreBtn *gocui.View
+	deleteBtn  *gocui.View
 }
 
-func (gui *Gui) initViews() error {
+func (gui *Gui) layout(g *gocui.Gui) error {
 	var err error
 	maxX, maxY := gui.g.Size()
 	gui.views = views{}
+	gui.buttons.width = 0
 
-	if gui.views.status, err = gui.g.SetView("status", gui.buttons.width, -1, maxX, headerHight-1); err != nil &&
-		err != gocui.ErrUnknownView {
+	gui.views.createBtn, err = gui.createButton()
+	if err != nil {
 		return err
 	}
+	gui.views.restoreBtn, err = gui.restoreButton()
+	if err != nil {
+		return err
+	}
+	gui.views.deleteBtn, err = gui.deleteButton()
+	if err != nil {
+		return err
+	}
+
+	gui.views.status, err = gui.statusView(maxX, maxY)
+	if err != nil {
+		return err
+	}
+
 	if gui.views.snapshots, err = gui.g.SetView("snapshots", indent, headerHight, int(0.8*float32(maxX)), maxY-5); err != nil &&
 		err != gocui.ErrUnknownView {
 		return err
 	}
 	gui.views.snapshots.Title = gui.views.snapshots.Name()
-	if gui.views.path, err = gui.g.SetView("path", int(0.8*float32(maxX)), headerHight, maxX, maxY-5); err != nil &&
+	if gui.views.schedule, err = gui.g.SetView("schedule", int(0.8*float32(maxX)), headerHight, maxX, maxY-5); err != nil &&
 		err != gocui.ErrUnknownView {
 		return err
 	}
-	gui.views.path.Title = gui.views.path.Name()
-	if gui.views.termital, err = gui.g.SetView("terminal", indent, maxY-5, maxX, maxY); err != nil &&
+	gui.views.schedule.Title = gui.views.schedule.Name()
+	if gui.views.storage, err = gui.g.SetView("storage", indent, maxY-5, maxX, maxY); err != nil &&
 		err != gocui.ErrUnknownView {
 		return err
 	}
-	gui.views.termital.Title = gui.views.termital.Name()
+	gui.views.storage.Title = gui.views.storage.Name()
 
 	return nil
+}
+
+func (gui *Gui) allViews() []*gocui.View {
+	return []*gocui.View{
+		gui.views.snapshots,
+		gui.views.schedule,
+		gui.views.storage,
+		gui.views.status,
+	}
 }

@@ -12,7 +12,7 @@ check: lint test ## Run full check: lint and test.
 ##@ Deploy
 build: ## Build binary.
 	@echo -e "\033[2m→ Building binary...\033[0m"
-	go build -o delorean ./cmd/delorean
+	go build -o delorean main.go
 
 install: ## Install binary.
 	@echo -e "\033[2m→ Installing binary...\033[0m"
