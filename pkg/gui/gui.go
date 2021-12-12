@@ -24,7 +24,9 @@ type (
 
 		log *zap.SugaredLogger
 
-		state *state
+		state       *state
+		indent      int
+		headerHight int
 	}
 )
 
@@ -47,6 +49,7 @@ func New(config *config.Config, log *zap.SugaredLogger) (*Gui, error) {
 		buttons: buttons{
 			indent: 2,
 		},
+		headerHight: 2,
 	}, nil
 }
 
@@ -55,12 +58,9 @@ func (gui *Gui) Run() error {
 	// close gocui.Gui on exit from main loop.
 	defer gui.g.Close()
 
-	vv := gocui.ManagerFunc(gui.layout)
-
 	// manager
-	gui.g.SetManager(vv)
+	gui.g.SetManager(gocui.ManagerFunc(gui.layout))
 
-	gui.log.Info("in run")
 	// keybindings
 	bb := gui.GetInitialKeybindings()
 	err := gui.setKeybindings(bb)

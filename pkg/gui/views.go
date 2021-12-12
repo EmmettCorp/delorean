@@ -2,11 +2,6 @@ package gui
 
 import "github.com/jroimartin/gocui"
 
-const (
-	indent      = 0
-	headerHight = 2
-)
-
 type views struct {
 	snapshots  *gocui.View
 	schedule   *gocui.View
@@ -23,6 +18,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 	gui.views = views{}
 	gui.buttons.width = 0
 
+	// draw buttons
 	gui.views.createBtn, err = gui.createButton()
 	if err != nil {
 		return err
@@ -36,26 +32,23 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		return err
 	}
 
+	// draw pannels
 	gui.views.status, err = gui.statusView(maxX, maxY)
 	if err != nil {
 		return err
 	}
-
-	if gui.views.snapshots, err = gui.g.SetView("snapshots", indent, headerHight, int(0.8*float32(maxX)), maxY-5); err != nil &&
-		err != gocui.ErrUnknownView {
+	gui.views.snapshots, err = gui.snapshotsView(maxX, maxY)
+	if err != nil {
 		return err
 	}
-	gui.views.snapshots.Title = gui.views.snapshots.Name()
-	if gui.views.schedule, err = gui.g.SetView("schedule", int(0.8*float32(maxX)), headerHight, maxX, maxY-5); err != nil &&
-		err != gocui.ErrUnknownView {
+	gui.views.schedule, err = gui.scheduleView(maxX, maxY)
+	if err != nil {
 		return err
 	}
-	gui.views.schedule.Title = gui.views.schedule.Name()
-	if gui.views.storage, err = gui.g.SetView("storage", indent, maxY-5, maxX, maxY); err != nil &&
-		err != gocui.ErrUnknownView {
+	gui.views.storage, err = gui.storageView(maxX, maxY)
+	if err != nil {
 		return err
 	}
-	gui.views.storage.Title = gui.views.storage.Name()
 
 	return nil
 }
@@ -66,5 +59,8 @@ func (gui *Gui) allViews() []*gocui.View {
 		gui.views.schedule,
 		gui.views.storage,
 		gui.views.status,
+		gui.views.createBtn,
+		gui.views.restoreBtn,
+		gui.views.deleteBtn,
 	}
 }
