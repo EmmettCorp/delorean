@@ -14,9 +14,9 @@ func (gui *Gui) snapshotsView(maxX, maxY int) (*gocui.View, error) {
 			gui.log.Errorf("can't set %s view: %v", name, err)
 			return nil, err
 		}
-	}
 
-	view.Title = name
+		view.Title = name
+	}
 
 	return view, nil
 }

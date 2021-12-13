@@ -12,6 +12,6 @@ type state struct {
 
 func initState() *state {
 	return &state{
-		status: fmt.Sprintf(" application is running. version %s ", version.Number),
+		status: fmt.Sprintf(" delorean version %s | type ctrl+h to call help", version.Number),
 	}
 }

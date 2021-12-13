@@ -15,11 +15,12 @@ func (gui *Gui) statusView(maxX, maxY int) (*gocui.View, error) {
 			gui.log.Errorf("can't set %s view: %v", name, err)
 			return nil, err
 		}
+
+		view.Highlight = true
+		view.SelFgColor = gocui.ColorGreen
 	}
 
 	view.Clear()
-	view.Highlight = true
-	view.SelFgColor = gocui.ColorGreen
 	fmt.Fprint(view, gui.state.status)
 
 	return view, nil
