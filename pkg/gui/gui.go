@@ -42,13 +42,10 @@ func New(config *config.Config, log *zap.SugaredLogger) (*Gui, error) {
 	g.Mouse = true
 
 	return &Gui{
-		g:      g,
-		config: config,
-		log:    log,
-		state:  initState(),
-		buttons: buttons{
-			indent: 2,
-		},
+		g:           g,
+		config:      config,
+		log:         log,
+		state:       initState(),
 		headerHight: 2,
 	}, nil
 }
@@ -57,6 +54,8 @@ func New(config *config.Config, log *zap.SugaredLogger) (*Gui, error) {
 func (gui *Gui) Run() error {
 	// close gocui.Gui on exit from main loop.
 	defer gui.g.Close()
+
+	gui.buttons.calcutalePoints()
 
 	// manager
 	gui.g.SetManager(gocui.ManagerFunc(gui.layout))
