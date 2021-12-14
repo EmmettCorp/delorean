@@ -15,10 +15,8 @@ type views struct {
 func (gui *Gui) layout(g *gocui.Gui) error {
 	var err error
 	maxX, maxY := gui.g.Size()
-	gui.views = views{}
-	gui.buttons.width = 0
 
-	// draw buttons
+	// draw buttons: order matters
 	gui.views.createBtn, err = gui.createButton()
 	if err != nil {
 		return err

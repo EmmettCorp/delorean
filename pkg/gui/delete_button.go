@@ -8,8 +8,12 @@ import (
 
 func (gui *Gui) deleteButton() (*gocui.View, error) {
 	buttonName := "delete"
-	x := gui.buttons.width
-	view, err := gui.g.SetView(buttonName, x, -1, x+len(buttonName)+1, gui.headerHight-1)
+	view, err := gui.g.SetView(buttonName,
+		gui.buttons.deleteButton.x0,
+		-1,
+		gui.buttons.deleteButton.x1,
+		gui.headerHight-1,
+	)
 	if err != nil {
 		if err != gocui.ErrUnknownView {
 			gui.log.Errorf("can't build %s button: %v", buttonName, err)
@@ -21,8 +25,6 @@ func (gui *Gui) deleteButton() (*gocui.View, error) {
 		}
 		fmt.Fprint(view, buttonName)
 	}
-
-	gui.buttons.width += len(buttonName) + gui.buttons.indent
 
 	return view, nil
 }
