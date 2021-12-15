@@ -7,12 +7,16 @@ import (
 	"github.com/jroimartin/gocui"
 )
 
-func (gui *Gui) statusView(maxX, maxY int) (*gocui.View, error) {
-	name := "status"
-	view, err := gui.g.SetView(name, gui.buttons.deleteButton.x1+1, -1, maxX, gui.headerHight-1)
+func (gui *Gui) statusView() (*gocui.View, error) {
+	view, err := gui.g.SetView(gui.views.status.name,
+		gui.views.status.x0,
+		gui.views.status.y0,
+		gui.maxX,
+		gui.views.status.y1,
+	)
 	if err != nil {
 		if !errors.Is(err, gocui.ErrUnknownView) {
-			gui.log.Errorf("can't set %s view: %v", name, err)
+			gui.log.Errorf("can't set %s view: %v", gui.views.status.name, err)
 			return nil, err
 		}
 
