@@ -8,11 +8,11 @@ import (
 
 func (gui *Gui) deleteButton() (*gocui.View, error) {
 	buttonName := "delete"
-	view, err := gui.g.SetView(buttonName,
-		gui.buttons.deleteButton.x0,
-		-1,
-		gui.buttons.deleteButton.x1,
-		gui.headerHight-1,
+	view, err := gui.g.SetView(gui.views.deleteBtn.name,
+		gui.views.deleteBtn.x0,
+		gui.views.deleteBtn.y0,
+		gui.views.deleteBtn.x1,
+		gui.views.deleteBtn.y1,
 	)
 	if err != nil {
 		if err != gocui.ErrUnknownView {

@@ -6,16 +6,20 @@ import (
 	"github.com/jroimartin/gocui"
 )
 
-func (gui *Gui) snapshotsView(maxX, maxY int) (*gocui.View, error) {
-	name := "snapshots"
-	view, err := gui.g.SetView(name, gui.indent, gui.headerHight, int(0.8*float32(maxX)), maxY-5)
+func (gui *Gui) snapshotsView() (*gocui.View, error) {
+	view, err := gui.g.SetView(gui.views.snapshots.name,
+		gui.views.snapshots.x0,
+		gui.views.snapshots.y0,
+		int(0.8*float32(gui.maxX)),
+		gui.maxY-5,
+	)
 	if err != nil {
 		if !errors.Is(err, gocui.ErrUnknownView) {
-			gui.log.Errorf("can't set %s view: %v", name, err)
+			gui.log.Errorf("can't set %s view: %v", gui.views.snapshots.name, err)
 			return nil, err
 		}
 
-		view.Title = name
+		view.Title = gui.views.snapshots.name
 	}
 
 	return view, nil

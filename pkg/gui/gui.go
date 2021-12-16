@@ -17,16 +17,16 @@ type (
 	Gui struct {
 		g *gocui.Gui
 
-		views   views
-		buttons buttons
+		views views
 
 		config *config.Config
 
 		log *zap.SugaredLogger
 
 		state       *state
-		indent      int
 		headerHight int
+		maxX        int
+		maxY        int
 	}
 )
 
@@ -55,7 +55,7 @@ func (gui *Gui) Run() error {
 	// close gocui.Gui on exit from main loop.
 	defer gui.g.Close()
 
-	gui.buttons.calcutalePoints()
+	gui.initViews()
 
 	// manager
 	gui.g.SetManager(gocui.ManagerFunc(gui.layout))
