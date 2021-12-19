@@ -1,6 +1,13 @@
 package gui
 
-import "github.com/jroimartin/gocui"
+import (
+	"github.com/jroimartin/gocui"
+)
+
+const (
+	MIN_WIDTH  = 57
+	MIN_HEIGHT = 15
+)
 
 type view struct {
 	name string
@@ -18,6 +25,7 @@ type views struct {
 	snapshots  view
 	schedule   view
 	storage    view
+	errorView  view
 }
 
 func (gui *Gui) initViews() {
@@ -86,11 +94,27 @@ func (gui *Gui) initViews() {
 	gui.views.storage.x1 = gui.maxX
 	gui.views.storage.y0 = gui.views.snapshots.y1
 	gui.views.storage.y1 = gui.maxY
+
+	gui.views.errorView.name = "error"
+	gui.views.storage.x0 = 0
+	gui.views.storage.x1 = gui.maxX - 1
+	gui.views.storage.y0 = 0
+	gui.views.storage.y1 = gui.maxY - 1
 }
 
 func (gui *Gui) layout(g *gocui.Gui) error {
 	var err error
 	gui.maxX, gui.maxY = gui.g.Size()
+
+	if gui.maxX < MIN_WIDTH || gui.maxY < MIN_HEIGHT {
+		_, err = gui.errorView()
+		return err
+	} else {
+		err := gui.deleteErrorView()
+		if err != nil {
+			return err
+		}
+	}
 
 	_, err = gui.createButton()
 	if err != nil {
