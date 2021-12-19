@@ -5,8 +5,11 @@ import (
 	"fmt"
 	"io"
 	"io/fs"
+	"io/ioutil"
 	"os"
 	"time"
+
+	"github.com/EmmettCorp/delorean/pkg/closer"
 )
 
 const (
@@ -19,10 +22,23 @@ const (
 	fileMode  = 0666
 )
 
-type Config struct {
-	LogPath   string
-	StorePath string
-}
+type (
+	Config struct {
+		Path      string   `json:"path"` // needs to save config file from app.
+		Mouse     bool     `json:"mouse"`
+		LogPath   string   `json:"log_path"`
+		StorePath string   `json:"store_path"`
+		Schedule  Schedule `json:"schedule"`
+	}
+
+	Schedule struct {
+		Monthly int `json:"monthly"`
+		Weekly  int `json:"weekly"`
+		Daily   int `json:"daily"`
+		Hourly  int `json:"hourly"`
+		Boot    int `json:"boot"`
+	}
+)
 
 // New returns config that is stored in default config path.
 func New() (*Config, error) {
@@ -35,11 +51,13 @@ func New() (*Config, error) {
 	if err != nil {
 		return nil, fmt.Errorf("can't create config directory: %v", err)
 	}
+	configPath := fmt.Sprintf("%s/config.json", configDir)
 
-	f, err := os.OpenFile(fmt.Sprintf("%s/config.json", configDir), os.O_CREATE, 0666)
+	f, err := os.OpenFile(configPath, os.O_CREATE, fileMode)
 	if err != nil {
 		return nil, fmt.Errorf("can't open file: %v", err)
 	}
+	defer closer.CloseOrLog(f)
 
 	appDir := fmt.Sprintf("%s/%s", homeDir, appDir)
 	err = checkDir(appDir, os.ModePerm)
@@ -50,8 +68,9 @@ func New() (*Config, error) {
 	if err != nil {
 		return nil, fmt.Errorf("can't create log directory: %v", err)
 	}
+
 	cfg := Config{
-		LogPath: fmt.Sprintf("%s/logs/%s.log", appDir, time.Now().Format(logNameFormat)),
+		Path: configPath,
 	}
 
 	err = json.NewDecoder(f).Decode(&cfg)
@@ -59,8 +78,17 @@ func New() (*Config, error) {
 		return nil, fmt.Errorf("can't decode config: %v", err)
 	}
 
+	// update it on each init
+	cfg.LogPath = fmt.Sprintf("%s/logs/%s.log", appDir, time.Now().Format(logNameFormat))
+	cfg.Path = configPath
+
 	if cfg.StorePath == "" {
 		cfg.StorePath = storePath
+	}
+
+	err = cfg.Save()
+	if err != nil {
+		return nil, err
 	}
 
 	return &cfg, nil
@@ -76,4 +104,14 @@ func checkDir(path string, mode fs.FileMode) error {
 	}
 
 	return nil
+}
+
+// Save flushes current config to file.
+func (cfg *Config) Save() error {
+	data, err := json.MarshalIndent(cfg, "", "  ")
+	if err != nil {
+		return fmt.Errorf("can't marshal data: %v", err)
+	}
+
+	return ioutil.WriteFile(cfg.Path, data, fileMode)
 }
