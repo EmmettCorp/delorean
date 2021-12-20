@@ -38,8 +38,8 @@ func New(config *config.Config, log *zap.SugaredLogger) (*Gui, error) {
 		return nil, fmt.Errorf("can't get new gui: %v", err)
 	}
 
-	g.Cursor = true
 	g.Mouse = true
+	g.InputEsc = true
 
 	return &Gui{
 		g:           g,

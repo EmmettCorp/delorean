@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/EmmettCorp/delorean/pkg/version"
 	"github.com/jroimartin/gocui"
 )
 
@@ -28,4 +29,8 @@ func (gui *Gui) statusView() (*gocui.View, error) {
 	fmt.Fprint(view, gui.state.status)
 
 	return view, nil
+}
+
+func (gui *Gui) setDefaultStatus() {
+	gui.state.status = fmt.Sprintf(" delorean version %s | type ctrl+h to call help", version.Number)
 }
