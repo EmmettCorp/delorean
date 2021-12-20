@@ -37,7 +37,5 @@ func (gui *Gui) deleteErrorView() error {
 		return nil
 	}
 
-	gui.g.Cursor = true
-
 	return gui.g.DeleteView(gui.views.errorView.name)
 }
