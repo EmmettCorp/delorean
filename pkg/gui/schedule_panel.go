@@ -38,7 +38,7 @@ func (gui *Gui) scheduleView() (*gocui.View, error) {
 		if err != nil {
 			return nil, err
 		}
-		err = gui.g.SetKeybinding(gui.views.schedule.name, gocui.KeyEsc, gocui.ModNone, gui.scheduleUnfocus)
+		err = gui.g.SetKeybinding(gui.views.schedule.name, gocui.KeyEsc, gocui.ModNone, gui.escapeSchedule)
 		if err != nil {
 			return nil, err
 		}
@@ -81,12 +81,12 @@ func (gui *Gui) editSchedule(g *gocui.Gui, view *gocui.View) error {
 		return err
 	}
 
-	_, err = gui.g.SetViewOnTop(gui.views.schedule.name)
+	// _, err = gui.g.SetViewOnTop(gui.views.schedule.name)
 
 	return err
 }
 
-func (gui *Gui) scheduleUnfocus(g *gocui.Gui, view *gocui.View) error {
+func (gui *Gui) escapeSchedule(g *gocui.Gui, view *gocui.View) error {
 	view.Highlight = false
 	view.SelBgColor = gocui.ColorDefault
 
