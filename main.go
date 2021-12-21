@@ -4,6 +4,7 @@ import (
 	"log"
 
 	"github.com/EmmettCorp/delorean/pkg/app"
+	"github.com/EmmettCorp/delorean/pkg/commands"
 )
 
 func main() {
@@ -14,6 +15,11 @@ func main() {
 }
 
 func run() error {
+	err := commands.AskRoot()
+	if err != nil {
+		return err
+	}
+
 	app, err := app.New()
 	if err != nil {
 		return err
