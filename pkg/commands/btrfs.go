@@ -47,7 +47,7 @@ func GetVolumes() ([]Volume, error) {
 
 	for scanner.Scan() {
 		fields := strings.Fields(scanner.Text())
-		if len(fields) < 4 {
+		if len(fields) < uidIdx+1 {
 			continue
 		}
 		if fields[labelIdx] != "Label:" {
