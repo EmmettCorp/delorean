@@ -9,6 +9,8 @@ import (
 	"fmt"
 	"os/exec"
 	"strings"
+
+	"github.com/EmmettCorp/delorean/pkg/domain"
 )
 
 const (
@@ -16,12 +18,6 @@ const (
 	labelValueIdx = 1
 	uidIdx        = 3
 )
-
-// Volume represents btrfs volume.
-type Volume struct {
-	Label string
-	UID   string
-}
 
 // CreateSnapshot creates a new snapshot.
 func CreateSnapshot(sv, path string) error {
@@ -34,7 +30,7 @@ func DeleteSnapshot(path string) error {
 }
 
 // GetVolumes returns all the btrfs volumes in current filesystem.
-func GetVolumes() ([]Volume, error) {
+func GetVolumes() ([]domain.Volume, error) {
 	cmd := exec.Command("btrfs", "filesystem", "show")
 	output, err := cmd.Output()
 	if err != nil {
@@ -43,7 +39,7 @@ func GetVolumes() ([]Volume, error) {
 
 	scanner := bufio.NewScanner(bytes.NewReader(output))
 
-	volumes := []Volume{}
+	volumes := []domain.Volume{}
 
 	for scanner.Scan() {
 		fields := strings.Fields(scanner.Text())
@@ -56,7 +52,7 @@ func GetVolumes() ([]Volume, error) {
 
 		label := strings.Trim(fields[labelValueIdx], "'") // label value prints with quotes. like 'label'
 
-		volumes = append(volumes, Volume{
+		volumes = append(volumes, domain.Volume{
 			Label: label,
 			UID:   fields[uidIdx],
 		})

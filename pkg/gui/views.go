@@ -24,7 +24,7 @@ type views struct {
 	status     view
 	snapshots  view
 	schedule   view
-	storage    view
+	volumes    view
 	errorView  view
 }
 
@@ -45,9 +45,9 @@ func (gui *Gui) initViews() {
 	// |                                                  |                          |
 	// ...                                               ...                        ...
 	// |                                                  |                          |
-	// |-storage---------------------------------------------------------------------|
+	// |-volumes---------------------------------------------------------------------|
 	// |                                                                             |
-	// | here is storage data                                                        |
+	// | here is volumes data                                                        |
 	// |                                                                             |
 	// -------------------------------------------------------------------------------
 
@@ -89,17 +89,17 @@ func (gui *Gui) initViews() {
 	gui.views.schedule.y0 = headerY1 + 1
 	gui.views.schedule.y1 = gui.maxY - 5
 
-	gui.views.storage.name = "storage"
-	gui.views.storage.x0 = 0
-	gui.views.storage.x1 = gui.maxX
-	gui.views.storage.y0 = gui.views.snapshots.y1
-	gui.views.storage.y1 = gui.maxY
+	gui.views.volumes.name = "volumes"
+	gui.views.volumes.x0 = 0
+	gui.views.volumes.x1 = gui.maxX
+	gui.views.volumes.y0 = gui.views.snapshots.y1
+	gui.views.volumes.y1 = gui.maxY
 
 	gui.views.errorView.name = "error"
-	gui.views.storage.x0 = 0
-	gui.views.storage.x1 = gui.maxX - 1
-	gui.views.storage.y0 = 0
-	gui.views.storage.y1 = gui.maxY - 1
+	gui.views.errorView.x0 = 0
+	gui.views.errorView.x1 = gui.maxX - 1
+	gui.views.errorView.y0 = 0
+	gui.views.errorView.y1 = gui.maxY - 1
 }
 
 func (gui *Gui) layout(g *gocui.Gui) error {
@@ -141,7 +141,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 	if err != nil {
 		return err
 	}
-	_, err = gui.storageView()
+	_, err = gui.volumesView()
 	if err != nil {
 		return err
 	}
@@ -158,7 +158,7 @@ func (gui *Gui) allViews() []*gocui.View {
 		gui.views.status.name,
 		gui.views.snapshots.name,
 		gui.views.schedule.name,
-		gui.views.storage.name,
+		gui.views.volumes.name,
 	} {
 		v, err := gui.g.View(name)
 		if err != nil {
