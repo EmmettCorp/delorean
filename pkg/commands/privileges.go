@@ -9,7 +9,7 @@ const (
 	root = 0
 )
 
-func AskRoot() error {
+func CheckIfRoot() error {
 	if os.Getegid() == root {
 		return nil
 	}

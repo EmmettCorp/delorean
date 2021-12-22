@@ -13,7 +13,7 @@ import (
 
 const (
 	labelIdx      = 0
-	LabelValueIdx = 1
+	labelValueIdx = 1
 	uidIdx        = 3
 )
 
@@ -54,7 +54,7 @@ func GetVolumes() ([]Volume, error) {
 			continue
 		}
 
-		label := strings.Trim(fields[LabelValueIdx], "'") // label value prints with quotes. like 'label'
+		label := strings.Trim(fields[labelValueIdx], "'") // label value prints with quotes. like 'label'
 
 		volumes = append(volumes, Volume{
 			Label: label,
