@@ -4,31 +4,30 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/fs"
 	"io/ioutil"
 	"os"
 	"time"
 
 	"github.com/EmmettCorp/delorean/pkg/closer"
+	"github.com/EmmettCorp/delorean/pkg/commands"
+	"github.com/EmmettCorp/delorean/pkg/domain"
 )
 
 const (
-	configPath    = ".config/delorean"
-	appDir        = ".delorean"
-	logNameFormat = "2006-01-02_15-04-05"
-	// The path where all snapshots will be stored.
-	// TODO: put in in `run` directory on release
-	storePath = "$HOME/.delorean"
-	fileMode  = 0666
+	configPath           = ".config/delorean" // supposed config path is $HOME/configPath
+	defaultLogDir        = "/var/log/delorean"
+	defaultSnapshotsPath = "/run/delorean"
+	logNameFormat        = "2006-01-02_15-04-05"
+	fileMode             = 0600
 )
 
 type (
 	Config struct {
-		Path      string   `json:"path"` // needs to save config file from app.
-		Mouse     bool     `json:"mouse"`
-		LogPath   string   `json:"log_path"`
-		StorePath string   `json:"store_path"`
-		Schedule  Schedule `json:"schedule"`
+		Path          string          `json:"path"` // needs to save config file from app.
+		LogPath       string          `json:"log_path"`
+		SnapshotsPath string          `json:"snapshots_path"`
+		Schedule      Schedule        `json:"schedule"`
+		Volumes       []domain.Volume `json:"volumes"`
 	}
 
 	Schedule struct {
@@ -42,48 +41,59 @@ type (
 
 // New returns config that is stored in default config path.
 func New() (*Config, error) {
+	// get config
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
 		return nil, fmt.Errorf("can't get user home dir: %v", err)
 	}
 	configDir := fmt.Sprintf("%s/%s", homeDir, configPath)
-	err = checkDir(configDir, os.ModePerm)
+	err = checkDir(configDir)
 	if err != nil {
 		return nil, fmt.Errorf("can't create config directory: %v", err)
 	}
 	configPath := fmt.Sprintf("%s/config.json", configDir)
-
 	f, err := os.OpenFile(configPath, os.O_CREATE, fileMode)
 	if err != nil {
 		return nil, fmt.Errorf("can't open file: %v", err)
 	}
 	defer closer.CloseOrLog(f)
-
-	appDir := fmt.Sprintf("%s/%s", homeDir, appDir)
-	err = checkDir(appDir, os.ModePerm)
-	if err != nil {
-		return nil, fmt.Errorf("can't create log directory: %v", err)
-	}
-	err = checkDir(fmt.Sprintf("%s/logs", appDir), os.ModePerm)
-	if err != nil {
-		return nil, fmt.Errorf("can't create log directory: %v", err)
-	}
-
-	cfg := Config{
-		Path: configPath,
-	}
-
+	var cfg Config
 	err = json.NewDecoder(f).Decode(&cfg)
 	if err != nil && err != io.EOF {
 		return nil, fmt.Errorf("can't decode config: %v", err)
 	}
-
-	// update it on each init
-	cfg.LogPath = fmt.Sprintf("%s/logs/%s.log", appDir, time.Now().Format(logNameFormat))
 	cfg.Path = configPath
 
-	if cfg.StorePath == "" {
-		cfg.StorePath = storePath
+	// create a new log file
+	err = checkDir(defaultLogDir)
+	if err != nil {
+		return nil, fmt.Errorf("can't create log directory: %v", err)
+	}
+	cfg.LogPath = fmt.Sprintf("%s/%s.log", defaultLogDir, time.Now().Format(logNameFormat))
+
+	// set snapshot path
+	if cfg.SnapshotsPath == "" {
+		err = checkDir(defaultSnapshotsPath)
+		if err != nil {
+			return nil, fmt.Errorf("can't create snapshot directory: %v", err)
+		}
+		cfg.SnapshotsPath = defaultSnapshotsPath
+	}
+
+	// volumes
+	vv, err := commands.GetVolumes()
+	if err != nil {
+		return nil, fmt.Errorf("can't get volumes: %v", err)
+	}
+
+OUT:
+	for i := range vv {
+		for j := range cfg.Volumes {
+			if vv[i].UID == cfg.Volumes[j].UID {
+				continue OUT
+			}
+		}
+		cfg.Volumes = append(cfg.Volumes, vv[i])
 	}
 
 	err = cfg.Save()
@@ -94,10 +104,10 @@ func New() (*Config, error) {
 	return &cfg, nil
 }
 
-func checkDir(path string, mode fs.FileMode) error {
+func checkDir(path string) error {
 	_, err := os.Stat(path)
 	if os.IsNotExist(err) {
-		err = os.Mkdir(path, mode)
+		err = os.Mkdir(path, fileMode)
 		if err != nil {
 			return err
 		}
