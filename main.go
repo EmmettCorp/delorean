@@ -15,7 +15,7 @@ func main() {
 }
 
 func run() error {
-	err := commands.AskRoot()
+	err := commands.CheckIfRoot()
 	if err != nil {
 		return err
 	}
