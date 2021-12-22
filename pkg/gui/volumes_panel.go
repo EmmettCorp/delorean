@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/fatih/color"
+	"github.com/EmmettCorp/delorean/pkg/colors"
 	"github.com/jroimartin/gocui"
 )
 
@@ -38,10 +38,9 @@ func (gui *Gui) drawVolumes(view *gocui.View) {
 	for i := range gui.config.Volumes {
 		fmt.Fprintf(view, "Label: %s UID: %s ", gui.config.Volumes[i].Label, gui.config.Volumes[i].UID)
 		if gui.config.Volumes[i].Active {
-
-			fmt.Fprint(view, color.GreenString("%s", active))
+			fmt.Fprint(view, colors.FgGreen(active))
 		} else {
-			fmt.Fprint(view, color.RedString("%s", inactive))
+			fmt.Fprint(view, colors.FgRed(inactive))
 		}
 	}
 }
