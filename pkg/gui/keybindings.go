@@ -31,6 +31,12 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			Modifier: gocui.ModNone,
 			Handler:  quit,
 		},
+		{
+			ViewName: "",
+			Key:      gocui.KeyEsc,
+			Modifier: gocui.ModNone,
+			Handler:  gui.escapeFromView,
+		},
 	}
 
 	return bindings

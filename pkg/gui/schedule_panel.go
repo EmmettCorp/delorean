@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/EmmettCorp/delorean/pkg/colors"
 	"github.com/jroimartin/gocui"
 )
 
@@ -53,18 +54,18 @@ func (gui *Gui) scheduleView() (*gocui.View, error) {
 }
 
 func (gui *Gui) drawSchedule(view *gocui.View) {
-	fmt.Fprintf(view, " Monthly:%2d\n", gui.config.Schedule.Monthly)
-	fmt.Fprintf(view, " Weekly: %2d\n", gui.config.Schedule.Weekly)
-	fmt.Fprintf(view, " Daily:  %2d\n", gui.config.Schedule.Daily)
-	fmt.Fprintf(view, " Hourly: %2d\n", gui.config.Schedule.Hourly)
-	fmt.Fprintf(view, " Boot:   %2d\n", gui.config.Schedule.Boot)
+	fmt.Fprintf(view, " Monthly:%2d \n", gui.config.Schedule.Monthly)
+	fmt.Fprintf(view, " Weekly: %2d \n", gui.config.Schedule.Weekly)
+	fmt.Fprintf(view, " Daily:  %2d \n", gui.config.Schedule.Daily)
+	fmt.Fprintf(view, " Hourly: %2d \n", gui.config.Schedule.Hourly)
+	fmt.Fprintf(view, " Boot:   %2d \n", gui.config.Schedule.Boot)
 }
 
 func (gui *Gui) editSchedule(g *gocui.Gui, view *gocui.View) error {
 	gui.g.Cursor = false
 	view.Highlight = true
 	view.Editable = true
-	view.SelBgColor = gocui.ColorGreen
+	view.SelBgColor = gocui.ColorBlack
 
 	_, err := gui.g.SetCurrentView(gui.views.schedule.name)
 	if err != nil {
@@ -86,7 +87,7 @@ func (gui *Gui) updateSchedule(g *gocui.Gui) error {
 	}
 	view.Clear()
 	gui.drawSchedule(view)
-	gui.state.status = " press enter to save schedule "
+	gui.state.status = colors.FgRed(" press enter to save schedule ")
 	return nil
 }
 

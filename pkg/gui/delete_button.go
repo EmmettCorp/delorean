@@ -3,6 +3,7 @@ package gui
 import (
 	"fmt"
 
+	"github.com/EmmettCorp/delorean/pkg/colors"
 	"github.com/jroimartin/gocui"
 )
 
@@ -30,6 +31,6 @@ func (gui *Gui) deleteButton() (*gocui.View, error) {
 }
 
 func (gui *Gui) deleteSnapshot(g *gocui.Gui, v *gocui.View) error {
-	gui.state.status = " snapshot is deleted "
+	gui.state.status = colors.FgGreen(" snapshot is deleted ")
 	return nil
 }

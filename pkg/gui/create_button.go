@@ -3,6 +3,7 @@ package gui
 import (
 	"fmt"
 
+	"github.com/EmmettCorp/delorean/pkg/colors"
 	"github.com/jroimartin/gocui"
 )
 
@@ -29,6 +30,6 @@ func (gui *Gui) createButton() (*gocui.View, error) {
 }
 
 func (gui *Gui) createSnapshot(g *gocui.Gui, v *gocui.View) error {
-	gui.state.status = " new snapshot is created "
+	gui.state.status = colors.FgGreen(" new snapshot is created ")
 	return nil
 }
