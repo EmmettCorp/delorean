@@ -42,7 +42,7 @@ func (gui *Gui) drawVolumes(view *gocui.View) {
 		} else {
 			activeSign = colors.FgRed(inactive)
 		}
-		fmt.Fprintf(view, "Label: %s UID: %s %s\n",
-			gui.config.Volumes[i].Label, gui.config.Volumes[i].UID, activeSign)
+		fmt.Fprintf(view, " %s %s\n",
+			gui.config.Volumes[i].Label, activeSign)
 	}
 }
