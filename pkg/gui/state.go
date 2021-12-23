@@ -3,6 +3,7 @@ package gui
 import (
 	"fmt"
 
+	"github.com/EmmettCorp/delorean/pkg/colors"
 	"github.com/EmmettCorp/delorean/pkg/version"
 	"github.com/jroimartin/gocui"
 )
@@ -24,7 +25,7 @@ func (gui *Gui) saveConfig(g *gocui.Gui, view *gocui.View) error {
 	}
 
 	gui.escapeFromEditableView(g, view)
-	gui.state.status = fmt.Sprintf(" %s data is saved ", view.Name())
+	gui.state.status = colors.FgGreen(fmt.Sprintf(" %s data is saved ", view.Name()))
 	return nil
 }
 
@@ -32,6 +33,12 @@ func (gui *Gui) escapeFromEditableView(g *gocui.Gui, view *gocui.View) error {
 	view.Highlight = false
 	view.SelBgColor = gocui.ColorDefault
 
+	gui.setDefaultStatus()
+	gui.g.SetCurrentView(gui.views.status.name)
+	return nil
+}
+
+func (gui *Gui) escapeFromView(g *gocui.Gui, view *gocui.View) error {
 	gui.setDefaultStatus()
 	gui.g.SetCurrentView(gui.views.status.name)
 	return nil

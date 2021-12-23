@@ -3,6 +3,7 @@ package gui
 import (
 	"fmt"
 
+	"github.com/EmmettCorp/delorean/pkg/colors"
 	"github.com/jroimartin/gocui"
 )
 
@@ -29,6 +30,6 @@ func (gui *Gui) restoreButton() (*gocui.View, error) {
 }
 
 func (gui *Gui) restoreSnapshot(g *gocui.Gui, v *gocui.View) error {
-	gui.state.status = " reboot system to compete restore "
+	gui.state.status = colors.FgRed(" reboot system to compete restore ")
 	return nil
 }

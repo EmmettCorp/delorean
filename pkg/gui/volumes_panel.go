@@ -35,10 +35,6 @@ func (gui *Gui) volumesView() (*gocui.View, error) {
 		if err != nil {
 			return nil, err
 		}
-		err = gui.g.SetKeybinding(gui.views.volumes.name, gocui.KeyEsc, gocui.ModNone, gui.escapeFromEditableView)
-		if err != nil {
-			return nil, err
-		}
 
 		gui.drawVolumes(view)
 	}
@@ -66,7 +62,7 @@ func (gui *Gui) editVolumes(g *gocui.Gui, view *gocui.View) error {
 	if cY < len(gui.config.Volumes) {
 		gui.config.Volumes[cY].Active = !gui.config.Volumes[cY].Active
 		gui.drawVolumes(view)
-		gui.state.status = " press enter to save volumes "
+		gui.state.status = colors.FgRed(" press enter to save volumes settings ")
 	}
 
 	_, err := gui.g.SetCurrentView(gui.views.volumes.name)
