@@ -14,11 +14,10 @@ import (
 )
 
 const (
-	configPath           = ".config/delorean" // supposed config path is $HOME/configPath
-	defaultLogDir        = "/var/log/delorean"
-	defaultSnapshotsPath = "/run/delorean"
-	logNameFormat        = "2006-01-02_15-04-05"
-	fileMode             = 0600
+	deloreanPath  = "/run/delorean"
+	defaultLogDir = "/var/log/delorean"
+	logNameFormat = "2006-01-02_15-04-05"
+	fileMode      = 0600
 )
 
 type (
@@ -41,12 +40,14 @@ type (
 
 // New returns config that is stored in default config path.
 func New() (*Config, error) {
-	// get config
-	homeDir, err := os.UserHomeDir()
+	// delorean path
+	err := checkDir(deloreanPath)
 	if err != nil {
-		return nil, fmt.Errorf("can't get user home dir: %v", err)
+		return nil, fmt.Errorf("can't get delorean dir: %v", err)
 	}
-	configDir := fmt.Sprintf("%s/%s", homeDir, configPath)
+
+	// get config
+	configDir := fmt.Sprintf("%s/config", deloreanPath)
 	err = checkDir(configDir)
 	if err != nil {
 		return nil, fmt.Errorf("can't create config directory: %v", err)
@@ -73,11 +74,12 @@ func New() (*Config, error) {
 
 	// set snapshot path
 	if cfg.SnapshotsPath == "" {
-		err = checkDir(defaultSnapshotsPath)
+		snapshotsPath := fmt.Sprintf("%s/snapshots", deloreanPath)
+		err = checkDir(snapshotsPath)
 		if err != nil {
 			return nil, fmt.Errorf("can't create snapshot directory: %v", err)
 		}
-		cfg.SnapshotsPath = defaultSnapshotsPath
+		cfg.SnapshotsPath = snapshotsPath
 	}
 
 	// volumes
