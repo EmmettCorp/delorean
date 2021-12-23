@@ -15,7 +15,7 @@ import (
 
 const (
 	labelIdx      = 0
-	labelValueIdx = 1
+	volumeNameIdx = 1
 	uidIdx        = 3
 )
 
@@ -50,7 +50,7 @@ func GetVolumes() ([]domain.Volume, error) {
 			continue
 		}
 
-		label := strings.Trim(fields[labelValueIdx], "'") // label value prints with quotes. like 'label'
+		label := strings.Trim(fields[volumeNameIdx], "'") // label value prints with quotes. like 'label'
 
 		volumes = append(volumes, domain.Volume{
 			Label: label,
