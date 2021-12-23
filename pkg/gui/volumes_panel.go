@@ -36,11 +36,13 @@ func (gui *Gui) volumesView() (*gocui.View, error) {
 
 func (gui *Gui) drawVolumes(view *gocui.View) {
 	for i := range gui.config.Volumes {
-		fmt.Fprintf(view, "Label: %s UID: %s ", gui.config.Volumes[i].Label, gui.config.Volumes[i].UID)
+		var activeSign string
 		if gui.config.Volumes[i].Active {
-			fmt.Fprint(view, colors.FgGreen(active))
+			activeSign = colors.FgGreen(active)
 		} else {
-			fmt.Fprint(view, colors.FgRed(inactive))
+			activeSign = colors.FgRed(inactive)
 		}
+		fmt.Fprintf(view, "Label: %s UID: %s %s\n",
+			gui.config.Volumes[i].Label, gui.config.Volumes[i].UID, activeSign)
 	}
 }
