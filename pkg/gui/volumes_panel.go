@@ -27,14 +27,27 @@ func (gui *Gui) volumesView() (*gocui.View, error) {
 		}
 
 		view.Title = gui.views.volumes.name
+		err = gui.g.SetKeybinding(gui.views.volumes.name, gocui.MouseLeft, gocui.ModNone, gui.editVolumes)
+		if err != nil {
+			return nil, err
+		}
+		err = gui.g.SetKeybinding(gui.views.volumes.name, gocui.KeyEnter, gocui.ModNone, gui.saveConfig)
+		if err != nil {
+			return nil, err
+		}
+		err = gui.g.SetKeybinding(gui.views.volumes.name, gocui.KeyEsc, gocui.ModNone, gui.escapeFromEditableView)
+		if err != nil {
+			return nil, err
+		}
+
+		gui.drawVolumes(view)
 	}
-	view.Clear()
-	gui.drawVolumes(view)
 
 	return view, nil
 }
 
 func (gui *Gui) drawVolumes(view *gocui.View) {
+	view.Clear()
 	for i := range gui.config.Volumes {
 		var activeSign string
 		if gui.config.Volumes[i].Active {
@@ -45,4 +58,17 @@ func (gui *Gui) drawVolumes(view *gocui.View) {
 		fmt.Fprintf(view, " %s %s\n",
 			gui.config.Volumes[i].Label, activeSign)
 	}
+}
+
+func (gui *Gui) editVolumes(g *gocui.Gui, view *gocui.View) error {
+	view.Editable = true
+	_, cY := view.Cursor()
+	if cY < len(gui.config.Volumes) {
+		gui.config.Volumes[cY].Active = !gui.config.Volumes[cY].Active
+		gui.drawVolumes(view)
+		gui.state.status = " press enter to save volumes "
+	}
+
+	_, err := gui.g.SetCurrentView(gui.views.volumes.name)
+	return err
 }
