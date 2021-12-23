@@ -38,11 +38,11 @@ func (gui *Gui) scheduleView() (*gocui.View, error) {
 		if err != nil {
 			return nil, err
 		}
-		err = gui.g.SetKeybinding(gui.views.schedule.name, gocui.KeyEsc, gocui.ModNone, gui.escapeSchedule)
+		err = gui.g.SetKeybinding(gui.views.schedule.name, gocui.KeyEsc, gocui.ModNone, gui.escapeFromEditableView)
 		if err != nil {
 			return nil, err
 		}
-		err = gui.g.SetKeybinding(gui.views.schedule.name, gocui.KeyEnter, gocui.ModNone, gui.saveSchedule)
+		err = gui.g.SetKeybinding(gui.views.schedule.name, gocui.KeyEnter, gocui.ModNone, gui.saveConfig)
 		if err != nil {
 			return nil, err
 		}
@@ -60,16 +60,6 @@ func (gui *Gui) drawSchedule(view *gocui.View) {
 	fmt.Fprintf(view, " Boot:   %2d\n", gui.config.Schedule.Boot)
 }
 
-func (gui *Gui) saveSchedule(g *gocui.Gui, view *gocui.View) error {
-	err := gui.config.Save()
-	if err != nil {
-		return fmt.Errorf("can't save config: %v", err)
-	}
-
-	gui.state.status = " schedule is saved "
-	return nil
-}
-
 func (gui *Gui) editSchedule(g *gocui.Gui, view *gocui.View) error {
 	gui.g.Cursor = false
 	view.Highlight = true
@@ -84,15 +74,6 @@ func (gui *Gui) editSchedule(g *gocui.Gui, view *gocui.View) error {
 	// _, err = gui.g.SetViewOnTop(gui.views.schedule.name)
 
 	return err
-}
-
-func (gui *Gui) escapeSchedule(g *gocui.Gui, view *gocui.View) error {
-	view.Highlight = false
-	view.SelBgColor = gocui.ColorDefault
-
-	gui.setDefaultStatus()
-	gui.g.SetCurrentView(gui.views.status.name)
-	return nil
 }
 
 func (gui *Gui) updateSchedule(g *gocui.Gui) error {
@@ -205,5 +186,4 @@ func (e *scheduleEditor) Edit(v *gocui.View, key gocui.Key, ch rune, mod gocui.M
 			e.g.log.Errorf("can't update schedule: %v", err)
 		}
 	}
-
 }
