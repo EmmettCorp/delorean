@@ -14,7 +14,7 @@ import (
 )
 
 const (
-	deloreanPath  = "/run/delorean"
+	deloreanPath  = "/opt/delorean"
 	defaultLogDir = "/var/log/delorean"
 	logNameFormat = "2006-01-02_15-04-05"
 	fileMode      = 0600
@@ -82,6 +82,11 @@ func New() (*Config, error) {
 		cfg.SnapshotsPath = snapshotsPath
 	}
 
+	err = createSnapshotsPaths(cfg.SnapshotsPath)
+	if err != nil {
+		return nil, fmt.Errorf("can't create snapshots paths: %v", err)
+	}
+
 	// volumes
 	vv, err := commands.GetVolumes()
 	if err != nil {
@@ -126,4 +131,15 @@ func (cfg *Config) Save() error {
 	}
 
 	return ioutil.WriteFile(cfg.Path, data, fileMode)
+}
+
+func createSnapshotsPaths(p string) error {
+	for _, v := range []string{domain.Manual, domain.Monthly, domain.Weekly, domain.Daily, domain.Hourly, domain.Boot} {
+		err := checkDir(fmt.Sprintf("%s/%s", p, v))
+		if err != nil {
+			return fmt.Errorf("can't create snapshot directory for %s: %v", v, err)
+		}
+	}
+
+	return nil
 }

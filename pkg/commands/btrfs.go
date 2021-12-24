@@ -21,7 +21,7 @@ const (
 
 // CreateSnapshot creates a new snapshot.
 func CreateSnapshot(sv, path string) error {
-	return exec.Command("btrfs", "subvolume", "snapshot", sv, path).Run()
+	return exec.Command("btrfs", "subvolume", "snapshot", "-r", sv, path).Run()
 }
 
 // DeleteSnapshot deletes existing snapshot by path.
