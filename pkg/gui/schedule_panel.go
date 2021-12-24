@@ -62,12 +62,17 @@ func (gui *Gui) drawSchedule(view *gocui.View) {
 }
 
 func (gui *Gui) editSchedule(g *gocui.Gui, view *gocui.View) error {
+	err := gui.escapeFromViewsByName(gui.views.snapshots.name)
+	if err != nil {
+		return err
+	}
+
 	gui.g.Cursor = false
 	view.Highlight = true
 	view.Editable = true
 	view.SelBgColor = gocui.ColorBlack
 
-	_, err := gui.g.SetCurrentView(gui.views.schedule.name)
+	_, err = gui.g.SetCurrentView(gui.views.schedule.name)
 	if err != nil {
 		return err
 	}
@@ -87,29 +92,29 @@ func (gui *Gui) updateSchedule(g *gocui.Gui) error {
 	}
 	view.Clear()
 	gui.drawSchedule(view)
-	gui.state.status = colors.FgRed(" press enter to save schedule ")
+	gui.state.status = colors.FgRed("press enter to save schedule")
 	return nil
 }
 
-func (e *scheduleEditor) Edit(v *gocui.View, key gocui.Key, ch rune, mod gocui.Modifier) {
+func (e *scheduleEditor) Edit(view *gocui.View, key gocui.Key, ch rune, mod gocui.Modifier) {
 	if key == gocui.KeyArrowDown {
-		_, cY := v.Cursor()
+		_, cY := view.Cursor()
 		if cY >= maxScheduleItems {
 			return
 		}
-		v.MoveCursor(0, 1, false)
+		view.MoveCursor(0, 1, false)
 	}
 
 	if key == gocui.KeyArrowUp {
-		_, cY := v.Cursor()
+		_, cY := view.Cursor()
 		if cY <= 0 {
 			return
 		}
-		v.MoveCursor(0, -1, false)
+		view.MoveCursor(0, -1, false)
 	}
 
 	if key == gocui.KeyArrowRight {
-		_, cY := v.Cursor()
+		_, cY := view.Cursor()
 		switch cY {
 		case 0:
 			if e.g.config.Schedule.Monthly >= maxSnapshotAmount {
@@ -149,7 +154,7 @@ func (e *scheduleEditor) Edit(v *gocui.View, key gocui.Key, ch rune, mod gocui.M
 	}
 
 	if key == gocui.KeyArrowLeft {
-		_, cY := v.Cursor()
+		_, cY := view.Cursor()
 		switch cY {
 		case 0:
 			if e.g.config.Schedule.Monthly <= 0 {

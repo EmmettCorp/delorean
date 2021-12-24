@@ -5,6 +5,7 @@ package commands
 
 import (
 	"bufio"
+	"bytes"
 	"fmt"
 	"os"
 	"os/exec"
@@ -29,6 +30,49 @@ func CreateSnapshot(sv, path string) error {
 // DeleteSnapshot deletes existing snapshot by path.
 func DeleteSnapshot(path string) error {
 	return exec.Command("btrfs", "subvolume", "delete", path).Run()
+}
+
+// SnapshotsList returns the snapshots list for all active subvolumes with desc sort.
+func SnapshotsList(volumes []domain.Volume) ([]domain.Snapshot, error) {
+	snaps := []domain.Snapshot{}
+	for _, v := range volumes {
+		if !v.Active {
+			continue
+		}
+		sn, err := snapshotsListByVolume(v)
+		if err != nil {
+			return nil, err
+		}
+		snaps = append(snaps, sn...)
+	}
+
+	return snaps, nil
+}
+
+func snapshotsListByVolume(volume domain.Volume) ([]domain.Snapshot, error) {
+	cmd := exec.Command("btrfs", "subvolume", "list", "-s", "--sort=-gen", volume.Point)
+	output, err := cmd.Output()
+	if err != nil {
+		return nil, err
+	}
+
+	snaps := []domain.Snapshot{}
+
+	scanner := bufio.NewScanner(bytes.NewReader(output))
+	for scanner.Scan() {
+		fields := strings.Fields(scanner.Text())
+		if len(fields) == 0 {
+			continue
+		}
+		sn := domain.Snapshot{
+			Path: fmt.Sprintf("/%s", fields[len(fields)-1]),
+		}
+		sn.SetLabel()
+		sn.SetType()
+		snaps = append(snaps, sn)
+	}
+
+	return snaps, nil
 }
 
 // GetVolumes returns all the btrfs volumes in current filesystem.

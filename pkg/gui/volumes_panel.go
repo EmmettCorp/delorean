@@ -57,14 +57,19 @@ func (gui *Gui) drawVolumes(view *gocui.View) {
 }
 
 func (gui *Gui) editVolumes(g *gocui.Gui, view *gocui.View) error {
+	err := gui.escapeFromViewsByName(gui.views.schedule.name, gui.views.snapshots.name)
+	if err != nil {
+		return err
+	}
+
 	view.Editable = true
 	_, cY := view.Cursor()
 	if cY < len(gui.config.Volumes) {
 		gui.config.Volumes[cY].Active = !gui.config.Volumes[cY].Active
 		gui.drawVolumes(view)
-		gui.state.status = colors.FgRed(" press enter to save volumes settings ")
+		gui.state.status = colors.FgRed("press enter to save volumes settings")
 	}
 
-	_, err := gui.g.SetCurrentView(gui.views.volumes.name)
+	_, err = gui.g.SetCurrentView(gui.views.volumes.name)
 	return err
 }

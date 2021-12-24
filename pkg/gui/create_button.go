@@ -42,7 +42,7 @@ func (gui *Gui) createSnapshot(g *gocui.Gui, view *gocui.View) error {
 			return fmt.Errorf("can't create snapshot for %s: %v", vol.Point, err)
 		}
 	}
-	gui.state.status = colors.FgGreen(" new snapshot is created ")
+	gui.state.status = colors.FgGreen("new snapshot is created")
 
-	return nil
+	return gui.updateSnapshotsList()
 }
