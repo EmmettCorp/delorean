@@ -1,9 +1,12 @@
 package gui
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/EmmettCorp/delorean/pkg/colors"
+	"github.com/EmmettCorp/delorean/pkg/commands"
+	"github.com/EmmettCorp/delorean/pkg/domain"
 	"github.com/jroimartin/gocui"
 )
 
@@ -31,6 +34,25 @@ func (gui *Gui) deleteButton() (*gocui.View, error) {
 }
 
 func (gui *Gui) deleteSnapshot(g *gocui.Gui, v *gocui.View) error {
-	gui.state.status = colors.FgGreen(" snapshot is deleted ")
-	return nil
+	snap, err := gui.getChosenSnapshot()
+	if err != nil {
+		if errors.Is(err, domain.ErrSnapshotIsNotChosen) {
+			gui.state.status = colors.FgRed(err.Error())
+			return nil
+		}
+		return err
+	}
+
+	err = commands.DeleteSnapshot(snap.Path)
+	if err != nil {
+		return err
+	}
+
+	gui.state.status = colors.FgGreen(fmt.Sprintf("snapshot %s is deleted", snap.Label))
+	err = gui.updateSnapshotsList()
+	if err != nil {
+		return err
+	}
+
+	return gui.escapeFromViewsByName(gui.views.snapshots.name)
 }

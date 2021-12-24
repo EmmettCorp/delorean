@@ -8,6 +8,7 @@ import (
 	"fmt"
 
 	"github.com/EmmettCorp/delorean/pkg/config"
+	"github.com/EmmettCorp/delorean/pkg/domain"
 	"github.com/jroimartin/gocui"
 	"go.uber.org/zap"
 )
@@ -27,6 +28,7 @@ type (
 		headerHight int
 		maxX        int
 		maxY        int
+		snapshots   []domain.Snapshot
 	}
 )
 
