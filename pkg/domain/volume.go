@@ -12,6 +12,6 @@ const (
 // Volume represents btrfs volume.
 type Volume struct {
 	Label  string `json:"label"`
-	UID    string `json:"uid"`
+	Point  string `json:"point"`
 	Active bool   `json:"active"`
 }

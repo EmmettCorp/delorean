@@ -96,7 +96,7 @@ func New() (*Config, error) {
 OUT:
 	for i := range vv {
 		for j := range cfg.Volumes {
-			if vv[i].UID == cfg.Volumes[j].UID {
+			if vv[i].Point == cfg.Volumes[j].Point {
 				continue OUT
 			}
 		}

@@ -5,23 +5,25 @@ package commands
 
 import (
 	"bufio"
-	"bytes"
 	"fmt"
+	"os"
 	"os/exec"
 	"strings"
+	"time"
 
 	"github.com/EmmettCorp/delorean/pkg/domain"
 )
 
 const (
-	labelIdx      = 0
-	volumeNameIdx = 1
-	uidIdx        = 3
+	pathIdx        = 1
+	typeIdx        = 2
+	snapshotFormat = "2006-01-02_15-04-05"
 )
 
 // CreateSnapshot creates a new snapshot.
 func CreateSnapshot(sv, path string) error {
-	return exec.Command("btrfs", "subvolume", "snapshot", "-r", sv, path).Run()
+	return exec.Command("btrfs", "subvolume", "snapshot", "-r",
+		sv, fmt.Sprintf("%s/%s", path, time.Now().Format(snapshotFormat))).Run()
 }
 
 // DeleteSnapshot deletes existing snapshot by path.
@@ -31,32 +33,47 @@ func DeleteSnapshot(path string) error {
 
 // GetVolumes returns all the btrfs volumes in current filesystem.
 func GetVolumes() ([]domain.Volume, error) {
-	cmd := exec.Command("btrfs", "filesystem", "show")
-	output, err := cmd.Output()
-	if err != nil {
-		return nil, fmt.Errorf("can't get output: %v", err)
-	}
-
-	scanner := bufio.NewScanner(bytes.NewReader(output))
-
 	volumes := []domain.Volume{}
 
+	fp, err := os.Open("/proc/self/mounts")
+	if err != nil {
+		return nil, err
+	}
+	defer fp.Close()
+
+	scanner := bufio.NewScanner(fp)
 	for scanner.Scan() {
 		fields := strings.Fields(scanner.Text())
-		if len(fields) < uidIdx+1 {
-			continue
-		}
-		if fields[labelIdx] != "Label:" {
+		if fields[typeIdx] != "btrfs" {
 			continue
 		}
 
-		label := strings.Trim(fields[volumeNameIdx], "'") // label value prints with quotes. like 'label'
+		point := fields[pathIdx]
+
+		label := getVolumeLabelByPath(point)
+		if label == "" {
+			label = point
+		}
 
 		volumes = append(volumes, domain.Volume{
 			Label: label,
-			UID:   fields[uidIdx],
+			Point: point,
 		})
 	}
 
+	if scanner.Err() != nil {
+		return nil, scanner.Err()
+	}
+
 	return volumes, nil
+}
+
+func getVolumeLabelByPath(p string) string {
+	cmd := exec.Command("btrfs", "filesystem", "label", p)
+	output, err := cmd.Output()
+	if err != nil {
+		return ""
+	}
+
+	return strings.TrimSpace(string(output))
 }
