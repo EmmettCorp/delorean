@@ -32,16 +32,31 @@ func (gui *Gui) createButton() (*gocui.View, error) {
 }
 
 func (gui *Gui) createSnapshot(g *gocui.Gui, view *gocui.View) error {
+	if !gui.views.createBtn.limiter.Allow() {
+		gui.state.status = colors.FgRed("too many create calls per second")
+		return nil
+	}
+
+	var activeVolumeFound bool
+
 	for _, vol := range gui.config.Volumes {
 		if !vol.Active {
 			continue
 		}
+
+		activeVolumeFound = true
 
 		err := commands.CreateSnapshot(vol.Point, fmt.Sprintf("%s/%s", gui.config.SnapshotsPath, domain.Manual))
 		if err != nil {
 			return fmt.Errorf("can't create snapshot for %s: %v", vol.Point, err)
 		}
 	}
+
+	if !activeVolumeFound {
+		gui.state.status = colors.FgRed("there are no active volumes")
+		return nil
+	}
+
 	gui.state.status = colors.FgGreen("new snapshot is created")
 
 	return gui.updateSnapshotsList()
