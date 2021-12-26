@@ -1,6 +1,9 @@
 package gui
 
 import (
+	"time"
+
+	"github.com/EmmettCorp/delorean/pkg/rate"
 	"github.com/jroimartin/gocui"
 )
 
@@ -10,11 +13,12 @@ const (
 )
 
 type view struct {
-	name string
-	x0   int
-	x1   int
-	y0   int
-	y1   int
+	name    string
+	x0      int
+	x1      int
+	y0      int
+	y1      int
+	limiter *rate.Limiter
 }
 
 type views struct {
@@ -58,6 +62,10 @@ func (gui *Gui) initViews() {
 	gui.views.createBtn.x1 = gui.views.createBtn.x0 + len(gui.views.createBtn.name) + 1
 	gui.views.createBtn.y0 = headerY0
 	gui.views.createBtn.y1 = headerY1
+	// Limiter for create button is needed to allow to finish create snapshot operation.
+	// There is no real point in real life doing snapshots every second.
+	// If allow user to call btrfs.CreateSnapshot several times a second it could cause a exec.Command call error.
+	gui.views.createBtn.limiter = rate.NewLimiter(time.Second * 2)
 
 	gui.views.restoreBtn.name = "restore"
 	gui.views.restoreBtn.x0 = gui.views.createBtn.x1 + indent
