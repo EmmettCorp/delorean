@@ -3,9 +3,10 @@ package domain
 import "strings"
 
 type Snapshot struct {
-	Path  string
-	Label string
-	Type  string
+	Path   string
+	Label  string
+	Type   string // manual, weekly, daily, etc. ...
+	Volume string // volume label
 }
 
 func (s *Snapshot) SetLabel() {
