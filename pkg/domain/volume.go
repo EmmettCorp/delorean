@@ -13,5 +13,6 @@ const (
 type Volume struct {
 	Label  string `json:"label"`
 	Point  string `json:"point"`
+	Device string `json:"device"`
 	Active bool   `json:"active"`
 }

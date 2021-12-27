@@ -27,7 +27,7 @@ func (gui *Gui) saveConfig(g *gocui.Gui, view *gocui.View) error {
 
 	gui.escapeFromEditableView(g, view)
 	gui.state.status = colors.FgGreen(fmt.Sprintf("%s data is saved ", view.Name()))
-	return nil
+	return gui.updateSnapshotsList()
 }
 
 func (gui *Gui) escapeFromEditableView(g *gocui.Gui, view *gocui.View) error {

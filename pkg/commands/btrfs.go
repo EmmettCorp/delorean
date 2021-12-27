@@ -16,6 +16,7 @@ import (
 )
 
 const (
+	deviceIdx      = 0
 	pathIdx        = 1
 	typeIdx        = 2
 	snapshotFormat = "2006-01-02_15-04-05"
@@ -101,8 +102,9 @@ func GetVolumes() ([]domain.Volume, error) {
 		}
 
 		volumes = append(volumes, domain.Volume{
-			Label: label,
-			Point: point,
+			Label:  label,
+			Point:  point,
+			Device: fields[deviceIdx],
 		})
 	}
 
