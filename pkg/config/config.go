@@ -25,6 +25,7 @@ type (
 		Path          string          `json:"path"` // needs to save config file from app.
 		LogPath       string          `json:"log_path"`
 		SnapshotsPath string          `json:"snapshots_path"`
+		RootDevice    string          `json:"root_device"`
 		Schedule      Schedule        `json:"schedule"`
 		Volumes       []domain.Volume `json:"volumes"`
 	}
@@ -85,6 +86,12 @@ func New() (*Config, error) {
 	err = createSnapshotsPaths(cfg.SnapshotsPath)
 	if err != nil {
 		return nil, fmt.Errorf("can't create snapshots paths: %v", err)
+	}
+
+	// get root device
+	cfg.RootDevice, err = commands.GetRootDevice()
+	if err != nil {
+		return nil, fmt.Errorf("can't get root device: %v", err)
 	}
 
 	// volumes
