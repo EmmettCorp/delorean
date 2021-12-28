@@ -5,7 +5,7 @@ import "strings"
 type Snapshot struct {
 	Path   string
 	Label  string
-	Type   string // manual, weekly, daily, etc. ...
+	Type   string // manual, weekly, daily, etc.
 	Volume string // volume label
 }
 

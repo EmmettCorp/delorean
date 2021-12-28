@@ -14,20 +14,20 @@ import (
 )
 
 const (
-	deloreanPath  = "/opt/delorean"
-	defaultLogDir = "/var/log/delorean"
-	logNameFormat = "2006-01-02_15-04-05"
-	fileMode      = 0600
+	deloreanPath        = "/opt/delorean"
+	defaultLogDir       = "/var/log/delorean"
+	logNameFormat       = "2006-01-02_15-04-05"
+	defaultSnapshotsDir = ".snapshots"
+	fileMode            = 0600
 )
 
 type (
 	Config struct {
-		Path          string          `json:"path"` // needs to save config file from app.
-		LogPath       string          `json:"log_path"`
-		SnapshotsPath string          `json:"snapshots_path"`
-		RootDevice    string          `json:"root_device"`
-		Schedule      Schedule        `json:"schedule"`
-		Volumes       []domain.Volume `json:"volumes"`
+		Path       string          `json:"path"` // needs to save config file from app.
+		LogPath    string          `json:"log_path"`
+		RootDevice string          `json:"root_device"`
+		Schedule   Schedule        `json:"schedule"`
+		Volumes    []domain.Volume `json:"volumes"`
 	}
 
 	Schedule struct {
@@ -73,25 +73,16 @@ func New() (*Config, error) {
 	}
 	cfg.LogPath = fmt.Sprintf("%s/%s.log", defaultLogDir, time.Now().Format(logNameFormat))
 
-	// set snapshot path
-	if cfg.SnapshotsPath == "" {
-		snapshotsPath := fmt.Sprintf("%s/snapshots", deloreanPath)
-		err = checkDir(snapshotsPath)
-		if err != nil {
-			return nil, fmt.Errorf("can't create snapshot directory: %v", err)
-		}
-		cfg.SnapshotsPath = snapshotsPath
-	}
-
-	err = createSnapshotsPaths(cfg.SnapshotsPath)
-	if err != nil {
-		return nil, fmt.Errorf("can't create snapshots paths: %v", err)
-	}
-
 	// get root device
 	cfg.RootDevice, err = commands.GetRootDevice()
 	if err != nil {
 		return nil, fmt.Errorf("can't get root device: %v", err)
+	}
+
+	rootSnapshotsPath := fmt.Sprintf("/%s", defaultSnapshotsDir)
+	err = createSnapshotsPaths(rootSnapshotsPath)
+	if err != nil {
+		return nil, fmt.Errorf("can't create snapshots paths: %v", err)
 	}
 
 	// volumes
@@ -103,10 +94,22 @@ func New() (*Config, error) {
 OUT:
 	for i := range vv {
 		for j := range cfg.Volumes {
-			if vv[i].Point == cfg.Volumes[j].Point {
+			if vv[i].Point == cfg.Volumes[j].Point { // check if this path has been already added
 				continue OUT
 			}
 		}
+
+		if vv[i].Device != cfg.RootDevice {
+			snapshotsPath := fmt.Sprintf("%s/%s", vv[i].Point, defaultSnapshotsDir)
+			err = createSnapshotsPaths(fmt.Sprintf("%s/%s", vv[i].Point, defaultSnapshotsDir))
+			if err != nil {
+				return nil, fmt.Errorf("can't create snapshots paths: %v", err)
+			}
+			vv[i].SnapshotsPath = snapshotsPath
+		} else {
+			vv[i].SnapshotsPath = rootSnapshotsPath
+		}
+
 		cfg.Volumes = append(cfg.Volumes, vv[i])
 	}
 
@@ -141,6 +144,11 @@ func (cfg *Config) Save() error {
 }
 
 func createSnapshotsPaths(p string) error {
+	err := checkDir(p)
+	if err != nil {
+		return fmt.Errorf("can't create snapshot directory: %v", err)
+	}
+
 	for _, v := range []string{domain.Manual, domain.Monthly, domain.Weekly, domain.Daily, domain.Hourly, domain.Boot} {
 		err := checkDir(fmt.Sprintf("%s/%s", p, v))
 		if err != nil {
