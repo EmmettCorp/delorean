@@ -3,6 +3,7 @@ package domain
 import "strings"
 
 type Snapshot struct {
+	ID     int64
 	Path   string
 	Label  string
 	Type   string // manual, weekly, daily, etc.

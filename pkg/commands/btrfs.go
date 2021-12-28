@@ -9,6 +9,8 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"sort"
+	"strconv"
 	"strings"
 	"time"
 
@@ -19,8 +21,15 @@ const (
 	deviceIdx      = 0
 	pathIdx        = 1
 	typeIdx        = 2
+	snapID         = 1
 	snapshotFormat = "2006-01-02_15-04-05"
 )
+
+type sortableSnapshots []domain.Snapshot
+
+func (ss sortableSnapshots) Len() int           { return len(ss) }
+func (ss sortableSnapshots) Swap(i, j int)      { ss[i], ss[j] = ss[j], ss[i] }
+func (ss sortableSnapshots) Less(i, j int) bool { return ss[i].ID > ss[j].ID }
 
 // CreateSnapshot creates a new snapshot.
 func CreateSnapshot(sv, path string) error {
@@ -35,7 +44,7 @@ func DeleteSnapshot(path string) error {
 
 // SnapshotsList returns the snapshots list for all active subvolumes with desc sort.
 func SnapshotsList(volumes []domain.Volume) ([]domain.Snapshot, error) {
-	snaps := []domain.Snapshot{}
+	snaps := sortableSnapshots{}
 	for _, v := range volumes {
 		if !v.Active {
 			continue
@@ -47,11 +56,13 @@ func SnapshotsList(volumes []domain.Volume) ([]domain.Snapshot, error) {
 		snaps = append(snaps, sn...)
 	}
 
+	sort.Sort(snaps)
+
 	return snaps, nil
 }
 
 func snapshotsListByVolume(volume domain.Volume) ([]domain.Snapshot, error) {
-	cmd := exec.Command("btrfs", "subvolume", "list", "-s", "--sort=-gen", volume.Point)
+	cmd := exec.Command("btrfs", "subvolume", "list", "-sp", volume.Point)
 	output, err := cmd.Output()
 	if err != nil {
 		return nil, err
@@ -65,7 +76,14 @@ func snapshotsListByVolume(volume domain.Volume) ([]domain.Snapshot, error) {
 		if len(fields) == 0 {
 			continue
 		}
+
+		id, err := strconv.ParseInt(fields[snapID], 10, 64)
+		if err != nil {
+			return nil, err
+		}
+
 		sn := domain.Snapshot{
+			ID:     id,
 			Path:   fmt.Sprintf("%s/%s", volume.Point, fields[len(fields)-1]),
 			Volume: volume.Label,
 		}
