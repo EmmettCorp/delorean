@@ -14,7 +14,7 @@ build: ## Build binary.
 	@echo -e "\033[2m→ Building binary...\033[0m"
 	go build -o delorean main.go
 
-install: build ## Install binary.
+install: build ## Install binary to `/usr/local/bin` path.
 	@echo -e "\033[2m→ Installing binary to /usr/local/bin ...\033[0m"
 	sudo mv delorean /usr/local/bin/
 run: ## Run without building

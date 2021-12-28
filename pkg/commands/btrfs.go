@@ -62,7 +62,7 @@ func SnapshotsList(volumes []domain.Volume) ([]domain.Snapshot, error) {
 }
 
 func snapshotsListByVolume(volume domain.Volume) ([]domain.Snapshot, error) {
-	cmd := exec.Command("btrfs", "subvolume", "list", "-sp", volume.Point)
+	cmd := exec.Command("btrfs", "subvolume", "list", "-s", volume.Point)
 	output, err := cmd.Output()
 	if err != nil {
 		return nil, err
