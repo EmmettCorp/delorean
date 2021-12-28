@@ -46,7 +46,7 @@ func (gui *Gui) createSnapshot(g *gocui.Gui, view *gocui.View) error {
 
 		activeVolumeFound = true
 
-		err := commands.CreateSnapshot(vol.Point, fmt.Sprintf("%s/%s", gui.config.SnapshotsPath, domain.Manual))
+		err := commands.CreateSnapshot(vol.Point, fmt.Sprintf("%s/%s", vol.SnapshotsPath, domain.Manual))
 		if err != nil {
 			return fmt.Errorf("can't create snapshot for %s: %v", vol.Point, err)
 		}

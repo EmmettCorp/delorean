@@ -66,7 +66,7 @@ func snapshotsListByVolume(volume domain.Volume) ([]domain.Snapshot, error) {
 			continue
 		}
 		sn := domain.Snapshot{
-			Path:   fmt.Sprintf("/%s", fields[len(fields)-1]),
+			Path:   fmt.Sprintf("%s/%s", volume.Point, fields[len(fields)-1]),
 			Volume: volume.Label,
 		}
 		sn.SetLabel()
