@@ -14,7 +14,7 @@ import (
 )
 
 const (
-	deloreanPath        = "/opt/delorean"
+	deloreanPath        = "/usr/local/delorean"
 	defaultLogDir       = "/var/log/delorean"
 	logNameFormat       = "2006-01-02_15-04-05"
 	defaultSnapshotsDir = ".snapshots"
