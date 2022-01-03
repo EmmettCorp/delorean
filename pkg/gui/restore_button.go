@@ -1,9 +1,12 @@
 package gui
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/EmmettCorp/delorean/pkg/colors"
+	"github.com/EmmettCorp/delorean/pkg/commands"
+	"github.com/EmmettCorp/delorean/pkg/domain"
 	"github.com/jroimartin/gocui"
 )
 
@@ -30,6 +33,21 @@ func (gui *Gui) restoreButton() (*gocui.View, error) {
 }
 
 func (gui *Gui) restoreSnapshot(g *gocui.Gui, v *gocui.View) error {
+	snap, err := gui.getChosenSnapshot()
+	if err != nil {
+		if errors.Is(err, domain.ErrSnapshotIsNotChosen) {
+			gui.state.status = colors.FgRed(err.Error())
+			return nil
+		}
+		return err
+	}
+
+	err = commands.SetDefault(snap.VolumePoint, snap.ID)
+	if err != nil {
+		return err
+	}
+
 	gui.state.status = colors.FgRed("reboot system to compete restore")
-	return nil
+
+	return gui.escapeFromViewsByName(gui.views.snapshots.name)
 }

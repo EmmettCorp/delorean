@@ -6,6 +6,7 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
+	"path"
 	"time"
 
 	"github.com/EmmettCorp/delorean/pkg/closer"
@@ -23,11 +24,10 @@ const (
 
 type (
 	Config struct {
-		Path       string          `json:"path"` // needs to save config file from app.
-		LogPath    string          `json:"log_path"`
-		RootDevice string          `json:"root_device"`
-		Schedule   Schedule        `json:"schedule"`
-		Volumes    []domain.Volume `json:"volumes"`
+		Path     string          `json:"path"` // needs to save config file from app.
+		LogPath  string          `json:"log_path"`
+		Schedule Schedule        `json:"schedule"`
+		Volumes  []domain.Volume `json:"volumes"`
 	}
 
 	Schedule struct {
@@ -73,18 +73,6 @@ func New() (*Config, error) {
 	}
 	cfg.LogPath = fmt.Sprintf("%s/%s.log", defaultLogDir, time.Now().Format(logNameFormat))
 
-	// get root device
-	cfg.RootDevice, err = commands.GetRootDevice()
-	if err != nil {
-		return nil, fmt.Errorf("can't get root device: %v", err)
-	}
-
-	rootSnapshotsPath := fmt.Sprintf("/%s", defaultSnapshotsDir)
-	err = createSnapshotsPaths(rootSnapshotsPath)
-	if err != nil {
-		return nil, fmt.Errorf("can't create snapshots paths: %v", err)
-	}
-
 	// volumes
 	vv, err := commands.GetVolumes()
 	if err != nil {
@@ -99,15 +87,9 @@ OUT:
 			}
 		}
 
-		if vv[i].Device != cfg.RootDevice {
-			snapshotsPath := fmt.Sprintf("%s/%s", vv[i].Point, defaultSnapshotsDir)
-			err = createSnapshotsPaths(fmt.Sprintf("%s/%s", vv[i].Point, defaultSnapshotsDir))
-			if err != nil {
-				return nil, fmt.Errorf("can't create snapshots paths: %v", err)
-			}
-			vv[i].SnapshotsPath = snapshotsPath
-		} else {
-			vv[i].SnapshotsPath = rootSnapshotsPath
+		err = createSnapshotsPaths(path.Join(vv[i].Point, defaultSnapshotsDir))
+		if err != nil {
+			return nil, fmt.Errorf("can't create snapshots paths: %v", err)
 		}
 
 		cfg.Volumes = append(cfg.Volumes, vv[i])
@@ -150,7 +132,7 @@ func createSnapshotsPaths(p string) error {
 	}
 
 	for _, v := range []string{domain.Manual, domain.Monthly, domain.Weekly, domain.Daily, domain.Hourly, domain.Boot} {
-		err := checkDir(fmt.Sprintf("%s/%s", p, v))
+		err := checkDir(path.Join(p, v))
 		if err != nil {
 			return fmt.Errorf("can't create snapshot directory for %s: %v", v, err)
 		}
