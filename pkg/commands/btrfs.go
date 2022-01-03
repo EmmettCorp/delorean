@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"path"
 	"sort"
 	"strconv"
 	"strings"
@@ -32,14 +33,42 @@ func (ss sortableSnapshots) Swap(i, j int)      { ss[i], ss[j] = ss[j], ss[i] }
 func (ss sortableSnapshots) Less(i, j int) bool { return ss[i].ID > ss[j].ID }
 
 // CreateSnapshot creates a new snapshot.
-func CreateSnapshot(sv, path string) error {
-	return exec.Command("btrfs", "subvolume", "snapshot", "-r",
-		sv, fmt.Sprintf("%s/%s", path, time.Now().Format(snapshotFormat))).Run()
+func CreateSnapshot(sv, ph string) error {
+	cmd := exec.Command("btrfs", "subvolume", "snapshot", sv, path.Join(ph, time.Now().Format(snapshotFormat)))
+	var cmdErr bytes.Buffer
+	cmd.Stderr = &cmdErr
+	err := cmd.Run()
+	if err != nil {
+		return fmt.Errorf("can't execute %s: %s", cmd.String(), cmdErr.String())
+	}
+
+	return nil
+}
+
+// SetDefault sets subvolume as default by id.
+func SetDefault(volumePath string, snapID int64) error {
+	cmd := exec.Command("btrfs", "subvolume", "set-default", fmt.Sprintf("%d", snapID), volumePath)
+	err := cmd.Run()
+	var cmdErr bytes.Buffer
+	cmd.Stderr = &cmdErr
+	if err != nil {
+		return fmt.Errorf("can't execute %s: %s", cmd.String(), cmdErr.String())
+	}
+
+	return nil
 }
 
 // DeleteSnapshot deletes existing snapshot by path.
-func DeleteSnapshot(path string) error {
-	return exec.Command("btrfs", "subvolume", "delete", path).Run()
+func DeleteSnapshot(ph string) error {
+	cmd := exec.Command("btrfs", "subvolume", "delete", ph)
+	var cmdErr bytes.Buffer
+	cmd.Stderr = &cmdErr
+	err := cmd.Run()
+	if err != nil {
+		return fmt.Errorf("can't execute %s: %s", cmd.String(), cmdErr.String())
+	}
+
+	return nil
 }
 
 // SnapshotsList returns the snapshots list for all active subvolumes with desc sort.
@@ -83,9 +112,10 @@ func snapshotsListByVolume(volume domain.Volume) ([]domain.Snapshot, error) {
 		}
 
 		sn := domain.Snapshot{
-			ID:     id,
-			Path:   fmt.Sprintf("%s/%s", volume.Point, fields[len(fields)-1]),
-			Volume: volume.Label,
+			ID:          id,
+			Path:        path.Join(volume.Point, fields[len(fields)-1]),
+			VolumeLabel: volume.Label,
+			VolumePoint: volume.Point,
 		}
 		sn.SetLabel()
 		sn.SetType()
