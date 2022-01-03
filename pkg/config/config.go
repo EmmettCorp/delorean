@@ -24,10 +24,11 @@ const (
 
 type (
 	Config struct {
-		Path     string          `json:"path"` // needs to save config file from app.
-		LogPath  string          `json:"log_path"`
-		Schedule Schedule        `json:"schedule"`
-		Volumes  []domain.Volume `json:"volumes"`
+		Path            string          `json:"path"` // needs to save config file from app.
+		LogPath         string          `json:"log_path"`
+		Schedule        Schedule        `json:"schedule"`
+		Volumes         []domain.Volume `json:"volumes"`
+		SnapshotDirName string          `json:"snapshots_dir_name"`
 	}
 
 	Schedule struct {
@@ -65,6 +66,7 @@ func New() (*Config, error) {
 		return nil, fmt.Errorf("can't decode config: %v", err)
 	}
 	cfg.Path = configPath
+	cfg.SnapshotDirName = defaultSnapshotsDir
 
 	// create a new log file
 	err = checkDir(defaultLogDir)

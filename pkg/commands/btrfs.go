@@ -47,7 +47,7 @@ func CreateSnapshot(sv, ph string) error {
 
 // SetDefault sets subvolume as default by id.
 func SetDefault(volumePath string, snapID int64) error {
-	cmd := exec.Command("btrfs", "", "set-default", fmt.Sprintf("%d", snapID), volumePath)
+	cmd := exec.Command("btrfs", "subvolume", "set-default", fmt.Sprintf("%d", snapID), volumePath)
 	err := cmd.Run()
 	var cmdErr bytes.Buffer
 	cmd.Stderr = &cmdErr
