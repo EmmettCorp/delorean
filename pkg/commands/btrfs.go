@@ -23,7 +23,7 @@ const (
 	pathIdx        = 1
 	typeIdx        = 2
 	snapID         = 1
-	snapshotFormat = "2006-01-02_15-04-05"
+	snapshotFormat = "2006-01-02_15:04:05"
 )
 
 type sortableSnapshots []domain.Snapshot
