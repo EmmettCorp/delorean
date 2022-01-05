@@ -7,17 +7,15 @@ import (
 	"io/ioutil"
 	"os"
 	"path"
-	"time"
 
-	"github.com/EmmettCorp/delorean/pkg/closer"
 	"github.com/EmmettCorp/delorean/pkg/commands"
 	"github.com/EmmettCorp/delorean/pkg/domain"
+	"github.com/EmmettCorp/delorean/pkg/logger"
 )
 
 const (
-	deloreanPath        = "/usr/local/delorean"
-	defaultLogDir       = "/var/log/delorean"
-	logNameFormat       = "2006-01-02_15-04-05"
+	deloreanPath = "/usr/local/delorean"
+
 	defaultSnapshotsDir = ".snapshots"
 	fileMode            = 0600
 )
@@ -25,7 +23,6 @@ const (
 type (
 	Config struct {
 		Path            string          `json:"path"` // needs to save config file from app.
-		LogPath         string          `json:"log_path"`
 		Schedule        Schedule        `json:"schedule"`
 		Volumes         []domain.Volume `json:"volumes"`
 		SnapshotDirName string          `json:"snapshots_dir_name"`
@@ -41,7 +38,7 @@ type (
 )
 
 // New returns config that is stored in default config path.
-func New() (*Config, error) {
+func New(log *logger.Client) (*Config, error) {
 	// delorean path
 	err := checkDir(deloreanPath)
 	if err != nil {
@@ -59,7 +56,8 @@ func New() (*Config, error) {
 	if err != nil {
 		return nil, fmt.Errorf("can't open file: %v", err)
 	}
-	defer closer.CloseOrLog(f)
+	defer log.CloseOrLog(f)
+
 	var cfg Config
 	err = json.NewDecoder(f).Decode(&cfg)
 	if err != nil && err != io.EOF {
@@ -67,13 +65,6 @@ func New() (*Config, error) {
 	}
 	cfg.Path = configPath
 	cfg.SnapshotDirName = defaultSnapshotsDir
-
-	// create a new log file
-	err = checkDir(defaultLogDir)
-	if err != nil {
-		return nil, fmt.Errorf("can't create log directory: %v", err)
-	}
-	cfg.LogPath = fmt.Sprintf("%s/%s.log", defaultLogDir, time.Now().Format(logNameFormat))
 
 	// volumes
 	vv, err := commands.GetVolumes()
@@ -108,13 +99,10 @@ OUT:
 func checkDir(path string) error {
 	_, err := os.Stat(path)
 	if os.IsNotExist(err) {
-		err = os.Mkdir(path, fileMode)
-		if err != nil {
-			return err
-		}
+		return os.Mkdir(path, fileMode)
 	}
 
-	return nil
+	return err
 }
 
 // Save flushes current config to file.

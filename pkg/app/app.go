@@ -16,14 +16,14 @@ type (
 
 // New creates and returns new app.
 func New() (*App, error) {
-	cfg, err := config.New()
-	if err != nil {
-		return nil, fmt.Errorf("can't get new config: %v", err)
-	}
-
-	log, err := logger.New(cfg.LogPath)
+	log, err := logger.New()
 	if err != nil {
 		return nil, fmt.Errorf("can't get new logger: %v", err)
+	}
+
+	cfg, err := config.New(log)
+	if err != nil {
+		return nil, fmt.Errorf("can't get new config: %v", err)
 	}
 
 	g, err := gui.New(cfg, log)
