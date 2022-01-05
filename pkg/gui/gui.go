@@ -9,8 +9,8 @@ import (
 
 	"github.com/EmmettCorp/delorean/pkg/config"
 	"github.com/EmmettCorp/delorean/pkg/domain"
+	"github.com/EmmettCorp/delorean/pkg/logger"
 	"github.com/jroimartin/gocui"
-	"go.uber.org/zap"
 )
 
 // Gui wraps the gocui Gui object which handles rendering and events
@@ -22,7 +22,7 @@ type (
 
 		config *config.Config
 
-		log *zap.SugaredLogger
+		log *logger.Client
 
 		state       *state
 		headerHight int
@@ -33,7 +33,7 @@ type (
 )
 
 // New creates and returns a new gui handler.
-func New(config *config.Config, log *zap.SugaredLogger) (*Gui, error) {
+func New(config *config.Config, log *logger.Client) (*Gui, error) {
 	g, err := gocui.NewGui(gocui.OutputNormal)
 	if err != nil {
 		log.Errorf("can't get new gui: %v", err)
