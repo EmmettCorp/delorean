@@ -172,3 +172,27 @@ func getVolumeLabelByPath(p string) string {
 
 	return strings.TrimSpace(string(output))
 }
+
+// BtrfsSupported checks if kernel supports btrfs.
+func BtrfsSupported() (bool, error) {
+	var wordIDx int
+	fp, err := os.Open("/proc/filesystems")
+	if err != nil {
+		return false, err
+	}
+	defer fp.Close()
+
+	scanner := bufio.NewScanner(fp)
+	for scanner.Scan() {
+		fields := strings.Fields(scanner.Text())
+		if fields[wordIDx] == "btrfs" {
+			return true, nil
+		}
+	}
+
+	if scanner.Err() != nil {
+		return false, scanner.Err()
+	}
+
+	return false, nil
+}

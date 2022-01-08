@@ -2,6 +2,7 @@ package config
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -22,6 +23,7 @@ const (
 
 type (
 	Config struct {
+		BtrfsSupported  bool            `json:"btrfs_supported"`
 		Path            string          `json:"path"` // needs to save config file from app.
 		Schedule        Schedule        `json:"schedule"`
 		Volumes         []domain.Volume `json:"volumes"`
@@ -65,6 +67,19 @@ func New(log *logger.Client) (*Config, error) {
 	}
 	cfg.Path = configPath
 	cfg.SnapshotDirName = defaultSnapshotsDir
+
+	if !cfg.BtrfsSupported { // check on first run only
+		cfg.BtrfsSupported, err = commands.BtrfsSupported()
+		if err != nil {
+			log.Errorf("can't check if btrfs is supported by kernel: %v", err)
+			return nil, fmt.Errorf("can't check if btrfs is supported by kernel: %v", err)
+		}
+
+		if !cfg.BtrfsSupported {
+			log.Error("btrfs is not supported by the kernel")
+			return nil, errors.New("btrfs is not supported by the kernel")
+		}
+	}
 
 	// volumes
 	vv, err := commands.GetVolumes()
