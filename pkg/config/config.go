@@ -28,6 +28,7 @@ type (
 		Schedule        Schedule        `json:"schedule"`
 		Volumes         []domain.Volume `json:"volumes"`
 		SnapshotDirName string          `json:"snapshots_dir_name"`
+		RootDevice      string          `json:"root_device"`
 	}
 
 	Schedule struct {
@@ -93,6 +94,10 @@ OUT:
 			if vv[i].Point == cfg.Volumes[j].Point { // check if this path has been already added
 				continue OUT
 			}
+		}
+
+		if vv[i].Point == "/" {
+			cfg.RootDevice = vv[i].Device
 		}
 
 		err = createSnapshotsPaths(path.Join(vv[i].Point, defaultSnapshotsDir))

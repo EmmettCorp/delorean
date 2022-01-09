@@ -125,54 +125,6 @@ func snapshotsListByVolume(volume domain.Volume) ([]domain.Snapshot, error) {
 	return snaps, nil
 }
 
-// GetVolumes returns all the btrfs volumes in current filesystem.
-func GetVolumes() ([]domain.Volume, error) {
-	volumes := []domain.Volume{}
-
-	fp, err := os.Open("/proc/self/mounts")
-	if err != nil {
-		return nil, err
-	}
-	defer fp.Close()
-
-	scanner := bufio.NewScanner(fp)
-	for scanner.Scan() {
-		fields := strings.Fields(scanner.Text())
-		if fields[typeIdx] != "btrfs" {
-			continue
-		}
-
-		point := fields[pathIdx]
-
-		label := getVolumeLabelByPath(point)
-		if label == "" {
-			label = point
-		}
-
-		volumes = append(volumes, domain.Volume{
-			Label:  label,
-			Point:  point,
-			Device: fields[deviceIdx],
-		})
-	}
-
-	if scanner.Err() != nil {
-		return nil, scanner.Err()
-	}
-
-	return volumes, nil
-}
-
-func getVolumeLabelByPath(p string) string {
-	cmd := exec.Command("btrfs", "filesystem", "label", p)
-	output, err := cmd.Output()
-	if err != nil {
-		return ""
-	}
-
-	return strings.TrimSpace(string(output))
-}
-
 // BtrfsSupported checks if kernel supports btrfs.
 func BtrfsSupported() (bool, error) {
 	var wordIDx int
