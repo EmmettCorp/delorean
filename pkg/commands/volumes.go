@@ -2,75 +2,66 @@ package commands
 
 import (
 	"bufio"
+	"bytes"
 	"errors"
 	"fmt"
-	"os"
+	"os/exec"
 	"strings"
 
 	"github.com/EmmettCorp/delorean/pkg/domain"
 )
 
 const (
-	deviceIDx = iota
-	pathIDx
-	fsTypeIDx
-	optionsIDx
+	btrfsType    = "btrfs"
+	lsblkOptions = "PATH,UUID,LABEL,MOUNTPOINT,FSTYPE,HOTPLUG"
 )
 
-const btrfsType = "btrfs"
+// order depends on lsblkOptions
+const (
+	deviceIDx = iota
+	uuidIDx
+	labelIDx
+	mountPointIDx
+	fsTypeIDx
+	pluggableIDx
+)
 
 // GetVolumes returns volumes data from /etc/fstab.
 func GetVolumes() ([]domain.Volume, error) {
-	fp, err := os.Open("/etc/fstab")
+	// Using `-P`` here guaranties 6 fields.
+	// If don't use it and as example is not set 5 fields will be returned.
+	cmd := exec.Command("lsblk", "-P", "-o", lsblkOptions)
+	var cmdErr bytes.Buffer
+	cmd.Stderr = &cmdErr
+	output, err := cmd.Output()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("can't execute %s: %s", cmd.String(), cmdErr.String())
 	}
-	defer fp.Close()
 
 	vv := []domain.Volume{}
 
-	scanner := bufio.NewScanner(fp)
+	scanner := bufio.NewScanner(bytes.NewReader(output))
 	for scanner.Scan() {
 		fields := strings.Fields(scanner.Text())
-		if len(fields) < optionsIDx {
+		if len(fields) < pluggableIDx-1 {
 			continue
 		}
-		if fields[fsTypeIDx] != btrfsType {
+		tp := getValueFromAssignmetOrEmpty(fields[fsTypeIDx])
+		if tp != btrfsType {
 			continue
 		}
 
-		device := fields[deviceIDx]
-		if strings.HasPrefix(device, "UUID") {
-			d, err := getValueFromAssignmet(device)
-			if err != nil {
-				return nil, fmt.Errorf("can't get uuid %s: %v", device, err)
-			}
-
-			device = d
-		}
-
-		subID, err := getSubvolumeID(fields[optionsIDx])
+		v, err := buildVolume(fields)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("can't build volume: %v", err)
 		}
 
-		v := domain.Volume{
-			ID:     subID,
-			Point:  fields[pathIDx],
-			Device: device,
-		}
-
-		switch v.Point {
-		case "/":
-			v.Label = "Root"
-		case "/home":
-			v.Label = "Home"
-		default:
-			v.Label = v.Point
+		v.ID, err = getSubvolumeID(v.MountPoint)
+		if err != nil {
+			return nil, fmt.Errorf("can't get subvolume id: %v", err)
 		}
 
 		vv = append(vv, v)
-
 	}
 
 	if scanner.Err() != nil {
@@ -80,50 +71,63 @@ func GetVolumes() ([]domain.Volume, error) {
 	return vv, nil
 }
 
+func buildVolume(fields []string) (domain.Volume, error) {
+	dev, err := getValueFromAssignmet(fields[deviceIDx])
+	if err != nil {
+		return domain.Volume{}, fmt.Errorf("can't get device path `%s`: %v", fields[deviceIDx], err)
+	}
+
+	uuid, err := getValueFromAssignmet(fields[uuidIDx])
+	if err != nil {
+		return domain.Volume{}, fmt.Errorf("can't get uuid `%s`: %v", fields[uuidIDx], err)
+	}
+
+	mountPoint, err := getValueFromAssignmet(fields[mountPointIDx])
+	if err != nil {
+		return domain.Volume{}, fmt.Errorf("can't get mount point `%s`: %v", fields[mountPointIDx], err)
+	}
+
+	v := domain.Volume{
+		Device:     dev,
+		UUID:       uuid,
+		Label:      getValueFromAssignmetOrEmpty(fields[labelIDx]),
+		MountPoint: mountPoint,
+		Pluggable:  getValueFromAssignmetOrEmpty(fields[pluggableIDx]) == "1",
+	}
+
+	if v.Label == "" {
+		switch v.MountPoint {
+		case "/":
+			v.Label = "Root"
+		case "/home":
+			v.Label = "Home"
+		default:
+			v.Label = v.Device
+		}
+	}
+
+	return v, nil
+}
+
 // return value of string with equal sign
 // like `UUID=some-uuid-here`
-// will return `some-uuid-here`
+// will return `some-uuid-here`.
 func getValueFromAssignmet(s string) (string, error) {
 	ss := strings.Split(s, "=")
 	if len(ss) != 2 {
 		return "", errors.New("there is no equal sign in the string")
 	}
 
-	return ss[1], nil
+	v := strings.Trim(ss[1], `"`)
+
+	return v, nil
 }
 
-func getSubvolumeID(options string) (string, error) {
-	opts := strings.Split(options, ",")
-	if len(opts) == 0 {
-		return "", errors.New("empty options")
+func getValueFromAssignmetOrEmpty(s string) string {
+	v, err := getValueFromAssignmet(s)
+	if err != nil {
+		return ""
 	}
 
-	for i := range opts {
-		if strings.HasPrefix(opts[i], "subvol") {
-			id, err := getValueFromAssignmet(opts[i])
-			if err != nil {
-				return "", err
-			}
-
-			if id == "" {
-				return "", errors.New("subvolume id is empty")
-			}
-
-			if id == "/" {
-				return "root", nil
-			}
-
-			if strings.HasPrefix(id, "/") {
-				ss := strings.Split(id, "/")
-				if len(ss) != 2 {
-					return "", fmt.Errorf("id is invalid: %s", id)
-				}
-				id = ss[1]
-			}
-
-			return id, nil
-		}
-	}
-
-	return "", errors.New("there is no subvolume id in options")
+	return v
 }

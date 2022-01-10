@@ -91,16 +91,16 @@ func New(log *logger.Client) (*Config, error) {
 OUT:
 	for i := range vv {
 		for j := range cfg.Volumes {
-			if vv[i].Point == cfg.Volumes[j].Point { // check if this path has been already added
+			if vv[i].MountPoint == cfg.Volumes[j].MountPoint { // check if this path has been already added
 				continue OUT
 			}
 		}
 
-		if vv[i].Point == "/" {
+		if vv[i].MountPoint == "/" {
 			cfg.RootDevice = vv[i].Device
 		}
 
-		err = createSnapshotsPaths(path.Join(vv[i].Point, defaultSnapshotsDir))
+		err = createSnapshotsPaths(path.Join(vv[i].MountPoint, defaultSnapshotsDir))
 		if err != nil {
 			return nil, fmt.Errorf("can't create snapshots paths: %v", err)
 		}
