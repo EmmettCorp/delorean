@@ -12,8 +12,10 @@ const (
 
 // Volume represents btrfs volume.
 type Volume struct {
-	Label  string `json:"label"`
-	Point  string `json:"point"`
-	Active bool   `json:"active"`
-	Device string `json:"device"`
+	Subvol     string `json:"subvol"`
+	Label      string `json:"label"`
+	Device     string `json:"device"`
+	UUID       string `json:"uuid"`
+	MountPoint string `json:"mount_point"`
+	Active     bool   `json:"active"`
 }

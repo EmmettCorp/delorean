@@ -71,6 +71,40 @@ func DeleteSnapshot(ph string) error {
 	return nil
 }
 
+// GetSubvolume deletes existing snapshot by path.
+func getSubvolume(ph string) (string, error) {
+	cmd := exec.Command("btrfs", "subvolume", "show", ph)
+	var cmdErr bytes.Buffer
+	cmd.Stderr = &cmdErr
+	output, err := cmd.Output()
+	if err != nil {
+		return "", fmt.Errorf("can't get subvolume id %s: %s", cmd.String(), cmdErr.String())
+	}
+
+	name := "Name:"
+	var value string
+
+	scanner := bufio.NewScanner(bytes.NewReader(output))
+	for scanner.Scan() {
+		fields := strings.Fields(scanner.Text())
+		if len(fields) < 2 {
+			continue
+		}
+
+		if fields[0] != name {
+			continue
+		}
+
+		value = fields[1]
+	}
+
+	if scanner.Err() != nil {
+		return "", scanner.Err()
+	}
+
+	return value, nil
+}
+
 // SnapshotsList returns the snapshots list for all active subvolumes with desc sort.
 func SnapshotsList(volumes []domain.Volume) ([]domain.Snapshot, error) {
 	snaps := sortableSnapshots{}
@@ -91,7 +125,7 @@ func SnapshotsList(volumes []domain.Volume) ([]domain.Snapshot, error) {
 }
 
 func snapshotsListByVolume(volume domain.Volume) ([]domain.Snapshot, error) {
-	cmd := exec.Command("btrfs", "subvolume", "list", "-s", volume.Point)
+	cmd := exec.Command("btrfs", "subvolume", "list", "-s", volume.MountPoint)
 	output, err := cmd.Output()
 	if err != nil {
 		return nil, err
@@ -113,9 +147,9 @@ func snapshotsListByVolume(volume domain.Volume) ([]domain.Snapshot, error) {
 
 		sn := domain.Snapshot{
 			ID:          id,
-			Path:        path.Join(volume.Point, fields[len(fields)-1]),
+			Path:        path.Join(volume.MountPoint, fields[len(fields)-1]),
 			VolumeLabel: volume.Label,
-			VolumePoint: volume.Point,
+			VolumePoint: volume.MountPoint,
 		}
 		sn.SetLabel()
 		sn.SetType()
@@ -123,54 +157,6 @@ func snapshotsListByVolume(volume domain.Volume) ([]domain.Snapshot, error) {
 	}
 
 	return snaps, nil
-}
-
-// GetVolumes returns all the btrfs volumes in current filesystem.
-func GetVolumes() ([]domain.Volume, error) {
-	volumes := []domain.Volume{}
-
-	fp, err := os.Open("/proc/self/mounts")
-	if err != nil {
-		return nil, err
-	}
-	defer fp.Close()
-
-	scanner := bufio.NewScanner(fp)
-	for scanner.Scan() {
-		fields := strings.Fields(scanner.Text())
-		if fields[typeIdx] != "btrfs" {
-			continue
-		}
-
-		point := fields[pathIdx]
-
-		label := getVolumeLabelByPath(point)
-		if label == "" {
-			label = point
-		}
-
-		volumes = append(volumes, domain.Volume{
-			Label:  label,
-			Point:  point,
-			Device: fields[deviceIdx],
-		})
-	}
-
-	if scanner.Err() != nil {
-		return nil, scanner.Err()
-	}
-
-	return volumes, nil
-}
-
-func getVolumeLabelByPath(p string) string {
-	cmd := exec.Command("btrfs", "filesystem", "label", p)
-	output, err := cmd.Output()
-	if err != nil {
-		return ""
-	}
-
-	return strings.TrimSpace(string(output))
 }
 
 // BtrfsSupported checks if kernel supports btrfs.
