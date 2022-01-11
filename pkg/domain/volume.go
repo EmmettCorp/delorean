@@ -17,6 +17,5 @@ type Volume struct {
 	Device     string `json:"device"`
 	UUID       string `json:"uuid"`
 	MountPoint string `json:"mount_point"`
-	Pluggable  bool   `json:"pluggable"`
 	Active     bool   `json:"active"`
 }

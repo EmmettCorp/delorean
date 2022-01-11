@@ -15,8 +15,7 @@ import (
 )
 
 const (
-	deloreanPath = "/usr/local/delorean"
-
+	deloreanPath        = "/usr/local/delorean"
 	defaultSnapshotsDir = ".snapshots"
 	fileMode            = 0600
 )
