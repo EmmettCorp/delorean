@@ -71,8 +71,8 @@ func DeleteSnapshot(ph string) error {
 	return nil
 }
 
-// GetSubvolumeID deletes existing snapshot by path.
-func getSubvolumeID(ph string) (string, error) {
+// GetSubvolume deletes existing snapshot by path.
+func getSubvolume(ph string) (string, error) {
 	cmd := exec.Command("btrfs", "subvolume", "show", ph)
 	var cmdErr bytes.Buffer
 	cmd.Stderr = &cmdErr

@@ -56,7 +56,7 @@ func GetVolumes() ([]domain.Volume, error) {
 			return nil, fmt.Errorf("can't build volume: %v", err)
 		}
 
-		v.ID, err = getSubvolumeID(v.MountPoint)
+		v.Subvol, err = getSubvolume(v.MountPoint)
 		if err != nil {
 			return nil, fmt.Errorf("can't get subvolume id: %v", err)
 		}
