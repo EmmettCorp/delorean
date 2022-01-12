@@ -67,6 +67,9 @@ func New(log *logger.Client) (*Config, error) {
 	}
 	cfg.Path = configPath
 	cfg.SnapshotDirName = defaultSnapshotsDir
+	for i := range cfg.Volumes {
+		cfg.Volumes[i].Mounted = false
+	}
 
 	if !cfg.BtrfsSupported { // check on first run only
 		cfg.BtrfsSupported, err = commands.BtrfsSupported()
@@ -91,6 +94,7 @@ OUT:
 	for i := range vv {
 		for j := range cfg.Volumes {
 			if vv[i].MountPoint == cfg.Volumes[j].MountPoint { // check if this path has been already added
+				cfg.Volumes[j].Mounted = true
 				continue OUT
 			}
 		}

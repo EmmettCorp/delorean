@@ -86,6 +86,7 @@ func buildVolume(fmv findMntVolume) (domain.Volume, error) {
 		Device:     strings.Split(fmv.Source, "[")[0],
 		MountPoint: fmv.Target,
 		UUID:       fmv.UUID,
+		Mounted:    true,
 	}
 
 	if v.Label == "" {
@@ -126,10 +127,10 @@ func getSubvolFromOptions(options string) (string, error) {
 			}
 
 			if sbvl == "/" {
-				return "root", nil
+				return domain.Subvol5, nil
 			}
 
-			if strings.HasPrefix(sbvl, "/") {
+			if strings.HasPrefix(sbvl, "/") { // remove slash from options like `subvol=/@`
 				ss := strings.Split(sbvl, "/")
 				if len(ss) != 2 {
 					return "", fmt.Errorf("subvol is invalid: %s", sbvl)

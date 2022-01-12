@@ -18,4 +18,5 @@ type Volume struct {
 	UUID       string `json:"uuid"`
 	MountPoint string `json:"mount_point"`
 	Active     bool   `json:"active"`
+	Mounted    bool   `json:"mounted"`
 }
