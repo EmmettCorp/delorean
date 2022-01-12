@@ -45,6 +45,9 @@ func (gui *Gui) volumesView() (*gocui.View, error) {
 func (gui *Gui) drawVolumes(view *gocui.View) {
 	view.Clear()
 	for i := range gui.config.Volumes {
+		if !gui.config.Volumes[i].Mounted {
+			continue
+		}
 		var activeSign string
 		if gui.config.Volumes[i].Active {
 			activeSign = colors.FgGreen(active)

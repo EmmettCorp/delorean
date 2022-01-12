@@ -109,7 +109,7 @@ func getSubvolume(ph string) (string, error) {
 func SnapshotsList(volumes []domain.Volume) ([]domain.Snapshot, error) {
 	snaps := sortableSnapshots{}
 	for _, v := range volumes {
-		if !v.Active {
+		if !v.Active || !v.Mounted {
 			continue
 		}
 		sn, err := snapshotsListByVolume(v)
