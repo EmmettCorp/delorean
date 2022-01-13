@@ -3,6 +3,7 @@ package gui
 import (
 	"errors"
 	"fmt"
+	"path"
 
 	"github.com/EmmettCorp/delorean/pkg/colors"
 	"github.com/EmmettCorp/delorean/pkg/commands"
@@ -43,7 +44,7 @@ func (gui *Gui) deleteSnapshot(g *gocui.Gui, v *gocui.View) error {
 		return err
 	}
 
-	err = commands.DeleteSnapshot(snap.Path)
+	err = commands.DeleteSnapshot(path.Join(domain.DeloreanMountPoint, snap.Path))
 	if err != nil {
 		return err
 	}

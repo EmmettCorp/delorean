@@ -10,6 +10,8 @@ import (
 	"path"
 
 	"github.com/EmmettCorp/delorean/pkg/commands"
+	"github.com/EmmettCorp/delorean/pkg/commands/findmnt"
+	"github.com/EmmettCorp/delorean/pkg/commands/mount"
 	"github.com/EmmettCorp/delorean/pkg/domain"
 	"github.com/EmmettCorp/delorean/pkg/logger"
 )
@@ -66,7 +68,6 @@ func New(log *logger.Client) (*Config, error) {
 		return nil, fmt.Errorf("can't decode config: %v", err)
 	}
 	cfg.Path = configPath
-	cfg.SnapshotDirName = defaultSnapshotsDir
 	for i := range cfg.Volumes {
 		cfg.Volumes[i].Mounted = false
 	}
@@ -85,7 +86,7 @@ func New(log *logger.Client) (*Config, error) {
 	}
 
 	// volumes
-	vv, err := commands.GetVolumes()
+	vv, err := findmnt.GetVolumes()
 	if err != nil {
 		return nil, fmt.Errorf("can't get volumes: %v", err)
 	}
@@ -103,12 +104,23 @@ OUT:
 			cfg.RootDevice = vv[i].Device
 		}
 
-		err = createSnapshotsPaths(path.Join(vv[i].MountPoint, defaultSnapshotsDir))
-		if err != nil {
-			return nil, fmt.Errorf("can't create snapshots paths: %v", err)
-		}
-
 		cfg.Volumes = append(cfg.Volumes, vv[i])
+	}
+
+	err = mountTopLevelSubvolume(cfg.RootDevice)
+	if err != nil {
+		return nil, fmt.Errorf("can't mount top level subvolume: %v", err)
+	}
+
+	cfg.SnapshotDirName = path.Join(domain.DeloreanMountPoint, defaultSnapshotsDir)
+	err = checkDir(cfg.SnapshotDirName)
+	if err != nil {
+		return nil, fmt.Errorf("can't check snapshots directory: %v", err)
+	}
+
+	err = cfg.createSnapshotsPaths()
+	if err != nil {
+		return nil, err
 	}
 
 	err = cfg.Save()
@@ -119,10 +131,32 @@ OUT:
 	return &cfg, nil
 }
 
+func (cfg *Config) createSnapshotsPaths() error {
+	for i := range cfg.Volumes {
+		var subvolPath string
+		if cfg.Volumes[i].Subvol == domain.Subvol5 {
+			subvolPath = cfg.Volumes[i].UUID
+		} else {
+			subvolPath = cfg.Volumes[i].Subvol
+		}
+
+		p := path.Join(cfg.SnapshotDirName, subvolPath)
+
+		err := createSnapshotsPaths(p)
+		if err != nil {
+			return fmt.Errorf("can't create snapshots paths: %v", err)
+		}
+
+		cfg.Volumes[i].SnapshotsPath = p
+	}
+
+	return nil
+}
+
 func checkDir(path string) error {
 	_, err := os.Stat(path)
 	if os.IsNotExist(err) {
-		return os.Mkdir(path, fileMode)
+		return os.MkdirAll(path, fileMode)
 	}
 
 	return err
@@ -139,12 +173,15 @@ func (cfg *Config) Save() error {
 }
 
 func createSnapshotsPaths(p string) error {
-	err := checkDir(p)
-	if err != nil {
-		return fmt.Errorf("can't create snapshot directory: %v", err)
-	}
-
-	for _, v := range []string{domain.Manual, domain.Monthly, domain.Weekly, domain.Daily, domain.Hourly, domain.Boot} {
+	for _, v := range []string{
+		domain.Manual,
+		domain.Monthly,
+		domain.Weekly,
+		domain.Daily,
+		domain.Hourly,
+		domain.Boot,
+		domain.Revert,
+	} {
 		err := checkDir(path.Join(p, v))
 		if err != nil {
 			return fmt.Errorf("can't create snapshot directory for %s: %v", v, err)
@@ -152,4 +189,18 @@ func createSnapshotsPaths(p string) error {
 	}
 
 	return nil
+}
+
+func mountTopLevelSubvolume(device string) error {
+	// snapshots path
+	err := checkDir(domain.DeloreanMountPoint)
+	if err != nil {
+		return fmt.Errorf("can't create default snapshots dir: %v", err)
+	}
+
+	if findmnt.IsDeviceMount(device, domain.DeloreanMountPoint) {
+		return nil
+	}
+
+	return mount.Exec(device, domain.DeloreanMountPoint)
 }

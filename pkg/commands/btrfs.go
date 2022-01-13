@@ -71,40 +71,6 @@ func DeleteSnapshot(ph string) error {
 	return nil
 }
 
-// GetSubvolume deletes existing snapshot by path.
-func getSubvolume(ph string) (string, error) {
-	cmd := exec.Command("btrfs", "subvolume", "show", ph)
-	var cmdErr bytes.Buffer
-	cmd.Stderr = &cmdErr
-	output, err := cmd.Output()
-	if err != nil {
-		return "", fmt.Errorf("can't get subvolume id %s: %s", cmd.String(), cmdErr.String())
-	}
-
-	name := "Name:"
-	var value string
-
-	scanner := bufio.NewScanner(bytes.NewReader(output))
-	for scanner.Scan() {
-		fields := strings.Fields(scanner.Text())
-		if len(fields) < 2 {
-			continue
-		}
-
-		if fields[0] != name {
-			continue
-		}
-
-		value = fields[1]
-	}
-
-	if scanner.Err() != nil {
-		return "", scanner.Err()
-	}
-
-	return value, nil
-}
-
 // SnapshotsList returns the snapshots list for all active subvolumes with desc sort.
 func SnapshotsList(volumes []domain.Volume) ([]domain.Snapshot, error) {
 	snaps := sortableSnapshots{}
