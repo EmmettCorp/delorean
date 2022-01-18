@@ -94,13 +94,13 @@ func buildVolume(fmv findMntVolume) (domain.Volume, error) {
 		Subvol:     getSubvol(fmv.FsRoot),
 	}
 
-	if v.Label == "" {
-		switch v.MountPoint {
-		case "/":
-			v.Label = "Root"
-		case "/home":
-			v.Label = "Home"
-		default:
+	switch v.MountPoint {
+	case "/":
+		v.Label = "Root"
+	case "/home":
+		v.Label = "Home"
+	default:
+		if v.Label == "" {
 			v.Label = v.Device
 		}
 	}

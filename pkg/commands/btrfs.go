@@ -7,6 +7,7 @@ import (
 	"bufio"
 	"bytes"
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
 	"path"
@@ -34,10 +35,71 @@ func (ss sortableSnapshots) Less(i, j int) bool { return ss[i].ID > ss[j].ID }
 
 // CreateSnapshot creates a new snapshot.
 func CreateSnapshot(sv, ph string) error {
-	cmd := exec.Command("btrfs", "subvolume", "snapshot", sv, path.Join(ph, time.Now().Format(snapshotFormat)))
+	cmd := exec.Command("btrfs", "subvolume", "snapshot", "-r", sv, path.Join(ph, time.Now().Format(snapshotFormat)))
 	var cmdErr bytes.Buffer
 	cmd.Stderr = &cmdErr
 	err := cmd.Run()
+	if err != nil {
+		return fmt.Errorf("can't execute %s: %s", cmd.String(), cmdErr.String())
+	}
+
+	return nil
+}
+
+// CreateSnapshotAndCopyToRoot creates a new snapshot on device and sends it to root device.
+func CreateSnapshotAndCopyToRoot(sv, ph string) error {
+	subvolumePath := path.Join(sv, time.Now().Format(snapshotFormat))
+	cmd := exec.Command("btrfs", "subvolume", "snapshot", "-r", sv, subvolumePath)
+	var cmdErr bytes.Buffer
+	cmd.Stderr = &cmdErr
+	err := cmd.Run()
+	if err != nil {
+		return fmt.Errorf("can't execute %s: %s", cmd.String(), cmdErr.String())
+	}
+
+	// send snapshot to root device
+	sendCmd := exec.Command("btrfs", "send", subvolumePath)
+	receiveCmd := exec.Command("btrfs", "receive", path.Join(ph, "/"))
+	reader, writer := io.Pipe()
+
+	sendCmd.Stdout = writer
+	receiveCmd.Stdin = reader
+
+	var sendCmdErr bytes.Buffer
+	sendCmd.Stderr = &sendCmdErr
+	err = sendCmd.Start()
+	if err != nil {
+		return fmt.Errorf("can't execute %s: %s", sendCmd.String(), sendCmdErr.String())
+	}
+
+	var receiveCmdErr bytes.Buffer
+	receiveCmd.Stderr = &receiveCmdErr
+	err = receiveCmd.Start()
+	if err != nil {
+		return fmt.Errorf("can't execute %s: %s", receiveCmd.String(), receiveCmdErr.String())
+	}
+
+	err = sendCmd.Wait()
+	if err != nil {
+		return fmt.Errorf("can't execute %s: %s", sendCmd.String(), sendCmdErr.String())
+	}
+	err = writer.Close()
+	if err != nil {
+		return fmt.Errorf("can't close writer: %v", err)
+	}
+
+	err = receiveCmd.Wait()
+	if err != nil {
+		return fmt.Errorf("can't execute %s: %s", receiveCmd.String(), receiveCmdErr.String())
+	}
+	err = reader.Close()
+	if err != nil {
+		return fmt.Errorf("can't close reader: %v", err)
+	}
+
+	cmd = exec.Command("btrfs", "subvolume", "delete", subvolumePath)
+	cmd.Stderr = &cmdErr
+	err = cmd.Run()
 	if err != nil {
 		return fmt.Errorf("can't execute %s: %s", cmd.String(), cmdErr.String())
 	}
