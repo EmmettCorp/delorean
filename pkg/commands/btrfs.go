@@ -153,7 +153,7 @@ func SnapshotsList(volumes []domain.Volume) ([]domain.Snapshot, error) {
 }
 
 func snapshotsListByVolume(volume domain.Volume) ([]domain.Snapshot, error) {
-	cmd := exec.Command("btrfs", "subvolume", "list", "-s", volume.MountPoint)
+	cmd := exec.Command("btrfs", "subvolume", "list", volume.MountPoint)
 	output, err := cmd.Output()
 	if err != nil {
 		return nil, err
@@ -173,9 +173,14 @@ func snapshotsListByVolume(volume domain.Volume) ([]domain.Snapshot, error) {
 			return nil, err
 		}
 
+		relativeSubvolumePath := fields[len(fields)-1]
+		if !strings.HasPrefix(relativeSubvolumePath, domain.SnapshotsDirName) {
+			continue
+		}
+
 		sn := domain.Snapshot{
 			ID:          id,
-			Path:        path.Join(volume.MountPoint, fields[len(fields)-1]),
+			Path:        path.Join(volume.MountPoint, relativeSubvolumePath),
 			VolumeLabel: volume.Label,
 			VolumePoint: volume.MountPoint,
 		}
