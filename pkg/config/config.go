@@ -102,6 +102,11 @@ OUT:
 			cfg.RootDevice = vv[i].Device
 		}
 
+		vv[i].ID, err = commands.GetVolumeID(vv[i].MountPoint)
+		if err != nil {
+			return nil, err
+		}
+
 		cfg.Volumes = append(cfg.Volumes, vv[i])
 	}
 
@@ -131,6 +136,9 @@ OUT:
 func (cfg *Config) createSnapshotsPaths() error {
 	for i := range cfg.Volumes {
 		p := path.Join(domain.DeloreanMountPoint, domain.SnapshotsDirName, cfg.Volumes[i].Subvol)
+		if cfg.Volumes[i].Device != cfg.RootDevice {
+			p = path.Join(cfg.Volumes[i].MountPoint, domain.SnapshotsDirName)
+		}
 
 		err := createSnapshotsPaths(p)
 		if err != nil {

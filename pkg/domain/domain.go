@@ -9,3 +9,14 @@ const Subvol5 = "subvol5"
 
 // SnapshotsDirName represents main snapsshots root directory name.
 const SnapshotsDirName = ".snapshots"
+
+// Snapshots types.
+const (
+	Monthly = "monthly"
+	Weekly  = "weekly"
+	Daily   = "daily"
+	Hourly  = "hourly"
+	Boot    = "boot"
+	Manual  = "manual"
+	Revert  = "revert"
+)
