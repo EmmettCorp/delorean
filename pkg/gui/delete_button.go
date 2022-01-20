@@ -44,7 +44,12 @@ func (gui *Gui) deleteSnapshot(g *gocui.Gui, v *gocui.View) error {
 		return err
 	}
 
-	err = commands.DeleteSnapshot(path.Join(domain.DeloreanMountPoint, snap.Path))
+	p := snap.Path
+	if snap.VolumePoint == "/" {
+		p = path.Join(domain.DeloreanMountPoint, snap.Path)
+	}
+
+	err = commands.DeleteSnapshot(p)
 	if err != nil {
 		return err
 	}

@@ -17,19 +17,17 @@ import (
 )
 
 const (
-	deloreanPath        = "/usr/local/delorean"
-	defaultSnapshotsDir = ".snapshots"
-	fileMode            = 0600
+	deloreanPath = "/usr/local/delorean"
+	fileMode     = 0600
 )
 
 type (
 	Config struct {
-		BtrfsSupported  bool            `json:"btrfs_supported"`
-		Path            string          `json:"path"` // needs to save config file from app.
-		Schedule        Schedule        `json:"schedule"`
-		Volumes         []domain.Volume `json:"volumes"`
-		SnapshotDirName string          `json:"snapshots_dir_name"`
-		RootDevice      string          `json:"root_device"`
+		BtrfsSupported bool            `json:"btrfs_supported"`
+		Path           string          `json:"path"` // needs to save config file from app.
+		Schedule       Schedule        `json:"schedule"`
+		Volumes        []domain.Volume `json:"volumes"`
+		RootDevice     string          `json:"root_device"`
 	}
 
 	Schedule struct {
@@ -104,6 +102,11 @@ OUT:
 			cfg.RootDevice = vv[i].Device
 		}
 
+		vv[i].ID, err = commands.GetVolumeID(vv[i].MountPoint)
+		if err != nil {
+			return nil, err
+		}
+
 		cfg.Volumes = append(cfg.Volumes, vv[i])
 	}
 
@@ -112,8 +115,7 @@ OUT:
 		return nil, fmt.Errorf("can't mount top level subvolume: %v", err)
 	}
 
-	cfg.SnapshotDirName = path.Join(domain.DeloreanMountPoint, defaultSnapshotsDir)
-	err = checkDir(cfg.SnapshotDirName)
+	err = checkDir(path.Join(domain.DeloreanMountPoint, domain.SnapshotsDirName))
 	if err != nil {
 		return nil, fmt.Errorf("can't check snapshots directory: %v", err)
 	}
@@ -133,14 +135,10 @@ OUT:
 
 func (cfg *Config) createSnapshotsPaths() error {
 	for i := range cfg.Volumes {
-		var subvolPath string
-		if cfg.Volumes[i].Subvol == domain.Subvol5 {
-			subvolPath = cfg.Volumes[i].UUID
-		} else {
-			subvolPath = cfg.Volumes[i].Subvol
+		p := path.Join(domain.DeloreanMountPoint, domain.SnapshotsDirName, cfg.Volumes[i].Subvol)
+		if cfg.Volumes[i].Device != cfg.RootDevice {
+			p = path.Join(cfg.Volumes[i].MountPoint, domain.SnapshotsDirName)
 		}
-
-		p := path.Join(cfg.SnapshotDirName, subvolPath)
 
 		err := createSnapshotsPaths(p)
 		if err != nil {

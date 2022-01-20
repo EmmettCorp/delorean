@@ -34,7 +34,7 @@ func (ss sortableSnapshots) Less(i, j int) bool { return ss[i].ID > ss[j].ID }
 
 // CreateSnapshot creates a new snapshot.
 func CreateSnapshot(sv, ph string) error {
-	cmd := exec.Command("btrfs", "subvolume", "snapshot", sv, path.Join(ph, time.Now().Format(snapshotFormat)))
+	cmd := exec.Command("btrfs", "subvolume", "snapshot", "-r", sv, path.Join(ph, time.Now().Format(snapshotFormat)))
 	var cmdErr bytes.Buffer
 	cmd.Stderr = &cmdErr
 	err := cmd.Run()
@@ -91,7 +91,7 @@ func SnapshotsList(volumes []domain.Volume) ([]domain.Snapshot, error) {
 }
 
 func snapshotsListByVolume(volume domain.Volume) ([]domain.Snapshot, error) {
-	cmd := exec.Command("btrfs", "subvolume", "list", "-s", volume.MountPoint)
+	cmd := exec.Command("btrfs", "subvolume", "list", volume.MountPoint)
 	output, err := cmd.Output()
 	if err != nil {
 		return nil, err
@@ -111,9 +111,14 @@ func snapshotsListByVolume(volume domain.Volume) ([]domain.Snapshot, error) {
 			return nil, err
 		}
 
+		relativeSubvolumePath := fields[len(fields)-1]
+		if !strings.HasPrefix(relativeSubvolumePath, domain.SnapshotsDirName) {
+			continue
+		}
+
 		sn := domain.Snapshot{
 			ID:          id,
-			Path:        path.Join(volume.MountPoint, fields[len(fields)-1]),
+			Path:        path.Join(volume.MountPoint, relativeSubvolumePath),
 			VolumeLabel: volume.Label,
 			VolumePoint: volume.MountPoint,
 		}
@@ -147,4 +152,26 @@ func BtrfsSupported() (bool, error) {
 	}
 
 	return false, nil
+}
+
+func GetVolumeID(ph string) (string, error) {
+	cmd := exec.Command("btrfs", "subvolume", "show", ph)
+	output, err := cmd.Output()
+	if err != nil {
+		return "", err
+	}
+
+	scanner := bufio.NewScanner(bytes.NewReader(output))
+	for scanner.Scan() {
+		fields := strings.Fields(scanner.Text())
+		if len(fields) < 3 {
+			continue
+		}
+
+		if fields[0] == "Subvolume" && fields[1] == "ID:" {
+			return fields[len(fields)-1], nil
+		}
+	}
+
+	return "", fmt.Errorf("can't find volume id from path %s", ph)
 }
