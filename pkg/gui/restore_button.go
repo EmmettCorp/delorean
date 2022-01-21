@@ -42,7 +42,12 @@ func (gui *Gui) restoreSnapshot(g *gocui.Gui, v *gocui.View) error {
 		return err
 	}
 
-	err = commands.SetDefault(snap.VolumePoint, snap.ID)
+	vol, err := gui.getVolumeByUUID(snap.VolumeUUID)
+	if err != nil {
+		return err
+	}
+
+	err = commands.SetDefault(vol.MountPoint, snap.ID)
 	if err != nil {
 		return err
 	}

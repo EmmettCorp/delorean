@@ -120,7 +120,7 @@ func snapshotsListByVolume(volume domain.Volume) ([]domain.Snapshot, error) {
 			ID:          id,
 			Path:        path.Join(volume.MountPoint, relativeSubvolumePath),
 			VolumeLabel: volume.Label,
-			VolumePoint: volume.MountPoint,
+			VolumeUUID:  volume.UUID,
 		}
 		sn.SetLabel()
 		sn.SetType()

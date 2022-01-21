@@ -8,7 +8,7 @@ type Snapshot struct {
 	Label       string
 	Type        string // manual, weekly, daily, etc.
 	VolumeLabel string
-	VolumePoint string
+	VolumeUUID  string
 }
 
 func (s *Snapshot) SetLabel() {
