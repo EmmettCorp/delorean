@@ -41,24 +41,24 @@ func (gui *Gui) createSnapshot(g *gocui.Gui, view *gocui.View) error {
 	var activeVolumeFound bool
 
 	for _, vol := range gui.config.Volumes {
-		if !vol.Active || !vol.Mounted {
+		if !vol.Active || !vol.Device.Mounted {
 			continue
 		}
 
 		activeVolumeFound = true
 
-		if vol.Device != gui.config.RootDevice {
-			err := commands.CreateSnapshot(vol.MountPoint, path.Join(vol.SnapshotsPath, domain.Manual))
+		if gui.volumeInRootFs(vol) {
+			err := commands.CreateSnapshot(vol.Device.MountPoint, path.Join(vol.SnapshotsPath, domain.Manual))
 			if err != nil {
-				return fmt.Errorf("can't create snapshot for %s: %v", vol.MountPoint, err)
+				return fmt.Errorf("can't create snapshot for %s: %v", vol.Device.MountPoint, err)
 			}
 
 			continue
 		}
 
-		err := commands.CreateSnapshot(vol.MountPoint, path.Join(vol.SnapshotsPath, domain.Manual))
+		err := commands.CreateSnapshot(vol.Device.MountPoint, path.Join(vol.SnapshotsPath, domain.Manual))
 		if err != nil {
-			return fmt.Errorf("can't create snapshot for %s: %v", vol.MountPoint, err)
+			return fmt.Errorf("can't create snapshot for %s: %v", vol.Device.MountPoint, err)
 		}
 	}
 

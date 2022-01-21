@@ -11,7 +11,6 @@ import (
 	"os/exec"
 	"path"
 	"sort"
-	"strconv"
 	"strings"
 	"time"
 
@@ -75,7 +74,7 @@ func DeleteSnapshot(ph string) error {
 func SnapshotsList(volumes []domain.Volume) ([]domain.Snapshot, error) {
 	snaps := sortableSnapshots{}
 	for _, v := range volumes {
-		if !v.Active || !v.Mounted {
+		if !v.Active || !v.Device.Mounted {
 			continue
 		}
 		sn, err := snapshotsListByVolume(v)
@@ -91,36 +90,18 @@ func SnapshotsList(volumes []domain.Volume) ([]domain.Snapshot, error) {
 }
 
 func snapshotsListByVolume(volume domain.Volume) ([]domain.Snapshot, error) {
-	cmd := exec.Command("btrfs", "subvolume", "list", volume.MountPoint)
-	output, err := cmd.Output()
+	snaps := []domain.Snapshot{}
+	sn, err := getSnapshots(volume.SnapshotsPath)
 	if err != nil {
 		return nil, err
 	}
 
-	snaps := []domain.Snapshot{}
-
-	scanner := bufio.NewScanner(bytes.NewReader(output))
-	for scanner.Scan() {
-		fields := strings.Fields(scanner.Text())
-		if len(fields) == 0 {
-			continue
-		}
-
-		id, err := strconv.ParseInt(fields[snapID], 10, 64)
-		if err != nil {
-			return nil, err
-		}
-
-		relativeSubvolumePath := fields[len(fields)-1]
-		if !strings.HasPrefix(relativeSubvolumePath, domain.SnapshotsDirName) {
-			continue
-		}
-
+	for i := range sn {
 		sn := domain.Snapshot{
-			ID:          id,
-			Path:        path.Join(volume.MountPoint, relativeSubvolumePath),
+			// ID:          id,
+			Path:        sn[i],
 			VolumeLabel: volume.Label,
-			VolumePoint: volume.MountPoint,
+			VolumeUUID:  volume.Device.UUID,
 		}
 		sn.SetLabel()
 		sn.SetType()
@@ -174,4 +155,44 @@ func GetVolumeID(ph string) (string, error) {
 	}
 
 	return "", fmt.Errorf("can't find volume id from path %s", ph)
+}
+
+func getSnapshots(ph string) ([]string, error) {
+	dirs, err := osReadDir(ph)
+	if err != nil {
+		return nil, err
+	}
+	snaps := []string{}
+	for i := range dirs {
+		sp := path.Join(ph, dirs[i])
+		snap, err := osReadDir(sp)
+		if err != nil {
+			return nil, err
+		}
+
+		for j := range snap {
+			snaps = append(snaps, path.Join(sp, snap[j]))
+		}
+
+	}
+
+	return snaps, nil
+}
+
+func osReadDir(root string) ([]string, error) {
+	var files []string
+	f, err := os.Open(root)
+	if err != nil {
+		return files, err
+	}
+	fileInfo, err := f.Readdir(-1)
+	f.Close()
+	if err != nil {
+		return files, err
+	}
+
+	for _, file := range fileInfo {
+		files = append(files, file.Name())
+	}
+	return files, nil
 }

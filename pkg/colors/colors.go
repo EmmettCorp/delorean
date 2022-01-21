@@ -16,3 +16,7 @@ func FgRed(s string) string {
 func FgGreen(s string) string {
 	return fmt.Sprintf("%s%dm%s%s", start, fg_green, s, end)
 }
+
+func Bold(s string) string {
+	return fmt.Sprintf("%s%s%s", "\033[1m", s, end)
+}

@@ -86,22 +86,24 @@ func IsDeviceMount(device, mountPoint string) bool {
 
 func buildVolume(fmv findMntVolume) (domain.Volume, error) {
 	v := domain.Volume{
-		Label:      fmv.Label,
-		Device:     strings.Split(fmv.Source, "[")[0], // safe even if string without `[` character
-		MountPoint: fmv.Target,
-		UUID:       fmv.UUID,
-		Mounted:    true,
-		Subvol:     getSubvol(fmv.FsRoot),
+		Label:  fmv.Label,
+		Subvol: getSubvol(fmv.FsRoot),
+		Device: domain.Device{
+			Path:       strings.Split(fmv.Source, "[")[0], // safe even if string without `[` character
+			MountPoint: fmv.Target,
+			UUID:       fmv.UUID,
+			Mounted:    true,
+		},
 	}
 
-	switch v.MountPoint {
+	switch v.Device.MountPoint {
 	case "/":
 		v.Label = "Root"
 	case "/home":
 		v.Label = "Home"
 	default:
 		if v.Label == "" {
-			v.Label = v.Device
+			v.Label = v.Device.Path
 		}
 	}
 
