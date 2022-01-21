@@ -45,7 +45,7 @@ func (gui *Gui) volumesView() (*gocui.View, error) {
 func (gui *Gui) drawVolumes(view *gocui.View) {
 	view.Clear()
 	for i := range gui.config.Volumes {
-		if !gui.config.Volumes[i].Mounted {
+		if !gui.config.Volumes[i].Device.Mounted {
 			continue
 		}
 		var activeSign string
@@ -54,8 +54,11 @@ func (gui *Gui) drawVolumes(view *gocui.View) {
 		} else {
 			activeSign = colors.FgRed(inactive)
 		}
-		fmt.Fprintf(view, " %s %s\n",
-			gui.config.Volumes[i].Label, activeSign)
+		label := gui.config.Volumes[i].Label
+		if gui.volumeInRootFs(gui.config.Volumes[i]) {
+			label = fmt.Sprintf("└ %s", label)
+		}
+		fmt.Fprintf(view, " %s %s\n", label, activeSign)
 	}
 }
 

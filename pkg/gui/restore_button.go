@@ -47,7 +47,7 @@ func (gui *Gui) restoreSnapshot(g *gocui.Gui, v *gocui.View) error {
 		return err
 	}
 
-	err = commands.SetDefault(vol.MountPoint, snap.ID)
+	err = commands.SetDefault(vol.Device.MountPoint, snap.ID)
 	if err != nil {
 		return err
 	}

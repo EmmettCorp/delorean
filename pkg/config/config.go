@@ -67,7 +67,7 @@ func New(log *logger.Client) (*Config, error) {
 	}
 	cfg.Path = configPath
 	for i := range cfg.Volumes {
-		cfg.Volumes[i].Mounted = false
+		cfg.Volumes[i].Device.Mounted = false
 	}
 
 	if !cfg.BtrfsSupported { // check on first run only
@@ -92,17 +92,17 @@ func New(log *logger.Client) (*Config, error) {
 OUT:
 	for i := range vv {
 		for j := range cfg.Volumes {
-			if vv[i].MountPoint == cfg.Volumes[j].MountPoint { // check if this path has been already added
-				cfg.Volumes[j].Mounted = true
+			if vv[i].Device.MountPoint == cfg.Volumes[j].Device.MountPoint { // check if this path has been already added
+				cfg.Volumes[j].Device.Mounted = true
 				continue OUT
 			}
 		}
 
-		if vv[i].MountPoint == "/" {
-			cfg.RootDevice = vv[i].Device
+		if vv[i].Device.MountPoint == "/" {
+			cfg.RootDevice = vv[i].Device.Path
 		}
 
-		vv[i].ID, err = commands.GetVolumeID(vv[i].MountPoint)
+		vv[i].ID, err = commands.GetVolumeID(vv[i].Device.MountPoint)
 		if err != nil {
 			return nil, err
 		}
@@ -136,8 +136,8 @@ OUT:
 func (cfg *Config) createSnapshotsPaths() error {
 	for i := range cfg.Volumes {
 		p := path.Join(domain.DeloreanMountPoint, domain.SnapshotsDirName, cfg.Volumes[i].Subvol)
-		if cfg.Volumes[i].Device != cfg.RootDevice {
-			p = path.Join(cfg.Volumes[i].MountPoint, domain.SnapshotsDirName)
+		if cfg.Volumes[i].Device.Path != cfg.RootDevice {
+			p = path.Join(cfg.Volumes[i].Device.MountPoint, domain.SnapshotsDirName, cfg.Volumes[i].Subvol)
 		}
 
 		err := createSnapshotsPaths(p)
