@@ -17,13 +17,6 @@ import (
 	"github.com/EmmettCorp/delorean/pkg/domain"
 )
 
-const (
-	deviceIdx = 0
-	pathIdx   = 1
-	typeIdx   = 2
-	snapID    = 1
-)
-
 type sortableSnapshots []domain.Snapshot
 
 func (ss sortableSnapshots) Len() int           { return len(ss) }
@@ -43,12 +36,12 @@ func CreateSnapshot(sv, ph string) error {
 	return nil
 }
 
-// SetDefault sets subvolume as default by id.
-func SetDefault(volumePath string, snapID int64) error {
-	cmd := exec.Command("btrfs", "subvolume", "set-default", fmt.Sprintf("%d", snapID), volumePath)
-	err := cmd.Run()
+// Restore creates a new snapshot.
+func Restore(snapPath, mountPoint string) error {
+	cmd := exec.Command("btrfs", "subvolume", "snapshot", snapPath, mountPoint)
 	var cmdErr bytes.Buffer
 	cmd.Stderr = &cmdErr
+	err := cmd.Run()
 	if err != nil {
 		return fmt.Errorf("can't execute %s: %s", cmd.String(), cmdErr.String())
 	}
@@ -100,7 +93,7 @@ func snapshotsListByVolume(volume domain.Volume) ([]domain.Snapshot, error) {
 			// ID:          id,
 			Path:        sn[i],
 			VolumeLabel: volume.Label,
-			VolumeUUID:  volume.Device.UUID,
+			VolumeID:    volume.ID,
 		}
 		sn.SetLabel()
 		sn.SetType()

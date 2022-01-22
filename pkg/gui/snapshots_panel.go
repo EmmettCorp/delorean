@@ -86,6 +86,8 @@ func (gui *Gui) getChosenSnapshot() (domain.Snapshot, error) {
 
 	_, cY := view.Cursor()
 
+	gui.log.Infof("idx of snap = %d", cY)
+
 	return gui.snapshots[cY], nil
 }
 
