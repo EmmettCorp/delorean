@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/EmmettCorp/delorean/pkg/commands"
+	"github.com/EmmettCorp/delorean/pkg/commands/btrfs"
 	"github.com/EmmettCorp/delorean/pkg/domain"
 	"github.com/jroimartin/gocui"
 )
@@ -58,7 +58,7 @@ func (gui *Gui) updateSnapshotsList() error {
 		}
 	}
 	view.Clear()
-	snaps, err := commands.SnapshotsList(gui.config.Volumes)
+	snaps, err := btrfs.SnapshotsList(gui.config.Volumes)
 	if err != nil {
 		return err
 	}

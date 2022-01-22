@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/EmmettCorp/delorean/pkg/colors"
-	"github.com/EmmettCorp/delorean/pkg/commands"
+	"github.com/EmmettCorp/delorean/pkg/commands/btrfs"
 	"github.com/EmmettCorp/delorean/pkg/domain"
 	"github.com/jroimartin/gocui"
 )
@@ -43,7 +43,7 @@ func (gui *Gui) deleteSnapshot(g *gocui.Gui, v *gocui.View) error {
 		return err
 	}
 
-	err = commands.DeleteSnapshot(snap.Path)
+	err = btrfs.DeleteSnapshot(snap.Path)
 	if err != nil {
 		return err
 	}

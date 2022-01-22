@@ -9,7 +9,7 @@ import (
 	"os"
 	"path"
 
-	"github.com/EmmettCorp/delorean/pkg/commands"
+	"github.com/EmmettCorp/delorean/pkg/commands/btrfs"
 	"github.com/EmmettCorp/delorean/pkg/commands/findmnt"
 	"github.com/EmmettCorp/delorean/pkg/commands/mount"
 	"github.com/EmmettCorp/delorean/pkg/domain"
@@ -71,7 +71,7 @@ func New(log *logger.Client) (*Config, error) {
 	}
 
 	if !cfg.BtrfsSupported { // check on first run only
-		cfg.BtrfsSupported, err = commands.BtrfsSupported()
+		cfg.BtrfsSupported, err = btrfs.SupportedByKernel()
 		if err != nil {
 			log.Errorf("can't check if btrfs is supported by kernel: %v", err)
 			return nil, fmt.Errorf("can't check if btrfs is supported by kernel: %v", err)
@@ -102,7 +102,7 @@ OUT:
 			cfg.RootDevice = vv[i].Device.Path
 		}
 
-		vv[i].ID, err = commands.GetVolumeID(vv[i].Device.MountPoint)
+		vv[i].ID, err = btrfs.GetVolumeID(vv[i].Device.MountPoint)
 		if err != nil {
 			return nil, err
 		}
