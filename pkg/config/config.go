@@ -200,5 +200,5 @@ func mountTopLevelSubvolume(device string) error {
 		return nil
 	}
 
-	return mount.Exec(device, domain.DeloreanMountPoint)
+	return mount.Mount(device, domain.DeloreanMountPoint)
 }

@@ -48,7 +48,8 @@ func (gui *Gui) createSnapshot(g *gocui.Gui, view *gocui.View) error {
 		activeVolumeFound = true
 
 		if gui.volumeInRootFs(vol) {
-			err := btrfs.CreateSnapshot(vol.Device.MountPoint, path.Join(vol.SnapshotsPath, domain.Manual))
+			err := btrfs.CreateSnapshot(vol.Device.MountPoint,
+				path.Join(vol.SnapshotsPath, domain.Manual))
 			if err != nil {
 				return fmt.Errorf("can't create snapshot for %s: %v", vol.Device.MountPoint, err)
 			}

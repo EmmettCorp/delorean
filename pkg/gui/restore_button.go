@@ -3,6 +3,8 @@ package gui
 import (
 	"errors"
 	"fmt"
+	"os"
+	"path"
 
 	"github.com/EmmettCorp/delorean/pkg/colors"
 	"github.com/EmmettCorp/delorean/pkg/commands/btrfs"
@@ -42,14 +44,39 @@ func (gui *Gui) restoreSnapshot(g *gocui.Gui, v *gocui.View) error {
 		return err
 	}
 
-	vol, err := gui.getVolumeByUUID(snap.VolumeUUID)
+	vol, err := gui.getVolumeByID(snap.VolumeID)
 	if err != nil {
 		return err
 	}
 
-	err = btrfs.SetDefault(vol.Device.MountPoint, snap.ID)
+	if !gui.volumeInRootFs(vol) {
+		gui.state.status = colors.FgRed(
+			fmt.Sprintf("volume %s is not a child subvolume top level subvolume", vol.Label))
+
+		return gui.escapeFromViewsByName(gui.views.snapshots.name)
+	}
+
+	err = btrfs.CreateSnapshot(vol.Device.MountPoint, path.Join(vol.SnapshotsPath, domain.Revert))
 	if err != nil {
-		return err
+		return fmt.Errorf("can't create revert snapshot for %s: %v", vol.Device.MountPoint, err)
+	}
+
+	subvolumeDelorianMountPoint := path.Join(domain.DeloreanMountPoint, vol.Subvol)
+	oldFsDelorianMountPoint := path.Join(domain.DeloreanMountPoint, fmt.Sprintf("%s.old", vol.Subvol))
+
+	err = os.Rename(subvolumeDelorianMountPoint, oldFsDelorianMountPoint)
+	if err != nil {
+		return fmt.Errorf("can't rename directory %s: %v", oldFsDelorianMountPoint, err)
+	}
+
+	err = btrfs.Restore(snap.Path, subvolumeDelorianMountPoint)
+	if err != nil {
+		return fmt.Errorf("can't create snapshot for %s: %v", vol.Device.MountPoint, err)
+	}
+
+	err = btrfs.DeleteSnapshot(oldFsDelorianMountPoint)
+	if err != nil {
+		return fmt.Errorf("can't remove directory %s: %v", oldFsDelorianMountPoint, err)
 	}
 
 	gui.state.status = colors.FgRed("reboot system to compete restore")

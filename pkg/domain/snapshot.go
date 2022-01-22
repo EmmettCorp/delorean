@@ -13,7 +13,7 @@ type Snapshot struct {
 	Label       string
 	Type        string // manual, weekly, daily, etc.
 	VolumeLabel string
-	VolumeUUID  string
+	VolumeID    string
 	Timestamp   int64
 }
 
