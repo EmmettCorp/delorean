@@ -18,22 +18,21 @@ import (
 )
 
 const (
-	deviceIdx      = 0
-	pathIdx        = 1
-	typeIdx        = 2
-	snapID         = 1
-	snapshotFormat = "2006-01-02_15:04:05"
+	deviceIdx = 0
+	pathIdx   = 1
+	typeIdx   = 2
+	snapID    = 1
 )
 
 type sortableSnapshots []domain.Snapshot
 
 func (ss sortableSnapshots) Len() int           { return len(ss) }
 func (ss sortableSnapshots) Swap(i, j int)      { ss[i], ss[j] = ss[j], ss[i] }
-func (ss sortableSnapshots) Less(i, j int) bool { return ss[i].ID > ss[j].ID }
+func (ss sortableSnapshots) Less(i, j int) bool { return ss[i].Timestamp > ss[j].Timestamp }
 
 // CreateSnapshot creates a new snapshot.
 func CreateSnapshot(sv, ph string) error {
-	cmd := exec.Command("btrfs", "subvolume", "snapshot", "-r", sv, path.Join(ph, time.Now().Format(snapshotFormat)))
+	cmd := exec.Command("btrfs", "subvolume", "snapshot", "-r", sv, path.Join(ph, time.Now().Format(domain.SnapshotFormat)))
 	var cmdErr bytes.Buffer
 	cmd.Stderr = &cmdErr
 	err := cmd.Run()
@@ -105,6 +104,7 @@ func snapshotsListByVolume(volume domain.Volume) ([]domain.Snapshot, error) {
 		}
 		sn.SetLabel()
 		sn.SetType()
+		sn.SetTimestamp()
 		snaps = append(snaps, sn)
 	}
 

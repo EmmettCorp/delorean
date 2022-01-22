@@ -1,6 +1,11 @@
 package domain
 
-import "strings"
+import (
+	"strings"
+	"time"
+)
+
+const SnapshotFormat = "2006-01-02_15:04:05"
 
 type Snapshot struct {
 	ID          int64
@@ -9,6 +14,7 @@ type Snapshot struct {
 	Type        string // manual, weekly, daily, etc.
 	VolumeLabel string
 	VolumeUUID  string
+	Timestamp   int64
 }
 
 func (s *Snapshot) SetLabel() {
@@ -27,4 +33,12 @@ func (s *Snapshot) SetType() {
 	}
 
 	s.Type = ss[len(ss)-2]
+}
+
+func (s *Snapshot) SetTimestamp() {
+	t, err := time.Parse(SnapshotFormat, s.Label)
+	if err != nil {
+		return
+	}
+	s.Timestamp = t.Unix()
 }
