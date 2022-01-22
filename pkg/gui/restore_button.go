@@ -3,6 +3,7 @@ package gui
 import (
 	"errors"
 	"fmt"
+	"os"
 	"path"
 
 	"github.com/EmmettCorp/delorean/pkg/colors"
@@ -61,14 +62,21 @@ func (gui *Gui) restoreSnapshot(g *gocui.Gui, v *gocui.View) error {
 	}
 
 	subvolumeDelorianMountPoint := path.Join(domain.DeloreanMountPoint, vol.Subvol)
-	err = btrfs.DeleteSnapshot(subvolumeDelorianMountPoint)
+	oldFsDelorianMountPoint := path.Join(domain.DeloreanMountPoint, fmt.Sprintf("%s.old", vol.Subvol))
+
+	err = os.Rename(subvolumeDelorianMountPoint, oldFsDelorianMountPoint)
 	if err != nil {
-		return fmt.Errorf("can't remove directory %s: %v", subvolumeDelorianMountPoint, err)
+		return fmt.Errorf("can't rename directory %s: %v", oldFsDelorianMountPoint, err)
 	}
 
 	err = btrfs.Restore(snap.Path, subvolumeDelorianMountPoint)
 	if err != nil {
 		return fmt.Errorf("can't create snapshot for %s: %v", vol.Device.MountPoint, err)
+	}
+
+	err = btrfs.DeleteSnapshot(oldFsDelorianMountPoint)
+	if err != nil {
+		return fmt.Errorf("can't remove directory %s: %v", oldFsDelorianMountPoint, err)
 	}
 
 	gui.state.status = colors.FgRed("reboot system to compete restore")
