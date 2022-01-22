@@ -63,7 +63,7 @@ func (gui *Gui) updateSnapshotsList() error {
 		return err
 	}
 	for i := range snaps {
-		fmt.Fprintf(view, " %s %s %s \n", snaps[i].Label, snaps[i].VolumeLabel, snaps[i].Type)
+		fmt.Fprintf(view, " %s\t%s\t%s \n", snaps[i].Label, snaps[i].Type, snaps[i].VolumeLabel)
 	}
 	gui.snapshots = snaps
 
