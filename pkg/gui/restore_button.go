@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/EmmettCorp/delorean/pkg/colors"
-	"github.com/EmmettCorp/delorean/pkg/commands"
+	"github.com/EmmettCorp/delorean/pkg/commands/btrfs"
 	"github.com/EmmettCorp/delorean/pkg/domain"
 	"github.com/jroimartin/gocui"
 )
@@ -47,7 +47,7 @@ func (gui *Gui) restoreSnapshot(g *gocui.Gui, v *gocui.View) error {
 		return err
 	}
 
-	err = commands.SetDefault(vol.Device.MountPoint, snap.ID)
+	err = btrfs.SetDefault(vol.Device.MountPoint, snap.ID)
 	if err != nil {
 		return err
 	}

@@ -5,7 +5,7 @@ import (
 	"path"
 
 	"github.com/EmmettCorp/delorean/pkg/colors"
-	"github.com/EmmettCorp/delorean/pkg/commands"
+	"github.com/EmmettCorp/delorean/pkg/commands/btrfs"
 	"github.com/EmmettCorp/delorean/pkg/domain"
 	"github.com/jroimartin/gocui"
 )
@@ -48,7 +48,7 @@ func (gui *Gui) createSnapshot(g *gocui.Gui, view *gocui.View) error {
 		activeVolumeFound = true
 
 		if gui.volumeInRootFs(vol) {
-			err := commands.CreateSnapshot(vol.Device.MountPoint, path.Join(vol.SnapshotsPath, domain.Manual))
+			err := btrfs.CreateSnapshot(vol.Device.MountPoint, path.Join(vol.SnapshotsPath, domain.Manual))
 			if err != nil {
 				return fmt.Errorf("can't create snapshot for %s: %v", vol.Device.MountPoint, err)
 			}
@@ -56,7 +56,7 @@ func (gui *Gui) createSnapshot(g *gocui.Gui, view *gocui.View) error {
 			continue
 		}
 
-		err := commands.CreateSnapshot(vol.Device.MountPoint, path.Join(vol.SnapshotsPath, domain.Manual))
+		err := btrfs.CreateSnapshot(vol.Device.MountPoint, path.Join(vol.SnapshotsPath, domain.Manual))
 		if err != nil {
 			return fmt.Errorf("can't create snapshot for %s: %v", vol.Device.MountPoint, err)
 		}

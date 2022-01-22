@@ -1,7 +1,7 @@
 /*
-Package commands keeps all the os commands.
+Package btrfs keeps all the btrfs commands.
 */
-package commands
+package btrfs
 
 import (
 	"bufio"
@@ -111,8 +111,8 @@ func snapshotsListByVolume(volume domain.Volume) ([]domain.Snapshot, error) {
 	return snaps, nil
 }
 
-// BtrfsSupported checks if kernel supports btrfs.
-func BtrfsSupported() (bool, error) {
+// SupportedByKernel checks if kernel supports btrfs.
+func SupportedByKernel() (bool, error) {
 	var wordIDx int
 	fp, err := os.Open("/proc/filesystems")
 	if err != nil {

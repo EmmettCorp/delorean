@@ -8,7 +8,9 @@ import (
 )
 
 const (
-	root = 0
+	root      = 0
+	deviceIdx = 0
+	pathIdx   = 1
 )
 
 func CheckIfRoot() error {
