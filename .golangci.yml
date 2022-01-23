@@ -1,0 +1,271 @@
+name:
+  metasearch GolangCI-Lint Configuration
+run:
+  deadline: 30m
+  skip-dirs:
+    - mocks
+  skip-files:
+    - ".*_mock.go$"
+    - "mock_*.go$"
+  modules-download-mode: vendor
+
+output:
+  # colored-line-number|line-number|json|tab|checkstyle|code-climate, default is "colored-line-number"
+  format: colored-line-number
+
+linters-settings:
+  errcheck:
+    # report about not checking of errors in type assetions: `a := b.(MyStruct)`;
+    # default is false: such cases aren't reported by default.
+    check-type-assertions: true
+
+    # report about assignment of errors to blank identifier: `num, _ := strconv.Atoi(numStr)`;
+    # default is false: such cases aren't reported by default.
+    check-blank: true
+
+  govet:
+    # report about shadowed variables
+
+  revive:
+    rules:
+      - name: time-naming
+        disabled: true
+
+  goimports:
+    # put imports beginning with prefix after 3rd-party packages;
+    # it's a comma-separated list of prefixes
+  dupl:
+    # tokens count to trigger issue, 150 by default
+    threshold: 100
+  goconst:
+    # minimal length of string constant, 3 by default
+    min-len: 2
+    # minimal occurrences count to trigger, 3 by default
+    min-occurrences: 3
+#  lll:
+#    # max line length, lines longer will be reported. Default is 120.
+#    # '\t' is counted as 1 character by default, and can be changed with the tab-width option
+#    line-length: 120
+#    # tab width in spaces. Default to 1.
+#    tab-width: 4
+  nakedret:
+    # make an issue if func has more lines of code than this setting and it has naked returns; default is 30
+    max-func-lines: 10
+  gocritic:
+    # Enable multiple checks by tags, run `GL_DEBUG=gocritic golangci-lint` run to see all tags and checks.
+    # Empty list by default. See https://github.com/go-critic/go-critic#usage -> section "Tags".
+    enabled-tags:
+      - performance
+      - style
+      - experimental
+
+    # Which checks should be disabled; can't be combined with 'enabled-checks'; default is empty
+    disabled-checks:
+      - hugeParam
+      - unnamedResult
+
+linters:
+  # Disabling all linters to manually specify linters we want to run
+  disable-all: true
+
+  enable:
+# Enabled by default:
+    - deadcode            # Finds unused code
+
+    - errcheck            # Errcheck is a program for checking for unchecked errors in go programs. These unchecked errors can be critical bugs in some cases
+
+    - gosimple            # Linter for Go source code that specializes in simplifying a code
+
+    - govet               # Vet examines Go source code and reports suspicious constructs, such as Printf calls whose arguments do not align with the format string
+
+    - ineffassign         # Detects when assignments to existing variables are not used
+
+    - staticcheck         # Staticcheck is a go vet on steroids, applying a ton of static analysis checks
+
+    - structcheck         # Finds an unused struct fields
+
+    - typecheck           # Syntactic and semantic analysis similar to the Go compiler
+
+    - unused              # Checks Go code for unused constants, variables, functions and types
+
+    - varcheck            # Finds unused global variables and constants
+
+
+# Disabled by default
+
+    - asciicheck		      # Simple linter to check that your code does not contain non-ASCII identifiers
+
+    # - bodyclose           # checks whether HTTP response body is closed successfully
+                            # Reason: it's a bit stupid and can't understand that body can be closed in another function
+
+    # - cyclop              # checks function and package cyclomatic complexity
+
+    - depguard            # Go linter that checks if package imports are in a list of acceptable packages
+
+    - dogsled             # Checks assignments with too many blank identifiers (e.g. x, , , _, := f())
+
+    # - dupl                # Tool for code clone detection
+
+    - durationcheck       # check for two durations multiplied together
+
+    - errname             # Checks that sentinel errors are prefixed with the Err and error types are suffixed with the Error
+
+    # - errorlint           # errorlint is a linter for that can be used to find code that will cause problems with the error wrapping scheme introduced in Go 1.13.
+    # TODO: check if it's worth it
+
+    - exhaustive          # check exhaustiveness of enum switch statements
+
+    # - exhaustivestruct    # Checks if all struct's fields are initialized
+
+    - exportloopref       # checks for pointers to enclosing loop variables
+
+    - forbidigo           # Forbids identifiers
+
+    - forcetypeassert     # finds forced type assertions
+
+    # - funlen              # Tool for detection of long functions
+
+    - gci                 # Gci control golang package import order and make it always deterministic.
+
+    - gochecknoglobals    # Checks that no globals are present in Go code
+
+    - gochecknoinits      # Checks that no init functions are present in Go code
+
+    # - gocognit            # Computes and checks the cognitive complexity of functions
+
+    - goconst             # Finds repeated strings that could be replaced by a constant
+
+    - gocritic            # The most opinionated Go source code linter
+
+    # - gocyclo             # Computes and checks the cyclomatic complexity of functions
+
+    - godot               # Check if comments end in a period
+
+    # - goerr113            # Golang linter to check the errors handling expressions
+    # # TODO: check if it's worth it
+
+    - gofmt               # Gofmt checks whether code was gofmt-ed. By default this tool runs with -s option to check for code simplification
+
+    - gofumpt             # Gofumpt checks whether code was gofumpt-ed.
+
+    - goheader            # Checks is file header matches to pattern
+
+    - goimports           # Goimports does everything that gofmt does. Additionally it checks unused imports
+
+    # - gomnd               # An analyzer to detect magic numbers.
+    # TODO: the good one. Turn on it in future.
+
+    - gomoddirectives     # Manage the use of 'replace', 'retract', and 'excludes' directives in go.mod.
+
+    - gomodguard          # Allow and block list linter for direct Go module dependencies. This is different from depguard where there are different block types for example version constraints and module recommendations.
+
+    - goprintffuncname	  # Checks that printf-like functions are named with f at the end
+
+    - gosec               # Inspects source code for security problems
+
+
+    - importas            # Enforces consistent import aliases
+
+    - lll                 # Reports long lines
+
+    - makezero            # Finds slice declarations with non-zero initial length
+
+    - misspell            # Finds commonly misspelled English words in comments
+
+    - nakedret            # Finds naked returns in functions greater than a specified function length
+
+    - nestif              # Reports deeply nested if statements
+
+    - nilerr              # Finds the code that returns nil even if it checks that the error is not nil.
+
+    - nlreturn            # nlreturn checks for a new line before return and branch statements to increase code clarity
+
+    - noctx               # noctx finds sending http request without context.Context
+
+    - prealloc            # Finds slice declarations that could potentially be preallocated
+
+    - predeclared         # find code that shadows one of Go's predeclared identifiers
+
+    - promlinter          # Check Prometheus metrics naming via promlint
+
+    - revive              # Fast, configurable, extensible, flexible, and beautiful linter for Go. Drop-in replacement of golint.
+
+    - rowserrcheck        # checks whether Err of rows is checked successfully
+
+    - sqlclosecheck       # Checks that sql.Rows and sql.Stmt are closed.
+
+    - stylecheck          # Stylecheck is a replacement for golint
+
+
+    - thelper             # thelper detects golang test helpers without t.Helper() call and checks the consistency of test helpers
+
+    - tparallel           # tparallel detects inappropriate usage of t.Parallel() method in your Go test codes
+
+    - unconvert           # Remove unnecessary type conversions
+
+    - unparam             # Reports unused function parameters
+
+    - wastedassign        # wastedassign finds wasted assignment statements.
+
+    - whitespace          # Tool for detection of leading and trailing whitespace
+
+    # - wrapcheck           # Checks that errors returned from external packages are wrapped
+
+    # - wsl                 # Whitespace Linter - Forces you to use empty lines!
+
+# Turn them on when there is nothing to do.
+
+    # - godox               # Tool for detection of FIXME, TODO and other comment keywords
+
+# CONSIDER TO TURN ON:
+
+
+# NOT NEEDED:
+   
+    # - nolintlint          # Reports ill-formed or insufficient nolint directives
+
+    # - paralleltest        # paralleltest detects missing usage of t.Parallel() method in your Go test
+
+    # - tagliatelle         # Checks the struct tags.
+
+    # - testpackage         # linter that makes you use a separate _test package
+
+    # - ifshort             # Checks that your code uses short syntax for if-statements whenever possible
+
+issues:
+  # Independently from option `exclude` we use default exclude patterns,
+  # it can be disabled by this option. To list all
+  # excluded by default patterns execute `golangci-lint run --help`.
+  # Default value for this option is true.
+  exclude-use-default: false
+
+  exclude-rules:
+  #   # We don't need it from gosec, because we have errcheck
+  #   - linters:
+  #       - gosec
+  #     text: "G104:"
+
+  #   # Currently this check gives us too much false positives
+  #   - linters:
+  #       - gosec
+  #     text: "G201:"
+
+  # # Currently this check gives us too much false positives
+  # - linters:
+  #     - gosec
+  #   text: "G202:"
+
+    # - path: _test\.go
+    #   linters:
+    #     - funlen
+
+    - path: tests/*
+      linters:
+        - gochecknoglobals
+        - gocritic
+
+  # Maximum issues count per one linter. Set to 0 to disable. Default is 50.
+  max-issues-per-linter: 0
+
+  # Maximum count of issues with the same text. Set to 0 to disable. Default is 3.
+  max-same-issues: 0
