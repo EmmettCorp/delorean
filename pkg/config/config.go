@@ -1,3 +1,6 @@
+/*
+Package config is responsible for application configuration init.
+*/
 package config
 
 import (
@@ -5,7 +8,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"path"
 
@@ -18,24 +20,16 @@ import (
 
 const (
 	deloreanPath = "/usr/local/delorean"
-	fileMode     = 0600
+	fileMode     = 0o600
 )
 
 type (
 	Config struct {
 		BtrfsSupported bool            `json:"btrfs_supported"`
 		Path           string          `json:"path"` // needs to save config file from app.
-		Schedule       Schedule        `json:"schedule"`
+		Schedule       domain.Schedule `json:"schedule"`
 		Volumes        []domain.Volume `json:"volumes"`
 		RootDevice     string          `json:"root_device"`
-	}
-
-	Schedule struct {
-		Monthly int `json:"monthly"`
-		Weekly  int `json:"weekly"`
-		Daily   int `json:"daily"`
-		Hourly  int `json:"hourly"`
-		Boot    int `json:"boot"`
 	}
 )
 
@@ -54,7 +48,7 @@ func New(log *logger.Client) (*Config, error) {
 		return nil, fmt.Errorf("can't create config directory: %v", err)
 	}
 	configPath := fmt.Sprintf("%s/config.json", configDir)
-	f, err := os.OpenFile(configPath, os.O_CREATE, fileMode)
+	f, err := os.OpenFile(path.Clean(configPath), os.O_CREATE, fileMode)
 	if err != nil {
 		return nil, fmt.Errorf("can't open file: %v", err)
 	}
@@ -74,11 +68,13 @@ func New(log *logger.Client) (*Config, error) {
 		cfg.BtrfsSupported, err = btrfs.SupportedByKernel()
 		if err != nil {
 			log.Errorf("can't check if btrfs is supported by kernel: %v", err)
+
 			return nil, fmt.Errorf("can't check if btrfs is supported by kernel: %v", err)
 		}
 
 		if !cfg.BtrfsSupported {
 			log.Error("btrfs is not supported by the kernel")
+
 			return nil, errors.New("btrfs is not supported by the kernel")
 		}
 	}
@@ -94,6 +90,7 @@ OUT:
 		for j := range cfg.Volumes {
 			if vv[i].Device.MountPoint == cfg.Volumes[j].Device.MountPoint { // check if this path has been already added
 				cfg.Volumes[j].Device.Mounted = true
+
 				continue OUT
 			}
 		}
@@ -151,10 +148,10 @@ func (cfg *Config) createSnapshotsPaths() error {
 	return nil
 }
 
-func checkDir(path string) error {
-	_, err := os.Stat(path)
+func checkDir(ph string) error {
+	_, err := os.Stat(ph)
 	if os.IsNotExist(err) {
-		return os.MkdirAll(path, fileMode)
+		return os.MkdirAll(ph, fileMode)
 	}
 
 	return err
@@ -167,7 +164,7 @@ func (cfg *Config) Save() error {
 		return fmt.Errorf("can't marshal data: %v", err)
 	}
 
-	return ioutil.WriteFile(cfg.Path, data, fileMode)
+	return os.WriteFile(cfg.Path, data, fileMode)
 }
 
 func createSnapshotsPaths(p string) error {

@@ -20,6 +20,7 @@ func (gui *Gui) createButton() (*gocui.View, error) {
 	if err != nil {
 		if err != gocui.ErrUnknownView {
 			gui.log.Errorf("can't build %s button: %v", gui.views.createBtn.name, err)
+
 			return nil, err
 		}
 		err := gui.g.SetKeybinding(gui.views.createBtn.name, gocui.MouseLeft, gocui.ModNone, gui.createSnapshot)
@@ -35,6 +36,7 @@ func (gui *Gui) createButton() (*gocui.View, error) {
 func (gui *Gui) createSnapshot(g *gocui.Gui, view *gocui.View) error {
 	if !gui.views.createBtn.limiter.Allow() {
 		gui.state.status = colors.FgRed("too many create calls per second")
+
 		return nil
 	}
 
@@ -65,6 +67,7 @@ func (gui *Gui) createSnapshot(g *gocui.Gui, view *gocui.View) error {
 
 	if !activeVolumeFound {
 		gui.state.status = colors.FgRed("there are no active volumes")
+
 		return nil
 	}
 

@@ -1,3 +1,6 @@
+/*
+Package findmnt provides `findmnt` tool logic.
+*/
 package findmnt
 
 import (
@@ -11,7 +14,6 @@ import (
 )
 
 const (
-	btrfsType      = "btrfs"
 	findmntOptions = "SOURCE,TARGET,LABEL,UUID,FSROOT"
 )
 
@@ -44,7 +46,7 @@ func GetVolumes() ([]domain.Volume, error) {
 
 	fmo := findMntOutput{}
 
-	err = json.Unmarshal([]byte(output), &fmo)
+	err = json.Unmarshal(output, &fmo)
 	if err != nil {
 		return nil, fmt.Errorf("can't unmarshal data: %v", err)
 	}
@@ -55,10 +57,7 @@ func GetVolumes() ([]domain.Volume, error) {
 			continue
 		}
 
-		v, err := buildVolume(fmo.Filesystems[i])
-		if err != nil {
-			return nil, fmt.Errorf("can't build volume: %v", err)
-		}
+		v := buildVolume(fmo.Filesystems[i])
 		vv = append(vv, v)
 	}
 
@@ -76,7 +75,7 @@ func IsDeviceMount(device, mountPoint string) bool {
 
 	fmo := findMntOutput{}
 
-	err = json.Unmarshal([]byte(output), &fmo)
+	err = json.Unmarshal(output, &fmo)
 	if err != nil {
 		return false
 	}
@@ -84,7 +83,7 @@ func IsDeviceMount(device, mountPoint string) bool {
 	return fmo.Filesystems != nil && len(fmo.Filesystems) > 0
 }
 
-func buildVolume(fmv findMntVolume) (domain.Volume, error) {
+func buildVolume(fmv findMntVolume) domain.Volume {
 	v := domain.Volume{
 		Label:  fmv.Label,
 		Subvol: getSubvol(fmv.FsRoot),
@@ -107,7 +106,7 @@ func buildVolume(fmv findMntVolume) (domain.Volume, error) {
 		}
 	}
 
-	return v, nil
+	return v
 }
 
 func getSubvol(fsRoot string) string {
@@ -117,6 +116,7 @@ func getSubvol(fsRoot string) string {
 
 	if strings.HasPrefix(fsRoot, "/") { // remove slash from fsRoot like `/@`
 		ss := strings.Split(fsRoot, "/")
+
 		return ss[1]
 	}
 

@@ -20,10 +20,10 @@ func run() error {
 		return err
 	}
 
-	app, err := app.New()
+	a, err := app.New()
 	if err != nil {
 		return err
 	}
 
-	return app.Run()
+	return a.Run()
 }

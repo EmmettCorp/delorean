@@ -23,6 +23,7 @@ func (gui *Gui) volumesView() (*gocui.View, error) {
 	if err != nil {
 		if !errors.Is(err, gocui.ErrUnknownView) {
 			gui.log.Errorf("can't set %s view: %v", gui.views.volumes.name, err)
+
 			return nil, err
 		}
 
@@ -77,5 +78,6 @@ func (gui *Gui) editVolumes(g *gocui.Gui, view *gocui.View) error {
 	}
 
 	_, err = gui.g.SetCurrentView(gui.views.volumes.name)
+
 	return err
 }

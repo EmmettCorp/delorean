@@ -1,3 +1,6 @@
+/*
+Package app is responsible for creating a new application instance.
+*/
 package app
 
 import (

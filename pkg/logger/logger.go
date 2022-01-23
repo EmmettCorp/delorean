@@ -1,3 +1,6 @@
+/*
+Package logger is responsible for logger initialization.
+*/
 package logger
 
 import (
@@ -21,7 +24,7 @@ type Client struct {
 }
 
 func New() (*Client, error) {
-	err := checkDir(defaultLogDir, 0600)
+	err := checkDir(defaultLogDir, 0o600)
 	if err != nil {
 		return nil, err
 	}
@@ -42,7 +45,7 @@ func New() (*Client, error) {
 		return nil, err
 	}
 
-	defer zl.Sync()
+	defer zl.Sync() // nolint errcheck: we will escape zap log in future
 
 	sugar := zl.Sugar()
 

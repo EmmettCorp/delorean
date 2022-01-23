@@ -25,6 +25,7 @@ func (ss sortableSnapshots) Less(i, j int) bool { return ss[i].Timestamp > ss[j]
 
 // CreateSnapshot creates a new snapshot.
 func CreateSnapshot(sv, ph string) error {
+	// nolint gosec: we pass commands here from code only.
 	cmd := exec.Command("btrfs", "subvolume", "snapshot", "-r", sv, path.Join(ph, time.Now().Format(domain.SnapshotFormat)))
 	var cmdErr bytes.Buffer
 	cmd.Stderr = &cmdErr
@@ -165,15 +166,14 @@ func getSnapshots(ph string) ([]string, error) {
 		for j := range snap {
 			snaps = append(snaps, path.Join(sp, snap[j]))
 		}
-
 	}
 
 	return snaps, nil
 }
 
 func osReadDir(root string) ([]string, error) {
-	var files []string
-	f, err := os.Open(root)
+	files := []string{}
+	f, err := os.Open(path.Clean(root))
 	if err != nil {
 		return files, err
 	}
@@ -186,5 +186,6 @@ func osReadDir(root string) ([]string, error) {
 	for _, file := range fileInfo {
 		files = append(files, file.Name())
 	}
+
 	return files, nil
 }

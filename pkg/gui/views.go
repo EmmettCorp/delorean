@@ -8,8 +8,8 @@ import (
 )
 
 const (
-	MIN_WIDTH  = 57
-	MIN_HEIGHT = 15
+	minWidthConst  = 57
+	minHeightConst = 15
 )
 
 type view struct {
@@ -114,8 +114,9 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 	var err error
 	gui.maxX, gui.maxY = gui.g.Size()
 
-	if gui.maxX < MIN_WIDTH || gui.maxY < MIN_HEIGHT {
+	if gui.maxX < minWidthConst || gui.maxY < minHeightConst {
 		_, err = gui.errorView()
+
 		return err
 	} else {
 		err := gui.deleteErrorView()
