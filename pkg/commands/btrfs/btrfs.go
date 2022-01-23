@@ -90,7 +90,6 @@ func snapshotsListByVolume(volume domain.Volume) ([]domain.Snapshot, error) {
 
 	for i := range sn {
 		sn := domain.Snapshot{
-			// ID:          id,
 			Path:        sn[i],
 			VolumeLabel: volume.Label,
 			VolumeID:    volume.ID,

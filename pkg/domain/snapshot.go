@@ -8,7 +8,6 @@ import (
 const SnapshotFormat = "2006-01-02_15:04:05"
 
 type Snapshot struct {
-	ID          int64
 	Path        string
 	Label       string
 	Type        string // manual, weekly, daily, etc.
