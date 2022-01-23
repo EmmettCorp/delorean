@@ -1,4 +1,4 @@
-package mount
+package commands
 
 import (
 	"bytes"
@@ -6,7 +6,7 @@ import (
 	"os/exec"
 )
 
-// Mount executes mount mount command.
+// Mount mounts device to point.
 func Mount(device, point string) error {
 	cmd := exec.Command("mount", device, point)
 	var cmdErr bytes.Buffer
@@ -19,6 +19,7 @@ func Mount(device, point string) error {
 	return nil
 }
 
+// Umount unmounts device.
 func Umount(point string) error {
 	cmd := exec.Command("umount", point)
 	var cmdErr bytes.Buffer

@@ -9,9 +9,9 @@ import (
 	"os"
 	"path"
 
+	"github.com/EmmettCorp/delorean/pkg/commands"
 	"github.com/EmmettCorp/delorean/pkg/commands/btrfs"
 	"github.com/EmmettCorp/delorean/pkg/commands/findmnt"
-	"github.com/EmmettCorp/delorean/pkg/commands/mount"
 	"github.com/EmmettCorp/delorean/pkg/domain"
 	"github.com/EmmettCorp/delorean/pkg/logger"
 )
@@ -200,5 +200,5 @@ func mountTopLevelSubvolume(device string) error {
 		return nil
 	}
 
-	return mount.Mount(device, domain.DeloreanMountPoint)
+	return commands.Mount(device, domain.DeloreanMountPoint)
 }
