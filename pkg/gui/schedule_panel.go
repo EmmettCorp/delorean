@@ -8,7 +8,6 @@ import (
 	"github.com/jroimartin/gocui"
 )
 
-const maxSnapshotAmount = 99
 const maxScheduleItems = 4
 
 type scheduleEditor struct {
@@ -25,29 +24,35 @@ func (gui *Gui) scheduleView() (*gocui.View, error) {
 	if err != nil {
 		if !errors.Is(err, gocui.ErrUnknownView) {
 			gui.log.Errorf("can't set %s view: %v", gui.views.schedule.name, err)
+
 			return nil, err
 		}
+
+		gui.log.Info("1")
 
 		view.Title = gui.views.schedule.name
 		view.Editor = &scheduleEditor{
 			g: gui,
 		}
 
+		gui.log.Info("2")
 		gui.drawSchedule(view)
 
+		gui.log.Info("3")
 		err := gui.g.SetKeybinding(gui.views.schedule.name, gocui.MouseLeft, gocui.ModNone, gui.editSchedule)
 		if err != nil {
 			return nil, err
 		}
+		gui.log.Info("4")
 		err = gui.g.SetKeybinding(gui.views.schedule.name, gocui.KeyEsc, gocui.ModNone, gui.escapeFromEditableView)
 		if err != nil {
 			return nil, err
 		}
+		gui.log.Info("5")
 		err = gui.g.SetKeybinding(gui.views.schedule.name, gocui.KeyEnter, gocui.ModNone, gui.saveConfig)
 		if err != nil {
 			return nil, err
 		}
-
 	}
 
 	return view, nil
@@ -77,8 +82,6 @@ func (gui *Gui) editSchedule(g *gocui.Gui, view *gocui.View) error {
 		return err
 	}
 
-	// _, err = gui.g.SetViewOnTop(gui.views.schedule.name)
-
 	return err
 }
 
@@ -87,12 +90,14 @@ func (gui *Gui) updateSchedule(g *gocui.Gui) error {
 	if err != nil {
 		if !errors.Is(err, gocui.ErrUnknownView) {
 			gui.log.Errorf("can't set %s view: %v", gui.views.schedule.name, err)
+
 			return err
 		}
 	}
 	view.Clear()
 	gui.drawSchedule(view)
 	gui.state.status = colors.FgRed("press enter to save schedule")
+
 	return nil
 }
 
@@ -115,38 +120,11 @@ func (e *scheduleEditor) Edit(view *gocui.View, key gocui.Key, ch rune, mod gocu
 
 	if key == gocui.KeyArrowRight {
 		_, cY := view.Cursor()
-		switch cY {
-		case 0:
-			if e.g.config.Schedule.Monthly >= maxSnapshotAmount {
-				e.g.config.Schedule.Monthly = 99
-				return
-			}
-			e.g.config.Schedule.Monthly++
-		case 1:
-			if e.g.config.Schedule.Weekly >= maxSnapshotAmount {
-				e.g.config.Schedule.Weekly = 99
-				return
-			}
-			e.g.config.Schedule.Weekly++
-		case 2:
-			if e.g.config.Schedule.Daily >= maxSnapshotAmount {
-				e.g.config.Schedule.Daily = 99
-				return
-			}
-			e.g.config.Schedule.Daily++
-		case 3:
-			if e.g.config.Schedule.Hourly >= maxSnapshotAmount {
-				e.g.config.Schedule.Hourly = 99
-				return
-			}
-			e.g.config.Schedule.Hourly++
-		case 4:
-			if e.g.config.Schedule.Boot >= maxSnapshotAmount {
-				e.g.config.Schedule.Boot = 99
-				return
-			}
-			e.g.config.Schedule.Boot++
+		updated := e.g.config.Schedule.Increase(cY)
+		if !updated {
+			return
 		}
+
 		err := e.g.updateSchedule(e.g.g)
 		if err != nil {
 			e.g.log.Errorf("can't update schedule: %v", err)
@@ -155,38 +133,11 @@ func (e *scheduleEditor) Edit(view *gocui.View, key gocui.Key, ch rune, mod gocu
 
 	if key == gocui.KeyArrowLeft {
 		_, cY := view.Cursor()
-		switch cY {
-		case 0:
-			if e.g.config.Schedule.Monthly <= 0 {
-				e.g.config.Schedule.Monthly = 0
-				return
-			}
-			e.g.config.Schedule.Monthly--
-		case 1:
-			if e.g.config.Schedule.Weekly <= 0 {
-				e.g.config.Schedule.Weekly = 0
-				return
-			}
-			e.g.config.Schedule.Weekly--
-		case 2:
-			if e.g.config.Schedule.Daily <= 0 {
-				e.g.config.Schedule.Daily = 0
-				return
-			}
-			e.g.config.Schedule.Daily--
-		case 3:
-			if e.g.config.Schedule.Hourly <= 0 {
-				e.g.config.Schedule.Hourly = 0
-				return
-			}
-			e.g.config.Schedule.Hourly--
-		case 4:
-			if e.g.config.Schedule.Boot <= 0 {
-				e.g.config.Schedule.Boot = 0
-				return
-			}
-			e.g.config.Schedule.Boot--
+		updated := e.g.config.Schedule.Decrease(cY)
+		if !updated {
+			return
 		}
+
 		err := e.g.updateSchedule(e.g.g)
 		if err != nil {
 			e.g.log.Errorf("can't update schedule: %v", err)

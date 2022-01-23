@@ -1,3 +1,6 @@
+/*
+Package commands keeps all cli prompt tools commands.
+*/
 package commands
 
 import (
@@ -38,6 +41,7 @@ func GetRootDevice() (string, error) {
 		}
 
 		device = fields[deviceIdx]
+
 		break
 	}
 

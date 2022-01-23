@@ -1,3 +1,6 @@
+/*
+Package domain keeps shared structures, constants and functions.
+*/
 package domain
 
 // DeloreanMountPoint is a mount point where subvolumes will be mount

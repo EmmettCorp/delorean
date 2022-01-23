@@ -25,8 +25,12 @@ func (gui *Gui) saveConfig(g *gocui.Gui, view *gocui.View) error {
 		return fmt.Errorf("can't save config: %v", err)
 	}
 
-	gui.escapeFromEditableView(g, view)
+	err = gui.escapeFromEditableView(g, view)
+	if err != nil {
+		return err
+	}
 	gui.state.status = colors.FgGreen(fmt.Sprintf("%s data is saved ", view.Name()))
+
 	return gui.updateSnapshotsList()
 }
 
@@ -35,14 +39,16 @@ func (gui *Gui) escapeFromEditableView(g *gocui.Gui, view *gocui.View) error {
 	view.SelBgColor = gocui.ColorDefault
 
 	gui.setDefaultStatus()
-	gui.g.SetCurrentView(gui.views.status.name)
-	return nil
+	_, err := gui.g.SetCurrentView(gui.views.status.name)
+
+	return err
 }
 
 func (gui *Gui) escapeFromView(g *gocui.Gui, view *gocui.View) error {
 	gui.setDefaultStatus()
-	gui.g.SetCurrentView(gui.views.status.name)
-	return nil
+	_, err := gui.g.SetCurrentView(gui.views.status.name)
+
+	return err
 }
 
 func (gui *Gui) escapeFromViewsByName(names ...string) error {
@@ -51,6 +57,7 @@ func (gui *Gui) escapeFromViewsByName(names ...string) error {
 		if err != nil {
 			if !errors.Is(err, gocui.ErrUnknownView) {
 				gui.log.Errorf("can't get %s view: %v", name, err)
+
 				return err
 			}
 		}
@@ -58,6 +65,7 @@ func (gui *Gui) escapeFromViewsByName(names ...string) error {
 		view.SelBgColor = gocui.ColorDefault
 	}
 
-	gui.g.SetCurrentView(gui.views.status.name)
-	return nil
+	_, err := gui.g.SetCurrentView(gui.views.status.name)
+
+	return err
 }

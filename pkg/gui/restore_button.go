@@ -22,6 +22,7 @@ func (gui *Gui) restoreButton() (*gocui.View, error) {
 	if err != nil {
 		if err != gocui.ErrUnknownView {
 			gui.log.Errorf("can't build %s button: %v", gui.views.restoreBtn.name, err)
+
 			return nil, err
 		}
 		err := gui.g.SetKeybinding(gui.views.restoreBtn.name, gocui.MouseLeft, gocui.ModNone, gui.restoreSnapshot)
@@ -39,8 +40,10 @@ func (gui *Gui) restoreSnapshot(g *gocui.Gui, v *gocui.View) error {
 	if err != nil {
 		if errors.Is(err, domain.ErrSnapshotIsNotChosen) {
 			gui.state.status = colors.FgRed(err.Error())
+
 			return nil
 		}
+
 		return err
 	}
 

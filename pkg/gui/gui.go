@@ -1,5 +1,5 @@
 /*
-Pakcage gui is responsible user interface.
+Package gui is responsible user interface.
 */
 package gui
 
@@ -13,7 +13,7 @@ import (
 	"github.com/jroimartin/gocui"
 )
 
-// Gui wraps the gocui Gui object which handles rendering and events
+// Gui wraps the gocui Gui object which handles rendering and events.
 type (
 	Gui struct {
 		g *gocui.Gui
@@ -33,10 +33,11 @@ type (
 )
 
 // New creates and returns a new gui handler.
-func New(config *config.Config, log *logger.Client) (*Gui, error) {
+func New(cfg *config.Config, log *logger.Client) (*Gui, error) {
 	g, err := gocui.NewGui(gocui.OutputNormal)
 	if err != nil {
 		log.Errorf("can't get new gui: %v", err)
+
 		return nil, fmt.Errorf("can't get new gui: %v", err)
 	}
 
@@ -45,14 +46,14 @@ func New(config *config.Config, log *logger.Client) (*Gui, error) {
 
 	return &Gui{
 		g:           g,
-		config:      config,
+		config:      cfg,
 		log:         log,
 		state:       initState(),
 		headerHight: 2,
 	}, nil
 }
 
-// Run setup the gui with keybindings and start the mainloop
+// Run setup the gui with keybindings and start the mainloop.
 func (gui *Gui) Run() error {
 	// close gocui.Gui on exit from main loop.
 	defer gui.g.Close()
@@ -67,6 +68,7 @@ func (gui *Gui) Run() error {
 	err := gui.setKeybindings(bb)
 	if err != nil {
 		gui.log.Errorf("can't set keybindings: %v", err)
+
 		return fmt.Errorf("can't set keybindings: %v", err)
 	}
 
@@ -74,12 +76,16 @@ func (gui *Gui) Run() error {
 	if err != nil {
 		if errors.Is(err, gocui.ErrQuit) {
 			gui.log.Info("quit")
+
 			return nil
 		}
 
 		gui.log.Errorf("main loop failed: %v", err)
 		for _, v := range gui.allViews() {
-			quit(gui.g, v)
+			err = quit(gui.g, v)
+			if err != nil {
+				return err
+			}
 		}
 	}
 

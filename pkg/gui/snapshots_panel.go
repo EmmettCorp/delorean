@@ -23,6 +23,7 @@ func (gui *Gui) snapshotsView() (*gocui.View, error) {
 	if err != nil {
 		if !errors.Is(err, gocui.ErrUnknownView) {
 			gui.log.Errorf("can't set %s view: %v", gui.views.snapshots.name, err)
+
 			return nil, err
 		}
 
@@ -54,6 +55,7 @@ func (gui *Gui) updateSnapshotsList() error {
 	if err != nil {
 		if !errors.Is(err, gocui.ErrUnknownView) {
 			gui.log.Errorf("can't get %s view: %v", gui.views.snapshots.name, err)
+
 			return err
 		}
 	}
@@ -75,6 +77,7 @@ func (gui *Gui) getChosenSnapshot() (domain.Snapshot, error) {
 	if err != nil {
 		if !errors.Is(err, gocui.ErrUnknownView) {
 			gui.log.Errorf("can't get %s view: %v", gui.views.snapshots.name, err)
+
 			return domain.Snapshot{}, err
 		}
 	}

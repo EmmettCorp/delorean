@@ -17,6 +17,7 @@ func (gui *Gui) errorView() (*gocui.View, error) {
 	if err != nil {
 		if !errors.Is(err, gocui.ErrUnknownView) {
 			gui.log.Errorf("can't set %s view: %v", gui.views.errorView.name, err)
+
 			return nil, err
 		}
 
@@ -34,7 +35,7 @@ func (gui *Gui) errorView() (*gocui.View, error) {
 func (gui *Gui) deleteErrorView() error {
 	_, err := gui.g.View(gui.views.errorView.name)
 	if err != nil {
-		return nil
+		return nil // nolint
 	}
 
 	return gui.g.DeleteView(gui.views.errorView.name)
