@@ -4,13 +4,11 @@ Package logger is responsible for logger initialization.
 package logger
 
 import (
-	"fmt"
 	"io"
 	"io/fs"
 	"log"
 	"os"
 	"path"
-	"time"
 
 	"github.com/EmmettCorp/delorean/pkg/domain"
 )
@@ -31,9 +29,9 @@ func New() (*Client, error) {
 		return nil, err
 	}
 
-	ph := path.Join(defaultLogDir, fmt.Sprintf("%s.log", time.Now().Format(logNameFormat)))
+	ph := path.Join(defaultLogDir, "app.log")
 
-	logFile, err := os.OpenFile(ph, os.O_RDWR|os.O_CREATE|os.O_APPEND, domain.RWFileMode) // nolint gosec: ph is constructed from constants.
+	logFile, err := os.OpenFile(ph, os.O_RDWR|os.O_CREATE, domain.RWFileMode) // nolint gosec: ph is constructed from constants.
 	if err != nil {
 		return nil, err
 	}
