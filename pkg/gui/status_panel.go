@@ -17,7 +17,7 @@ func (gui *Gui) statusView() (*gocui.View, error) {
 	)
 	if err != nil {
 		if !errors.Is(err, gocui.ErrUnknownView) {
-			gui.log.Errorf(err, "can't set %s view: %v", gui.views.status.name)
+			gui.log.ErrLog.Printf("can't set %s view: %v", gui.views.status.name, err)
 
 			return nil, err
 		}

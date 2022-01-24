@@ -36,8 +36,8 @@ func New() (*Client, error) {
 		return nil, err
 	}
 
-	infoLog := log.New(logFile, "info:\t", log.Ltime)
-	errLog := log.New(logFile, "err:\t", log.Ltime)
+	infoLog := log.New(logFile, "info: ", log.Ltime|log.Lshortfile)
+	errLog := log.New(logFile, "err: ", log.Ltime|log.Lshortfile)
 
 	return &Client{
 		InfoLog: infoLog,
@@ -60,32 +60,4 @@ func checkDir(ph string, fileMode fs.FileMode) error {
 	}
 
 	return err
-}
-
-// Errorf logs error with message from `format`.
-// `format` could be just a message for error.
-// `params` are parameters for format.
-func (lc *Client) Errorf(err error, format string, params ...interface{}) {
-	format = fmt.Sprintf(format, params...)
-	if format == "" {
-		lc.ErrLog.Printf("%v", err)
-
-		return
-	}
-	lc.ErrLog.Printf("%s: %v", format, err)
-}
-
-// Error logs error with message.
-func (lc *Client) Error(message string) {
-	lc.ErrLog.Print(message)
-}
-
-// Infof logs info message from `format` with `params`.
-func (lc *Client) Infof(format string, params ...interface{}) {
-	lc.InfoLog.Printf(format, params...)
-}
-
-// Info logs info `message`.
-func (lc *Client) Info(message string) {
-	lc.InfoLog.Print(message)
 }

@@ -67,13 +67,13 @@ func New(log *logger.Client) (*Config, error) {
 	if !cfg.BtrfsSupported { // check on first run only
 		cfg.BtrfsSupported, err = btrfs.SupportedByKernel()
 		if err != nil {
-			log.Errorf(err, "can't check if btrfs is supported by kernel")
+			log.ErrLog.Printf("can't check if btrfs is supported by kernel: %v", err)
 
 			return nil, fmt.Errorf("can't check if btrfs is supported by kernel: %v", err)
 		}
 
 		if !cfg.BtrfsSupported {
-			log.Error("btrfs is not supported by the kernel")
+			log.ErrLog.Print("btrfs is not supported by the kernel")
 
 			return nil, errors.New("btrfs is not supported by the kernel")
 		}
