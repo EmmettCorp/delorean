@@ -19,7 +19,7 @@ func (gui *Gui) createButton() (*gocui.View, error) {
 	)
 	if err != nil {
 		if err != gocui.ErrUnknownView {
-			gui.log.Errorf("can't build %s button: %v", gui.views.createBtn.name, err)
+			gui.log.Errorf(err, "can't build %s button: %v", gui.views.createBtn.name)
 
 			return nil, err
 		}

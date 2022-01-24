@@ -20,7 +20,7 @@ func (gui *Gui) deleteButton() (*gocui.View, error) {
 	)
 	if err != nil {
 		if err != gocui.ErrUnknownView {
-			gui.log.Errorf("can't build %s button: %v", buttonName, err)
+			gui.log.Errorf(err, "can't build %s button: %v", buttonName)
 
 			return nil, err
 		}
