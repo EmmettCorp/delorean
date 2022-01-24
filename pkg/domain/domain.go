@@ -23,3 +23,5 @@ const (
 	Manual  = "manual"
 	Revert  = "revert"
 )
+
+const RWFileMode = 0o600

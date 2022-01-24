@@ -20,7 +20,6 @@ import (
 
 const (
 	deloreanPath = "/usr/local/delorean"
-	fileMode     = 0o600
 )
 
 type (
@@ -48,7 +47,7 @@ func New(log *logger.Client) (*Config, error) {
 		return nil, fmt.Errorf("can't create config directory: %v", err)
 	}
 	configPath := fmt.Sprintf("%s/config.json", configDir)
-	f, err := os.OpenFile(path.Clean(configPath), os.O_CREATE, fileMode)
+	f, err := os.OpenFile(path.Clean(configPath), os.O_CREATE, domain.RWFileMode)
 	if err != nil {
 		return nil, fmt.Errorf("can't open file: %v", err)
 	}
@@ -151,7 +150,7 @@ func (cfg *Config) createSnapshotsPaths() error {
 func checkDir(ph string) error {
 	_, err := os.Stat(ph)
 	if os.IsNotExist(err) {
-		return os.MkdirAll(ph, fileMode)
+		return os.MkdirAll(ph, domain.RWFileMode)
 	}
 
 	return err
@@ -164,7 +163,7 @@ func (cfg *Config) Save() error {
 		return fmt.Errorf("can't marshal data: %v", err)
 	}
 
-	return os.WriteFile(cfg.Path, data, fileMode)
+	return os.WriteFile(cfg.Path, data, domain.RWFileMode)
 }
 
 func createSnapshotsPaths(p string) error {

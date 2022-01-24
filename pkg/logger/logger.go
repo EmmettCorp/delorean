@@ -11,6 +11,8 @@ import (
 	"os"
 	"path"
 	"time"
+
+	"github.com/EmmettCorp/delorean/pkg/domain"
 )
 
 const (
@@ -24,14 +26,14 @@ type Client struct {
 }
 
 func New() (*Client, error) {
-	err := checkDir(defaultLogDir, 0o600)
+	err := checkDir(defaultLogDir, domain.RWFileMode)
 	if err != nil {
 		return nil, err
 	}
 
 	ph := path.Join(defaultLogDir, fmt.Sprintf("%s.log", time.Now().Format(logNameFormat)))
 
-	logFile, err := os.OpenFile(ph, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0o600) // nolint gosec: ph is constructed from constants.
+	logFile, err := os.OpenFile(ph, os.O_RDWR|os.O_CREATE|os.O_APPEND, domain.RWFileMode) // nolint gosec: ph is constructed from constants.
 	if err != nil {
 		return nil, err
 	}
