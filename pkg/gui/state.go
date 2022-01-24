@@ -56,7 +56,7 @@ func (gui *Gui) escapeFromViewsByName(names ...string) error {
 		view, err := gui.g.View(name)
 		if err != nil {
 			if !errors.Is(err, gocui.ErrUnknownView) {
-				gui.log.Errorf("can't get %s view: %v", name, err)
+				gui.log.ErrLog.Printf("can't get %s view: %v", name, err)
 
 				return err
 			}

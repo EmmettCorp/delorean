@@ -36,7 +36,7 @@ type (
 func New(cfg *config.Config, log *logger.Client) (*Gui, error) {
 	g, err := gocui.NewGui(gocui.OutputNormal)
 	if err != nil {
-		log.Errorf("can't get new gui: %v", err)
+		log.ErrLog.Printf("can't get new gui: %v", err)
 
 		return nil, fmt.Errorf("can't get new gui: %v", err)
 	}
@@ -67,7 +67,7 @@ func (gui *Gui) Run() error {
 	bb := gui.GetInitialKeybindings()
 	err := gui.setKeybindings(bb)
 	if err != nil {
-		gui.log.Errorf("can't set keybindings: %v", err)
+		gui.log.ErrLog.Printf("can't set keybindings: %v", err)
 
 		return fmt.Errorf("can't set keybindings: %v", err)
 	}
@@ -75,12 +75,12 @@ func (gui *Gui) Run() error {
 	err = gui.g.MainLoop()
 	if err != nil {
 		if errors.Is(err, gocui.ErrQuit) {
-			gui.log.Info("quit")
+			gui.log.InfoLog.Print("quit")
 
 			return nil
 		}
 
-		gui.log.Errorf("main loop failed: %v", err)
+		gui.log.ErrLog.Printf("main loop failed: %v", err)
 		for _, v := range gui.allViews() {
 			err = quit(gui.g, v)
 			if err != nil {

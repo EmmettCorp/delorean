@@ -21,7 +21,7 @@ func (gui *Gui) restoreButton() (*gocui.View, error) {
 	)
 	if err != nil {
 		if err != gocui.ErrUnknownView {
-			gui.log.Errorf("can't build %s button: %v", gui.views.restoreBtn.name, err)
+			gui.log.ErrLog.Printf("can't build %s button: %v", gui.views.restoreBtn.name, err)
 
 			return nil, err
 		}

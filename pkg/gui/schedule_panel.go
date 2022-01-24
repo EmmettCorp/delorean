@@ -23,32 +23,26 @@ func (gui *Gui) scheduleView() (*gocui.View, error) {
 	)
 	if err != nil {
 		if !errors.Is(err, gocui.ErrUnknownView) {
-			gui.log.Errorf("can't set %s view: %v", gui.views.schedule.name, err)
+			gui.log.ErrLog.Printf("can't set %s view: %v", gui.views.schedule.name, err)
 
 			return nil, err
 		}
-
-		gui.log.Info("1")
 
 		view.Title = gui.views.schedule.name
 		view.Editor = &scheduleEditor{
 			g: gui,
 		}
 
-		gui.log.Info("2")
 		gui.drawSchedule(view)
 
-		gui.log.Info("3")
 		err := gui.g.SetKeybinding(gui.views.schedule.name, gocui.MouseLeft, gocui.ModNone, gui.editSchedule)
 		if err != nil {
 			return nil, err
 		}
-		gui.log.Info("4")
 		err = gui.g.SetKeybinding(gui.views.schedule.name, gocui.KeyEsc, gocui.ModNone, gui.escapeFromEditableView)
 		if err != nil {
 			return nil, err
 		}
-		gui.log.Info("5")
 		err = gui.g.SetKeybinding(gui.views.schedule.name, gocui.KeyEnter, gocui.ModNone, gui.saveConfig)
 		if err != nil {
 			return nil, err
@@ -89,7 +83,7 @@ func (gui *Gui) updateSchedule(g *gocui.Gui) error {
 	view, err := g.View(gui.views.schedule.name)
 	if err != nil {
 		if !errors.Is(err, gocui.ErrUnknownView) {
-			gui.log.Errorf("can't set %s view: %v", gui.views.schedule.name, err)
+			gui.log.ErrLog.Printf("can't set %s view: %v", gui.views.schedule.name, err)
 
 			return err
 		}
@@ -127,7 +121,7 @@ func (e *scheduleEditor) Edit(view *gocui.View, key gocui.Key, ch rune, mod gocu
 
 		err := e.g.updateSchedule(e.g.g)
 		if err != nil {
-			e.g.log.Errorf("can't update schedule: %v", err)
+			e.g.log.ErrLog.Printf("can't update schedule: %v", err)
 		}
 	}
 
@@ -140,7 +134,7 @@ func (e *scheduleEditor) Edit(view *gocui.View, key gocui.Key, ch rune, mod gocu
 
 		err := e.g.updateSchedule(e.g.g)
 		if err != nil {
-			e.g.log.Errorf("can't update schedule: %v", err)
+			e.g.log.ErrLog.Printf("can't update schedule: %v", err)
 		}
 	}
 }

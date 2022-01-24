@@ -7,63 +7,58 @@ import (
 	"fmt"
 	"io"
 	"io/fs"
+	"log"
 	"os"
+	"path"
 	"time"
 
-	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
+	"github.com/EmmettCorp/delorean/pkg/domain"
 )
 
 const (
 	defaultLogDir = "/var/log/delorean"
-	logNameFormat = "2006-01-02_15-04-05"
+	logNameFormat = "2006-01-02_15:04:05"
 )
 
 type Client struct {
-	*zap.SugaredLogger
+	InfoLog *log.Logger
+	ErrLog  *log.Logger
 }
 
 func New() (*Client, error) {
-	err := checkDir(defaultLogDir, 0o600)
+	err := checkDir(defaultLogDir, domain.RWFileMode)
 	if err != nil {
 		return nil, err
 	}
 
-	path := fmt.Sprintf("%s/%s.log", defaultLogDir, time.Now().Format(logNameFormat))
+	ph := path.Join(defaultLogDir, fmt.Sprintf("%s.log", time.Now().Format(logNameFormat)))
 
-	zc := zap.NewProductionConfig()
-	zc.OutputPaths = []string{path}
-	zc.ErrorOutputPaths = []string{path}
-	zc.DisableCaller = true
-	zc.DisableStacktrace = true
-	zc.EncoderConfig.EncodeTime = func(t time.Time, enc zapcore.PrimitiveArrayEncoder) {
-		enc.AppendString(t.Format(time.RFC3339))
-	}
-
-	zl, err := zc.Build([]zap.Option{}...)
+	logFile, err := os.OpenFile(ph, os.O_RDWR|os.O_CREATE|os.O_APPEND, domain.RWFileMode) // nolint gosec: ph is constructed from constants.
 	if err != nil {
 		return nil, err
 	}
 
-	defer zl.Sync() // nolint errcheck: we will escape zap log in future
+	infoLog := log.New(logFile, "info: ", log.Ltime|log.Lshortfile)
+	errLog := log.New(logFile, "err: ", log.Ltime|log.Lshortfile)
 
-	sugar := zl.Sugar()
-
-	return &Client{sugar}, nil
+	return &Client{
+		InfoLog: infoLog,
+		ErrLog:  errLog,
+	}, nil
 }
 
 // CloseOrLog is a helper for any defer closer.Close() call.
 func (lc *Client) CloseOrLog(c io.Closer) {
 	err := c.Close()
 	if err != nil {
-		lc.Errorf("fail to close: %v", err)
+		lc.ErrLog.Printf("fail to close: %v", err)
 	}
 }
 
-func checkDir(path string, fileMode fs.FileMode) error {
-	_, err := os.Stat(path)
+func checkDir(ph string, fileMode fs.FileMode) error {
+	_, err := os.Stat(ph)
 	if os.IsNotExist(err) {
-		return os.Mkdir(path, fileMode)
+		return os.Mkdir(ph, fileMode)
 	}
 
 	return err
