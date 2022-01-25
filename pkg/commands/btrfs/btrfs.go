@@ -184,7 +184,9 @@ func osReadDir(root string) ([]string, error) {
 	}
 
 	for _, file := range fileInfo {
-		files = append(files, file.Name())
+		if file.IsDir() {
+			files = append(files, file.Name())
+		}
 	}
 
 	return files, nil

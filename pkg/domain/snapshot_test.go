@@ -41,7 +41,7 @@ func TestSetType(t *testing.T) {
 		t.Parallel()
 
 		s := Snapshot{}
-		s.SetLabel()
+		s.SetType()
 
 		rq := require.New(t)
 
@@ -59,5 +59,33 @@ func TestSetType(t *testing.T) {
 		rq := require.New(t)
 
 		rq.Equal("manual", s.Type)
+	})
+}
+
+func TestSetTimestamp(t *testing.T) {
+	t.Parallel()
+
+	t.Run("empty", func(t *testing.T) {
+		t.Parallel()
+
+		s := Snapshot{}
+		s.SetTimestamp()
+
+		rq := require.New(t)
+
+		rq.Empty(s.Timestamp)
+	})
+
+	t.Run("set", func(t *testing.T) {
+		t.Parallel()
+
+		s := Snapshot{
+			Label: "2022-01-25_16:56:37",
+		}
+		s.SetTimestamp()
+
+		rq := require.New(t)
+
+		rq.Equal(int64(1643129797), s.Timestamp)
 	})
 }
