@@ -15,7 +15,6 @@ import (
 
 const (
 	defaultLogDir = "/var/log/delorean"
-	logNameFormat = "2006-01-02_15:04:05"
 )
 
 type Client struct {

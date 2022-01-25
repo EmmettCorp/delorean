@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"io/fs"
 	"os"
 	"path"
 
@@ -29,24 +30,18 @@ type (
 		Schedule       domain.Schedule `json:"schedule"`
 		Volumes        []domain.Volume `json:"volumes"`
 		RootDevice     string          `json:"root_device"`
+		FileMode       os.FileMode     `json:"file_mode"`
 	}
 )
 
 // New returns config that is stored in default config path.
 func New(log *logger.Client) (*Config, error) {
 	// delorean path
-	err := checkDir(deloreanPath)
+	configPath, err := getConfigPath(deloreanPath, domain.RWFileMode)
 	if err != nil {
-		return nil, fmt.Errorf("can't get delorean dir: %v", err)
+		return nil, err
 	}
 
-	// get config
-	configDir := fmt.Sprintf("%s/config", deloreanPath)
-	err = checkDir(configDir)
-	if err != nil {
-		return nil, fmt.Errorf("can't create config directory: %v", err)
-	}
-	configPath := fmt.Sprintf("%s/config.json", configDir)
 	f, err := os.OpenFile(path.Clean(configPath), os.O_CREATE, domain.RWFileMode)
 	if err != nil {
 		return nil, fmt.Errorf("can't open file: %v", err)
@@ -59,23 +54,16 @@ func New(log *logger.Client) (*Config, error) {
 		return nil, fmt.Errorf("can't decode config: %v", err)
 	}
 	cfg.Path = configPath
+	cfg.FileMode = domain.RWFileMode
 	for i := range cfg.Volumes {
 		cfg.Volumes[i].Device.Mounted = false
 	}
 
-	if !cfg.BtrfsSupported { // check on first run only
-		cfg.BtrfsSupported, err = btrfs.SupportedByKernel()
-		if err != nil {
-			log.ErrLog.Printf("can't check if btrfs is supported by kernel: %v", err)
+	err = cfg.checkIfKernelSupportsBtrfs()
+	if err != nil {
+		log.ErrLog.Printf("can't check if btrfs is supported by kernel: %v", err)
 
-			return nil, fmt.Errorf("can't check if btrfs is supported by kernel: %v", err)
-		}
-
-		if !cfg.BtrfsSupported {
-			log.ErrLog.Print("btrfs is not supported by the kernel")
-
-			return nil, errors.New("btrfs is not supported by the kernel")
-		}
+		return nil, fmt.Errorf("can't check if btrfs is supported by kernel: %v", err)
 	}
 
 	// volumes
@@ -83,6 +71,93 @@ func New(log *logger.Client) (*Config, error) {
 	if err != nil {
 		return nil, fmt.Errorf("can't get volumes: %v", err)
 	}
+
+	err = cfg.setupVolumes(vv)
+	if err != nil {
+		return nil, fmt.Errorf("can't setup volumes: %v", err)
+	}
+
+	err = mountTopLevelSubvolume(cfg.RootDevice, domain.RWFileMode)
+	if err != nil {
+		return nil, fmt.Errorf("can't mount top level subvolume: %v", err)
+	}
+
+	err = checkDir(path.Join(domain.DeloreanMountPoint, domain.SnapshotsDirName), domain.RWFileMode)
+	if err != nil {
+		return nil, fmt.Errorf("can't check snapshots directory: %v", err)
+	}
+
+	err = cfg.createSnapshotsPaths(domain.RWFileMode)
+	if err != nil {
+		return nil, err
+	}
+
+	err = cfg.Save()
+	if err != nil {
+		return nil, err
+	}
+
+	return &cfg, nil
+}
+
+func (cfg *Config) createSnapshotsPaths(fm fs.FileMode) error {
+	for i := range cfg.Volumes {
+		p := path.Join(domain.DeloreanMountPoint, domain.SnapshotsDirName, cfg.Volumes[i].Subvol)
+		if cfg.Volumes[i].Device.Path != cfg.RootDevice {
+			p = path.Join(cfg.Volumes[i].Device.MountPoint, domain.SnapshotsDirName, cfg.Volumes[i].Subvol)
+		}
+
+		err := createSnapshotsPaths(p, fm)
+		if err != nil {
+			return fmt.Errorf("can't create snapshots paths: %v", err)
+		}
+
+		cfg.Volumes[i].SnapshotsPath = p
+	}
+
+	return nil
+}
+
+func checkDir(ph string, fm fs.FileMode) error {
+	_, err := os.Stat(ph)
+	if os.IsNotExist(err) {
+		return os.MkdirAll(ph, fm)
+	}
+
+	return err
+}
+
+// Save flushes current config to file.
+func (cfg *Config) Save() error {
+	data, err := json.MarshalIndent(cfg, "", "  ")
+	if err != nil {
+		return fmt.Errorf("can't marshal data: %v", err)
+	}
+
+	return os.WriteFile(cfg.Path, data, cfg.FileMode)
+}
+
+// must be run after getting config from file.
+func (cfg *Config) checkIfKernelSupportsBtrfs() error {
+	if cfg.BtrfsSupported { // has been checked before and saved in config
+		return nil
+	}
+
+	var err error
+	cfg.BtrfsSupported, err = btrfs.SupportedByKernel()
+	if err != nil {
+		return fmt.Errorf("can't check if btrfs is supported by kernel: %v", err)
+	}
+
+	if !cfg.BtrfsSupported {
+		return errors.New("btrfs is not supported by the kernel")
+	}
+
+	return nil
+}
+
+func (cfg *Config) setupVolumes(vv []domain.Volume) error {
+	var err error
 
 OUT:
 	for i := range vv {
@@ -100,73 +175,16 @@ OUT:
 
 		vv[i].ID, err = btrfs.GetVolumeID(vv[i].Device.MountPoint)
 		if err != nil {
-			return nil, err
+			return err
 		}
 
 		cfg.Volumes = append(cfg.Volumes, vv[i])
 	}
 
-	err = mountTopLevelSubvolume(cfg.RootDevice)
-	if err != nil {
-		return nil, fmt.Errorf("can't mount top level subvolume: %v", err)
-	}
-
-	err = checkDir(path.Join(domain.DeloreanMountPoint, domain.SnapshotsDirName))
-	if err != nil {
-		return nil, fmt.Errorf("can't check snapshots directory: %v", err)
-	}
-
-	err = cfg.createSnapshotsPaths()
-	if err != nil {
-		return nil, err
-	}
-
-	err = cfg.Save()
-	if err != nil {
-		return nil, err
-	}
-
-	return &cfg, nil
-}
-
-func (cfg *Config) createSnapshotsPaths() error {
-	for i := range cfg.Volumes {
-		p := path.Join(domain.DeloreanMountPoint, domain.SnapshotsDirName, cfg.Volumes[i].Subvol)
-		if cfg.Volumes[i].Device.Path != cfg.RootDevice {
-			p = path.Join(cfg.Volumes[i].Device.MountPoint, domain.SnapshotsDirName, cfg.Volumes[i].Subvol)
-		}
-
-		err := createSnapshotsPaths(p)
-		if err != nil {
-			return fmt.Errorf("can't create snapshots paths: %v", err)
-		}
-
-		cfg.Volumes[i].SnapshotsPath = p
-	}
-
 	return nil
 }
 
-func checkDir(ph string) error {
-	_, err := os.Stat(ph)
-	if os.IsNotExist(err) {
-		return os.MkdirAll(ph, domain.RWFileMode)
-	}
-
-	return err
-}
-
-// Save flushes current config to file.
-func (cfg *Config) Save() error {
-	data, err := json.MarshalIndent(cfg, "", "  ")
-	if err != nil {
-		return fmt.Errorf("can't marshal data: %v", err)
-	}
-
-	return os.WriteFile(cfg.Path, data, domain.RWFileMode)
-}
-
-func createSnapshotsPaths(p string) error {
+func createSnapshotsPaths(p string, fm fs.FileMode) error {
 	for _, v := range []string{
 		domain.Manual,
 		domain.Monthly,
@@ -176,7 +194,7 @@ func createSnapshotsPaths(p string) error {
 		domain.Boot,
 		domain.Revert,
 	} {
-		err := checkDir(path.Join(p, v))
+		err := checkDir(path.Join(p, v), fm)
 		if err != nil {
 			return fmt.Errorf("can't create snapshot directory for %s: %v", v, err)
 		}
@@ -185,9 +203,9 @@ func createSnapshotsPaths(p string) error {
 	return nil
 }
 
-func mountTopLevelSubvolume(device string) error {
+func mountTopLevelSubvolume(device string, fm fs.FileMode) error {
 	// snapshots path
-	err := checkDir(domain.DeloreanMountPoint)
+	err := checkDir(domain.DeloreanMountPoint, fm)
 	if err != nil {
 		return fmt.Errorf("can't create default snapshots dir: %v", err)
 	}
@@ -197,4 +215,14 @@ func mountTopLevelSubvolume(device string) error {
 	}
 
 	return commands.Mount(device, domain.DeloreanMountPoint)
+}
+
+func getConfigPath(dir string, fm fs.FileMode) (string, error) {
+	configDir := path.Join(dir, "config")
+	err := checkDir(configDir, fm)
+	if err != nil {
+		return "", fmt.Errorf("can't create config directory: %v", err)
+	}
+
+	return path.Join(configDir, "config.json"), nil
 }
