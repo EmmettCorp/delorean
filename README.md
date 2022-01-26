@@ -23,7 +23,7 @@ Delorean allows to rollback subvolumes, that are children of the top level subvo
 
 ## UI
 
-<img src="assets/scrnsht.png" width="700">
+<img src="assets/screen.png" width="700">
 
 ## Requirements
 
