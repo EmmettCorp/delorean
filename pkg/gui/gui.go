@@ -1,5 +1,5 @@
 /*
-Package gui is responsible user interface.
+Package gui is responsible for user interface.
 */
 package gui
 
