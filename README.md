@@ -11,14 +11,14 @@ Delorean doesn't force you to name your subvolume specifically. You can choose a
 
 Delorean helps managing snapshots of any mounted btrfs subvolume.
 
-Delorean allows to rollback subvolumes, that are children of the top level subvolume, using ui. Check [Flat layout](https://btrfs.wiki.kernel.org/index.php/SysadminGuide#Flat) from btrfs wiki.
+Delorean allows you to rollback subvolumes, that are children of the top level subvolume, using ui. Check [Flat layout](https://btrfs.wiki.kernel.org/index.php/SysadminGuide#Flat) from btrfs wiki.
 
 ## Features
 
 - cli-ui
 - mouse support
 - support snapshots managing for hot pluggable devices 
-- easy to rollback any children subvolume of top level
+- easy to rollback any child subvolume of top level
 
 
 ## UI
