@@ -54,7 +54,7 @@ func (gui *Gui) restoreSnapshot(g *gocui.Gui, v *gocui.View) error {
 
 	if !gui.volumeInRootFs(vol) {
 		gui.state.status = colors.FgRed(
-			fmt.Sprintf("volume %s is not a child subvolume top level subvolume", vol.Label))
+			fmt.Sprintf("volume %s is not a child of top level subvolume", vol.Label))
 
 		return gui.escapeFromViewsByName(gui.views.snapshots.name)
 	}

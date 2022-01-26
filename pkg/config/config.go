@@ -55,9 +55,6 @@ func New(log *logger.Client) (*Config, error) {
 	}
 	cfg.Path = configPath
 	cfg.FileMode = domain.RWFileMode
-	for i := range cfg.Volumes {
-		cfg.Volumes[i].Device.Mounted = false
-	}
 
 	err = cfg.checkIfKernelSupportsBtrfs()
 	if err != nil {
@@ -159,27 +156,24 @@ func (cfg *Config) checkIfKernelSupportsBtrfs() error {
 func (cfg *Config) setupVolumes(vv []domain.Volume) error {
 	var err error
 
-OUT:
 	for i := range vv {
-		for j := range cfg.Volumes {
-			if vv[i].Device.MountPoint == cfg.Volumes[j].Device.MountPoint { // check if this path has been already added
-				cfg.Volumes[j].Device.Mounted = true
+		vv[i].ID, err = btrfs.GetVolumeID(vv[i].Device.MountPoint)
+		if err != nil {
+			return err
+		}
 
-				continue OUT
+		for j := range cfg.Volumes {
+			if vv[i].ID == cfg.Volumes[j].ID {
+				vv[i].Active = cfg.Volumes[j].Active
 			}
 		}
 
 		if vv[i].Device.MountPoint == "/" {
 			cfg.RootDevice = vv[i].Device.Path
 		}
-
-		vv[i].ID, err = btrfs.GetVolumeID(vv[i].Device.MountPoint)
-		if err != nil {
-			return err
-		}
-
-		cfg.Volumes = append(cfg.Volumes, vv[i])
 	}
+
+	cfg.Volumes = vv
 
 	return nil
 }

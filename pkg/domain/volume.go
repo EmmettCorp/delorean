@@ -15,5 +15,4 @@ type Device struct {
 	UUID       string `json:"uuid"`
 	Path       string `json:"path"`
 	MountPoint string `json:"mount_point"`
-	Mounted    bool   `json:"mounted"`
 }
