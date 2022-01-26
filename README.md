@@ -18,12 +18,17 @@ Delorean allows to rollback subvolumes, that are children of the top level subvo
 - cli-ui
 - mouse support
 - support snapshots managing for hot pluggable devices 
-- easy rollback of top level children
+- easy to rollback any children subvolume of top level
 
 
 ## UI
 
 <img src="assets/scrnsht.png" width="700">
+
+## Requirements
+
+- `btrfs`
+- `findmnt` tool from `util-linux`
 
 ## Alternatives
 
