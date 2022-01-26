@@ -1,5 +1,5 @@
 /*
-Package version contains all the logic packages of the application.
+Package version just keeps current application version.
 */
 package version
 

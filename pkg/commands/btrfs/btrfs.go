@@ -1,5 +1,5 @@
 /*
-Package btrfs keeps all the btrfs commands.
+Package btrfs keeps all needed btrfs commands.
 */
 package btrfs
 
