@@ -13,7 +13,29 @@ Delorean helps managing snapshots of any mounted btrfs subvolume.
 
 Delorean allows to rollback subvolumes, that are children of the top level subvolume, using ui. Check [Flat layout](https://btrfs.wiki.kernel.org/index.php/SysadminGuide#Flat) from btrfs wiki.
 
+## Features
+
+- cli-ui
+- mouse support
+- support snapshots managing for hot pluggable devices 
+- easy to rollback any children subvolume of top level
+
 
 ## UI
 
 <img src="assets/scrnsht.png" width="700">
+
+## Requirements
+
+- `btrfs`
+- `findmnt` tool from `util-linux`
+
+## Alternatives
+
+There are mature and awesome tools that help you to manage btrfs as well but with different from delorean approach.
+
+Each of them (delorean as well) has it's own restrictions and advantages. Choose more appropriate to your cases.
+
+[Timeshift](https://github.com/teejee2008/timeshift)
+
+[snapper](https://github.com/openSUSE/snapper) 

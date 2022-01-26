@@ -30,7 +30,7 @@ func New() (*Client, error) {
 
 	ph := path.Join(defaultLogDir, "app.log")
 
-	logFile, err := os.OpenFile(ph, os.O_RDWR|os.O_CREATE, domain.RWFileMode) // nolint gosec: ph is constructed from constants.
+	logFile, err := os.OpenFile(ph, os.O_RDWR|os.O_CREATE|os.O_TRUNC, domain.RWFileMode) // nolint gosec: ph is constructed from constants.
 	if err != nil {
 		return nil, err
 	}

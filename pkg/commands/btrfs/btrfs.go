@@ -67,7 +67,7 @@ func DeleteSnapshot(ph string) error {
 func SnapshotsList(volumes []domain.Volume) ([]domain.Snapshot, error) {
 	snaps := sortableSnapshots{}
 	for _, v := range volumes {
-		if !v.Active || !v.Device.Mounted {
+		if !v.Active {
 			continue
 		}
 		sn, err := snapshotsListByVolume(v)

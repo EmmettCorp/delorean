@@ -46,9 +46,6 @@ func (gui *Gui) volumesView() (*gocui.View, error) {
 func (gui *Gui) drawVolumes(view *gocui.View) {
 	view.Clear()
 	for i := range gui.config.Volumes {
-		if !gui.config.Volumes[i].Device.Mounted {
-			continue
-		}
 		var activeSign string
 		if gui.config.Volumes[i].Active {
 			activeSign = colors.FgGreen(active)
@@ -71,6 +68,7 @@ func (gui *Gui) editVolumes(g *gocui.Gui, view *gocui.View) error {
 
 	view.Editable = true
 	_, cY := view.Cursor()
+	gui.log.InfoLog.Printf("cY = %d", cY)
 	if cY < len(gui.config.Volumes) {
 		gui.config.Volumes[cY].Active = !gui.config.Volumes[cY].Active
 		gui.drawVolumes(view)

@@ -43,7 +43,7 @@ func (gui *Gui) createSnapshot(g *gocui.Gui, view *gocui.View) error {
 	var activeVolumeFound bool
 
 	for _, vol := range gui.config.Volumes {
-		if !vol.Active || !vol.Device.Mounted {
+		if !vol.Active {
 			continue
 		}
 

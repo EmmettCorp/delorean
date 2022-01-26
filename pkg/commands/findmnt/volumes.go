@@ -91,7 +91,6 @@ func buildVolume(fmv findMntVolume) domain.Volume {
 			Path:       strings.Split(fmv.Source, "[")[0], // safe even if string without `[` character
 			MountPoint: fmv.Target,
 			UUID:       fmv.UUID,
-			Mounted:    true,
 		},
 	}
 
