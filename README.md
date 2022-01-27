@@ -25,11 +25,6 @@ Delorean allows you to rollback subvolumes, that are children of the top level s
 
 <img src="assets/screen.png" width="700">
 
-## Requirements
-
-- `btrfs`
-- `findmnt` tool from `util-linux`
-
 ## Alternatives
 
 There are mature and awesome tools that help you to manage btrfs as well but with different from delorean approach.

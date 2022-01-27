@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/EmmettCorp/delorean/pkg/colors"
+	"github.com/EmmettCorp/delorean/pkg/logger"
 	"github.com/EmmettCorp/delorean/pkg/version"
 	"github.com/jroimartin/gocui"
 )
@@ -56,7 +57,7 @@ func (gui *Gui) escapeFromViewsByName(names ...string) error {
 		view, err := gui.g.View(name)
 		if err != nil {
 			if !errors.Is(err, gocui.ErrUnknownView) {
-				gui.log.ErrLog.Printf("can't get %s view: %v", name, err)
+				logger.Client.ErrLog.Printf("can't get %s view: %v", name, err)
 
 				return err
 			}

@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"github.com/EmmettCorp/delorean/pkg/domain"
+	"github.com/EmmettCorp/delorean/pkg/logger"
 )
 
 type sortableSnapshots []domain.Snapshot
@@ -111,7 +112,7 @@ func SupportedByKernel() (bool, error) {
 	if err != nil {
 		return false, err
 	}
-	defer fp.Close()
+	defer logger.Client.CloseOrLog(fp)
 
 	scanner := bufio.NewScanner(fp)
 	for scanner.Scan() {
@@ -177,8 +178,8 @@ func osReadDir(root string) ([]string, error) {
 	if err != nil {
 		return files, err
 	}
+	defer logger.Client.CloseOrLog(f)
 	fileInfo, err := f.Readdir(-1)
-	f.Close()
 	if err != nil {
 		return files, err
 	}

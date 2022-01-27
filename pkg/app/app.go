@@ -8,7 +8,6 @@ import (
 
 	"github.com/EmmettCorp/delorean/pkg/config"
 	"github.com/EmmettCorp/delorean/pkg/gui"
-	"github.com/EmmettCorp/delorean/pkg/logger"
 )
 
 type (
@@ -19,17 +18,12 @@ type (
 
 // New creates and returns new app.
 func New() (*App, error) {
-	log, err := logger.New()
-	if err != nil {
-		return nil, fmt.Errorf("can't get new logger: %v", err)
-	}
-
-	cfg, err := config.New(log)
+	cfg, err := config.New()
 	if err != nil {
 		return nil, fmt.Errorf("can't get new config: %v", err)
 	}
 
-	g, err := gui.New(cfg, log)
+	g, err := gui.New(cfg)
 	if err != nil {
 		return nil, fmt.Errorf("can't get new gui: %v", err)
 	}

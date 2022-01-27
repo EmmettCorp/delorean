@@ -22,8 +22,6 @@ type (
 
 		config *config.Config
 
-		log *logger.Client
-
 		state       *state
 		headerHight int
 		maxX        int
@@ -33,10 +31,10 @@ type (
 )
 
 // New creates and returns a new gui handler.
-func New(cfg *config.Config, log *logger.Client) (*Gui, error) {
+func New(cfg *config.Config) (*Gui, error) {
 	g, err := gocui.NewGui(gocui.OutputNormal)
 	if err != nil {
-		log.ErrLog.Printf("can't get new gui: %v", err)
+		logger.Client.ErrLog.Printf("can't get new gui: %v", err)
 
 		return nil, fmt.Errorf("can't get new gui: %v", err)
 	}
@@ -47,7 +45,6 @@ func New(cfg *config.Config, log *logger.Client) (*Gui, error) {
 	return &Gui{
 		g:           g,
 		config:      cfg,
-		log:         log,
 		state:       initState(),
 		headerHight: 2,
 	}, nil
@@ -67,7 +64,7 @@ func (gui *Gui) Run() error {
 	bb := gui.GetInitialKeybindings()
 	err := gui.setKeybindings(bb)
 	if err != nil {
-		gui.log.ErrLog.Printf("can't set keybindings: %v", err)
+		logger.Client.ErrLog.Printf("can't set keybindings: %v", err)
 
 		return fmt.Errorf("can't set keybindings: %v", err)
 	}
@@ -75,12 +72,12 @@ func (gui *Gui) Run() error {
 	err = gui.g.MainLoop()
 	if err != nil {
 		if errors.Is(err, gocui.ErrQuit) {
-			gui.log.InfoLog.Print("quit")
+			logger.Client.InfoLog.Print("quit")
 
 			return nil
 		}
 
-		gui.log.ErrLog.Printf("main loop failed: %v", err)
+		logger.Client.ErrLog.Printf("main loop failed: %v", err)
 		for _, v := range gui.allViews() {
 			err = quit(gui.g, v)
 			if err != nil {

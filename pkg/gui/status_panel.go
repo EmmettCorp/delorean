@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/EmmettCorp/delorean/pkg/logger"
 	"github.com/EmmettCorp/delorean/pkg/version"
 	"github.com/jroimartin/gocui"
 )
@@ -17,7 +18,7 @@ func (gui *Gui) statusView() (*gocui.View, error) {
 	)
 	if err != nil {
 		if !errors.Is(err, gocui.ErrUnknownView) {
-			gui.log.ErrLog.Printf("can't set %s view: %v", gui.views.status.name, err)
+			logger.Client.ErrLog.Printf("can't set %s view: %v", gui.views.status.name, err)
 
 			return nil, err
 		}

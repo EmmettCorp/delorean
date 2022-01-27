@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/EmmettCorp/delorean/pkg/colors"
+	"github.com/EmmettCorp/delorean/pkg/logger"
 	"github.com/jroimartin/gocui"
 )
 
@@ -22,7 +23,7 @@ func (gui *Gui) volumesView() (*gocui.View, error) {
 	)
 	if err != nil {
 		if !errors.Is(err, gocui.ErrUnknownView) {
-			gui.log.ErrLog.Printf("can't set %s view: %v", gui.views.volumes.name, err)
+			logger.Client.ErrLog.Printf("can't set %s view: %v", gui.views.volumes.name, err)
 
 			return nil, err
 		}
@@ -68,7 +69,7 @@ func (gui *Gui) editVolumes(g *gocui.Gui, view *gocui.View) error {
 
 	view.Editable = true
 	_, cY := view.Cursor()
-	gui.log.InfoLog.Printf("cY = %d", cY)
+	logger.Client.InfoLog.Printf("cY = %d", cY)
 	if cY < len(gui.config.Volumes) {
 		gui.config.Volumes[cY].Active = !gui.config.Volumes[cY].Active
 		gui.drawVolumes(view)

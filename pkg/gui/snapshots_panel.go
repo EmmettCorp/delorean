@@ -6,6 +6,7 @@ import (
 
 	"github.com/EmmettCorp/delorean/pkg/commands/btrfs"
 	"github.com/EmmettCorp/delorean/pkg/domain"
+	"github.com/EmmettCorp/delorean/pkg/logger"
 	"github.com/jroimartin/gocui"
 )
 
@@ -22,7 +23,7 @@ func (gui *Gui) snapshotsView() (*gocui.View, error) {
 	)
 	if err != nil {
 		if !errors.Is(err, gocui.ErrUnknownView) {
-			gui.log.ErrLog.Printf("can't set %s view: %v", gui.views.snapshots.name, err)
+			logger.Client.ErrLog.Printf("can't set %s view: %v", gui.views.snapshots.name, err)
 
 			return nil, err
 		}
@@ -54,7 +55,7 @@ func (gui *Gui) updateSnapshotsList() error {
 	view, err := gui.g.View(gui.views.snapshots.name)
 	if err != nil {
 		if !errors.Is(err, gocui.ErrUnknownView) {
-			gui.log.ErrLog.Printf("can't get %s view: %v", gui.views.snapshots.name, err)
+			logger.Client.ErrLog.Printf("can't get %s view: %v", gui.views.snapshots.name, err)
 
 			return err
 		}
@@ -76,7 +77,7 @@ func (gui *Gui) getChosenSnapshot() (domain.Snapshot, error) {
 	view, err := gui.g.View(gui.views.snapshots.name)
 	if err != nil {
 		if !errors.Is(err, gocui.ErrUnknownView) {
-			gui.log.ErrLog.Printf("can't get %s view: %v", gui.views.snapshots.name, err)
+			logger.Client.ErrLog.Printf("can't get %s view: %v", gui.views.snapshots.name, err)
 
 			return domain.Snapshot{}, err
 		}
