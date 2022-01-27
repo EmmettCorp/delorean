@@ -60,7 +60,7 @@ func (gui *Gui) restoreSnapshot(g *gocui.Gui, v *gocui.View) error {
 		return gui.escapeFromViewsByName(gui.views.snapshots.name)
 	}
 
-	err = btrfs.CreateSnapshot(vol.Device.MountPoint, path.Join(vol.SnapshotsPath, domain.Revert))
+	err = btrfs.CreateSnapshot(vol.Device.MountPoint, path.Join(vol.SnapshotsPath, domain.Restore))
 	if err != nil {
 		return fmt.Errorf("can't create revert snapshot for %s: %v", vol.Device.MountPoint, err)
 	}

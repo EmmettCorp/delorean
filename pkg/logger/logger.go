@@ -29,14 +29,14 @@ type Instance struct {
 }
 
 // Init creates a new singleton logger.
-func Init() error {
+func Init() (func() error, error) {
 	var err error
 	once.Do(
 		func() {
 			Client, err = newInstance()
 		})
 
-	return err
+	return closeLogFile, err
 }
 
 func newInstance() (*Instance, error) {
@@ -70,9 +70,9 @@ func (lc *Instance) CloseOrLog(c io.Closer) {
 	}
 }
 
-// Close closes log file.
-func (lc *Instance) Close() error {
-	return lc.logFile.Close()
+// closeLogFile closes log file.
+func closeLogFile() error {
+	return Client.logFile.Close()
 }
 
 func checkDir(ph string, fileMode fs.FileMode) error {

@@ -186,7 +186,7 @@ func createSnapshotsPaths(p string, fm fs.FileMode) error {
 		domain.Daily,
 		domain.Hourly,
 		domain.Boot,
-		domain.Revert,
+		domain.Restore,
 	} {
 		err := checkDir(path.Join(p, v), fm)
 		if err != nil {

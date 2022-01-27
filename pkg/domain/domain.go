@@ -21,7 +21,7 @@ const (
 	Hourly  = "hourly"
 	Boot    = "boot"
 	Manual  = "manual"
-	Revert  = "revert"
+	Restore = "restore"
 )
 
 const RWFileMode = 0o600
