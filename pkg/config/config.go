@@ -35,7 +35,7 @@ type (
 )
 
 // New returns config that is stored in default config path.
-func New(log *logger.Client) (*Config, error) {
+func New() (*Config, error) {
 	// delorean path
 	configPath, err := getConfigPath(deloreanPath, domain.RWFileMode)
 	if err != nil {
@@ -46,7 +46,7 @@ func New(log *logger.Client) (*Config, error) {
 	if err != nil {
 		return nil, fmt.Errorf("can't open file: %v", err)
 	}
-	defer log.CloseOrLog(f)
+	defer logger.Client.CloseOrLog(f)
 
 	var cfg Config
 	err = json.NewDecoder(f).Decode(&cfg)
@@ -58,7 +58,7 @@ func New(log *logger.Client) (*Config, error) {
 
 	err = cfg.checkIfKernelSupportsBtrfs()
 	if err != nil {
-		log.ErrLog.Printf("can't check if btrfs is supported by kernel: %v", err)
+		logger.Client.ErrLog.Printf("can't check if btrfs is supported by kernel: %v", err)
 
 		return nil, fmt.Errorf("can't check if btrfs is supported by kernel: %v", err)
 	}

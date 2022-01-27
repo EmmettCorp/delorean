@@ -7,6 +7,7 @@ import (
 	"github.com/EmmettCorp/delorean/pkg/colors"
 	"github.com/EmmettCorp/delorean/pkg/commands/btrfs"
 	"github.com/EmmettCorp/delorean/pkg/domain"
+	"github.com/EmmettCorp/delorean/pkg/logger"
 	"github.com/jroimartin/gocui"
 )
 
@@ -20,7 +21,7 @@ func (gui *Gui) deleteButton() (*gocui.View, error) {
 	)
 	if err != nil {
 		if err != gocui.ErrUnknownView {
-			gui.log.ErrLog.Printf("can't build %s button: %v", buttonName, err)
+			logger.Client.ErrLog.Printf("can't build %s button: %v", buttonName, err)
 
 			return nil, err
 		}

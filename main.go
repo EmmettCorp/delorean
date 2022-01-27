@@ -1,10 +1,12 @@
 package main
 
 import (
+	"fmt"
 	"log"
 
 	"github.com/EmmettCorp/delorean/pkg/app"
 	"github.com/EmmettCorp/delorean/pkg/commands"
+	"github.com/EmmettCorp/delorean/pkg/logger"
 )
 
 func main() {
@@ -15,7 +17,12 @@ func main() {
 }
 
 func run() error {
-	err := commands.CheckIfRoot()
+	err := logger.Init()
+	if err != nil {
+		return err
+	}
+
+	err = commands.CheckIfRoot()
 	if err != nil {
 		return err
 	}
@@ -25,5 +32,11 @@ func run() error {
 		return err
 	}
 
-	return a.Run()
+	err = a.Run()
+	if err != nil {
+		logger.Client.ErrLog.Printf("main loop err: %v", err)
+		fmt.Printf("main loop err: %v", err) // nolint forbidigo: on purpose here
+	}
+
+	return logger.Client.Close()
 }

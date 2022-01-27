@@ -9,6 +9,7 @@ import (
 	"github.com/EmmettCorp/delorean/pkg/colors"
 	"github.com/EmmettCorp/delorean/pkg/commands/btrfs"
 	"github.com/EmmettCorp/delorean/pkg/domain"
+	"github.com/EmmettCorp/delorean/pkg/logger"
 	"github.com/jroimartin/gocui"
 )
 
@@ -21,7 +22,7 @@ func (gui *Gui) restoreButton() (*gocui.View, error) {
 	)
 	if err != nil {
 		if err != gocui.ErrUnknownView {
-			gui.log.ErrLog.Printf("can't build %s button: %v", gui.views.restoreBtn.name, err)
+			logger.Client.ErrLog.Printf("can't build %s button: %v", gui.views.restoreBtn.name, err)
 
 			return nil, err
 		}

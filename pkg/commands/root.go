@@ -8,6 +8,8 @@ import (
 	"errors"
 	"os"
 	"strings"
+
+	"github.com/EmmettCorp/delorean/pkg/logger"
 )
 
 const (
@@ -29,7 +31,7 @@ func GetRootDevice() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	defer fp.Close()
+	defer logger.Client.CloseOrLog(fp)
 
 	var device string
 
