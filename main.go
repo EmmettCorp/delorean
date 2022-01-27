@@ -17,7 +17,7 @@ func main() {
 }
 
 func run() error {
-	err := logger.Init()
+	closeLogger, err := logger.Init()
 	if err != nil {
 		return err
 	}
@@ -38,5 +38,5 @@ func run() error {
 		fmt.Printf("main loop err: %v", err) // nolint forbidigo: on purpose here
 	}
 
-	return logger.Client.Close()
+	return closeLogger()
 }

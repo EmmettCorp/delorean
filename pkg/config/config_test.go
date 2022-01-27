@@ -96,7 +96,7 @@ func TestCreateSnapshotsPaths(t *testing.T) {
 		_, err = os.Stat(path.Join(ph, domain.Boot))
 		rq.NoError(err)
 
-		_, err = os.Stat(path.Join(ph, domain.Revert))
+		_, err = os.Stat(path.Join(ph, domain.Restore))
 		rq.NoError(err)
 
 		err = os.RemoveAll(ph)
