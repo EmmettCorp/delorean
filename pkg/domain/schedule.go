@@ -1,6 +1,17 @@
 package domain
 
-const maxSnapshotAmount = 99
+const (
+	minSnapshotAmount = 0
+	maxSnapshotAmount = 99
+)
+
+const (
+	monthlyType = iota
+	weeklyType
+	dailyType
+	hourlyType
+	bootType
+)
 
 type Schedule struct {
 	Monthly int `json:"monthly"`
@@ -13,27 +24,27 @@ type Schedule struct {
 func (s *Schedule) Increase(schedType int) bool {
 	updated := false
 	switch schedType {
-	case 0:
+	case monthlyType:
 		if s.Monthly < maxSnapshotAmount {
 			s.Monthly++
 			updated = true
 		}
-	case 1:
+	case weeklyType:
 		if s.Weekly < maxSnapshotAmount {
 			s.Weekly++
 			updated = true
 		}
-	case 2:
+	case dailyType:
 		if s.Daily < maxSnapshotAmount {
 			s.Daily++
 			updated = true
 		}
-	case 3:
+	case hourlyType:
 		if s.Hourly < maxSnapshotAmount {
 			s.Hourly++
 			updated = true
 		}
-	case 4:
+	case bootType:
 		if s.Boot < maxSnapshotAmount {
 			s.Boot++
 			updated = true
@@ -46,28 +57,28 @@ func (s *Schedule) Increase(schedType int) bool {
 func (s *Schedule) Decrease(schedType int) bool {
 	updated := false
 	switch schedType {
-	case 0:
-		if s.Monthly > 0 {
+	case monthlyType:
+		if s.Monthly > minSnapshotAmount {
 			s.Monthly--
 			updated = true
 		}
-	case 1:
-		if s.Weekly > 0 {
+	case weeklyType:
+		if s.Weekly > minSnapshotAmount {
 			s.Weekly--
 			updated = true
 		}
-	case 2:
-		if s.Daily > 0 {
+	case dailyType:
+		if s.Daily > minSnapshotAmount {
 			s.Daily--
 			updated = true
 		}
-	case 3:
-		if s.Hourly > 0 {
+	case hourlyType:
+		if s.Hourly > minSnapshotAmount {
 			s.Hourly--
 			updated = true
 		}
-	case 4:
-		if s.Boot > 0 {
+	case bootType:
+		if s.Boot > minSnapshotAmount {
 			s.Boot--
 			updated = true
 		}

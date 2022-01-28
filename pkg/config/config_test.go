@@ -50,7 +50,7 @@ func TestSave(t *testing.T) {
 		err = cfg.Save()
 		rq.NoError(err)
 
-		f, err := os.OpenFile(ph, os.O_CREATE, domain.RWFileMode) // nolint gosec: only from test
+		f, err := os.OpenFile(ph, os.O_CREATE, domain.RWFileMode) // nolint:gosec // only from test
 		rq.NoError(err)
 
 		var fileCfg Config

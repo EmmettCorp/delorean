@@ -22,11 +22,10 @@ type (
 
 		config *config.Config
 
-		state       *state
-		headerHight int
-		maxX        int
-		maxY        int
-		snapshots   []domain.Snapshot
+		state     *state
+		maxX      int
+		maxY      int
+		snapshots []domain.Snapshot
 	}
 )
 
@@ -43,10 +42,9 @@ func New(cfg *config.Config) (*Gui, error) {
 	g.InputEsc = true
 
 	return &Gui{
-		g:           g,
-		config:      cfg,
-		state:       initState(),
-		headerHight: 2,
+		g:      g,
+		config: cfg,
+		state:  initState(),
 	}, nil
 }
 

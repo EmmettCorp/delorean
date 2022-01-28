@@ -10,6 +10,9 @@ import (
 const (
 	minWidthConst  = 57
 	minHeightConst = 15
+	volumesHeigh   = 5
+	borderGap      = 1
+	scheduleIndent = 0.8
 )
 
 type view struct {
@@ -32,9 +35,8 @@ type views struct {
 	errorView  view
 }
 
-func (gui *Gui) initViews() {
+func (gui *Gui) initViews() { // nolint:funlen // this here is ok that func is long
 	gui.maxX, gui.maxY = gui.g.Size()
-	indent := 1
 	headerY0 := -1
 	headerY1 := 1
 
@@ -59,43 +61,43 @@ func (gui *Gui) initViews() {
 
 	gui.views.createBtn.name = "create"
 	gui.views.createBtn.x0 = 0
-	gui.views.createBtn.x1 = gui.views.createBtn.x0 + len(gui.views.createBtn.name) + 1
+	gui.views.createBtn.x1 = gui.views.createBtn.x0 + len(gui.views.createBtn.name) + borderGap
 	gui.views.createBtn.y0 = headerY0
 	gui.views.createBtn.y1 = headerY1
 	// Limiter for create button is needed to allow to finish create snapshot operation.
 	// There is no real point in real life doing snapshots every second.
 	// If allow user to call btrfs.CreateSnapshot several times a second it could cause a exec.Command call error.
-	gui.views.createBtn.limiter = rate.NewLimiter(time.Second * 2)
+	gui.views.createBtn.limiter = rate.NewLimiter(time.Second * 2) // nolint:gomnd // it's pretty clear here
 
 	gui.views.restoreBtn.name = "restore"
-	gui.views.restoreBtn.x0 = gui.views.createBtn.x1 + indent
-	gui.views.restoreBtn.x1 = gui.views.restoreBtn.x0 + len(gui.views.restoreBtn.name) + 1
+	gui.views.restoreBtn.x0 = gui.views.createBtn.x1 + borderGap
+	gui.views.restoreBtn.x1 = gui.views.restoreBtn.x0 + len(gui.views.restoreBtn.name) + borderGap
 	gui.views.restoreBtn.y0 = headerY0
 	gui.views.restoreBtn.y1 = headerY1
 
 	gui.views.deleteBtn.name = "delete"
-	gui.views.deleteBtn.x0 = gui.views.restoreBtn.x1 + indent
-	gui.views.deleteBtn.x1 = gui.views.deleteBtn.x0 + len(gui.views.deleteBtn.name) + 1
+	gui.views.deleteBtn.x0 = gui.views.restoreBtn.x1 + borderGap
+	gui.views.deleteBtn.x1 = gui.views.deleteBtn.x0 + len(gui.views.deleteBtn.name) + borderGap
 	gui.views.deleteBtn.y0 = headerY0
 	gui.views.deleteBtn.y1 = headerY1
 
 	gui.views.status.name = "status"
-	gui.views.status.x0 = gui.views.deleteBtn.x1 + indent
+	gui.views.status.x0 = gui.views.deleteBtn.x1 + borderGap
 	gui.views.status.x1 = gui.maxX
 	gui.views.status.y0 = headerY0
 	gui.views.status.y1 = headerY1
 
 	gui.views.snapshots.name = "snapshots"
 	gui.views.snapshots.x0 = 0
-	gui.views.snapshots.x1 = int(0.8 * float32(gui.maxX))
-	gui.views.snapshots.y0 = headerY1 + 1
-	gui.views.snapshots.y1 = gui.maxY - 5
+	gui.views.snapshots.x1 = int(scheduleIndent * float32(gui.maxX))
+	gui.views.snapshots.y0 = headerY1 + borderGap
+	gui.views.snapshots.y1 = gui.maxY - volumesHeigh
 
 	gui.views.schedule.name = "schedule"
 	gui.views.schedule.x0 = gui.views.snapshots.x1
 	gui.views.schedule.x1 = gui.maxX
-	gui.views.schedule.y0 = headerY1 + 1
-	gui.views.schedule.y1 = gui.maxY - 5
+	gui.views.schedule.y0 = headerY1 + borderGap
+	gui.views.schedule.y1 = gui.maxY - volumesHeigh
 
 	gui.views.volumes.name = "volumes"
 	gui.views.volumes.x0 = 0
@@ -105,9 +107,9 @@ func (gui *Gui) initViews() {
 
 	gui.views.errorView.name = "error"
 	gui.views.errorView.x0 = 0
-	gui.views.errorView.x1 = gui.maxX - 1
+	gui.views.errorView.x1 = gui.maxX - borderGap
 	gui.views.errorView.y0 = 0
-	gui.views.errorView.y1 = gui.maxY - 1
+	gui.views.errorView.y1 = gui.maxY - borderGap
 }
 
 func (gui *Gui) layout(g *gocui.Gui) error {

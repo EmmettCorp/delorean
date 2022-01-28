@@ -17,7 +17,7 @@ const (
 func (gui *Gui) volumesView() (*gocui.View, error) {
 	view, err := gui.g.SetView(gui.views.volumes.name,
 		gui.views.volumes.x0,
-		gui.maxY-5,
+		gui.maxY-volumesHeigh,
 		gui.maxX,
 		gui.maxY,
 	)
