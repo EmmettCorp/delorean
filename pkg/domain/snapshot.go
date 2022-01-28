@@ -27,7 +27,7 @@ func (s *Snapshot) SetLabel() {
 
 func (s *Snapshot) SetType() {
 	ss := strings.Split(s.Path, "/")
-	if len(ss) < 2 {
+	if len(ss) < 2 { // nolint:gomnd // it's pretty clear why 2 here
 		return
 	}
 

@@ -35,7 +35,7 @@ func run() error {
 	err = a.Run()
 	if err != nil {
 		logger.Client.ErrLog.Printf("main loop err: %v", err)
-		fmt.Printf("main loop err: %v", err) // nolint forbidigo: on purpose here
+		fmt.Printf("main loop err: %v", err) // nolint:forbidigo // on purpose here
 	}
 
 	return closeLogger()

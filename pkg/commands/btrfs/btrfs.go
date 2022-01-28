@@ -26,8 +26,9 @@ func (ss sortableSnapshots) Less(i, j int) bool { return ss[i].Timestamp > ss[j]
 
 // CreateSnapshot creates a new snapshot.
 func CreateSnapshot(sv, ph string) error {
-	// nolint gosec: we pass commands here from code only.
-	cmd := exec.Command("btrfs", "subvolume", "snapshot", "-r", sv, path.Join(ph, time.Now().Format(domain.SnapshotFormat)))
+	// nolint:gosec // we pass commands here from code only.
+	cmd := exec.Command("btrfs", "subvolume", "snapshot", "-r",
+		sv, path.Join(ph, time.Now().Format(domain.SnapshotFormat)))
 	var cmdErr bytes.Buffer
 	cmd.Stderr = &cmdErr
 	err := cmd.Run()
@@ -130,6 +131,7 @@ func SupportedByKernel() (bool, error) {
 }
 
 func GetVolumeID(ph string) (string, error) {
+	minSubvolIDFields := 3
 	cmd := exec.Command("btrfs", "subvolume", "show", ph)
 	output, err := cmd.Output()
 	if err != nil {
@@ -139,7 +141,7 @@ func GetVolumeID(ph string) (string, error) {
 	scanner := bufio.NewScanner(bytes.NewReader(output))
 	for scanner.Scan() {
 		fields := strings.Fields(scanner.Text())
-		if len(fields) < 3 {
+		if len(fields) < minSubvolIDFields {
 			continue
 		}
 

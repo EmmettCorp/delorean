@@ -95,7 +95,7 @@ linters:
 
     - asciicheck		      # Simple linter to check that your code does not contain non-ASCII identifiers
 
-    # - bodyclose           # checks whether HTTP response body is closed successfully
+    - bodyclose           # checks whether HTTP response body is closed successfully
                             # Reason: it's a bit stupid and can't understand that body can be closed in another function
 
     # - cyclop              # checks function and package cyclomatic complexity
@@ -123,7 +123,7 @@ linters:
 
     - forcetypeassert     # finds forced type assertions
 
-    # - funlen              # Tool for detection of long functions
+    - funlen              # Tool for detection of long functions
 
     - gci                 # Gci control golang package import order and make it always deterministic.
 
@@ -131,13 +131,13 @@ linters:
 
     - gochecknoinits      # Checks that no init functions are present in Go code
 
-    # - gocognit            # Computes and checks the cognitive complexity of functions
+    - gocognit            # Computes and checks the cognitive complexity of functions
 
     - goconst             # Finds repeated strings that could be replaced by a constant
 
     - gocritic            # The most opinionated Go source code linter
 
-    # - gocyclo             # Computes and checks the cyclomatic complexity of functions
+    - gocyclo             # Computes and checks the cyclomatic complexity of functions
 
     - godot               # Check if comments end in a period
 
@@ -152,7 +152,7 @@ linters:
 
     - goimports           # Goimports does everything that gofmt does. Additionally it checks unused imports
 
-    # - gomnd               # An analyzer to detect magic numbers.
+    - gomnd               # An analyzer to detect magic numbers.
     # TODO: the good one. Turn on it in future.
 
     - gomoddirectives     # Manage the use of 'replace', 'retract', and 'excludes' directives in go.mod.
@@ -162,7 +162,6 @@ linters:
     - goprintffuncname	  # Checks that printf-like functions are named with f at the end
 
     - gosec               # Inspects source code for security problems
-
 
     - importas            # Enforces consistent import aliases
 
@@ -181,6 +180,8 @@ linters:
     - nlreturn            # nlreturn checks for a new line before return and branch statements to increase code clarity
 
     - noctx               # noctx finds sending http request without context.Context
+    
+    - paralleltest        # paralleltest detects missing usage of t.Parallel() method in your Go test
 
     - prealloc            # Finds slice declarations that could potentially be preallocated
 
@@ -209,22 +210,15 @@ linters:
 
     - whitespace          # Tool for detection of leading and trailing whitespace
 
-    # - wrapcheck           # Checks that errors returned from external packages are wrapped
-
-    # - wsl                 # Whitespace Linter - Forces you to use empty lines!
-
 # Turn them on when there is nothing to do.
 
-    # - godox               # Tool for detection of FIXME, TODO and other comment keywords
+    - godox               # Tool for detection of FIXME, TODO and other comment keywords
 
 # CONSIDER TO TURN ON:
 
 
-# NOT NEEDED:
-   
-    # - nolintlint          # Reports ill-formed or insufficient nolint directives
+    - nolintlint          # Reports ill-formed or insufficient nolint directives
 
-    # - paralleltest        # paralleltest detects missing usage of t.Parallel() method in your Go test
 
     # - tagliatelle         # Checks the struct tags.
 
@@ -255,9 +249,9 @@ issues:
   #     - gosec
   #   text: "G202:"
 
-    # - path: _test\.go
-    #   linters:
-    #     - funlen
+    - path: _test\.go
+      linters:
+        - funlen
 
     - path: tests/*
       linters:

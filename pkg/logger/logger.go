@@ -17,10 +17,10 @@ const (
 	RWFileMode    = 0o600 // duplicate domain but in order do not have conflicts
 )
 
-var once sync.Once // nolint gochecknoglobals: used only in this file
+var once sync.Once // nolint:gochecknoglobals // used only in this file
 
 // Client is a singleton logger instance.
-var Client *Instance // nolint gochecknoglobals: global on purpose
+var Client *Instance // nolint:gochecknoglobals // global on purpose
 
 type Instance struct {
 	InfoLog *log.Logger
@@ -47,7 +47,8 @@ func newInstance() (*Instance, error) {
 
 	ph := path.Join(defaultLogDir, "app.log")
 
-	logFile, err := os.OpenFile(ph, os.O_RDWR|os.O_CREATE|os.O_TRUNC, RWFileMode) // nolint gosec: ph is constructed from constants.
+	// nolint:gosec // ph is constructed from constants.
+	logFile, err := os.OpenFile(ph, os.O_RDWR|os.O_CREATE|os.O_TRUNC, RWFileMode)
 	if err != nil {
 		return nil, err
 	}

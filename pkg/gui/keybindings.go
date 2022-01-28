@@ -8,7 +8,7 @@ type Binding struct {
 	ViewName    string
 	Contexts    []string
 	Handler     func(*gocui.Gui, *gocui.View) error
-	Key         interface{} // FIXME: find out how to get `gocui.Key | rune`
+	Key         gocui.Key
 	Modifier    gocui.Modifier
 	Description string
 	Alternative string
