@@ -8,6 +8,7 @@ import (
 
 	"github.com/EmmettCorp/delorean/pkg/colors"
 	"github.com/EmmettCorp/delorean/pkg/commands/btrfs"
+	"github.com/EmmettCorp/delorean/pkg/commands/schedule"
 	"github.com/EmmettCorp/delorean/pkg/domain"
 	"github.com/EmmettCorp/delorean/pkg/logger"
 	"github.com/jroimartin/gocui"
@@ -78,9 +79,9 @@ func (gui *Gui) restoreSnapshot(g *gocui.Gui, v *gocui.View) error {
 		return fmt.Errorf("can't create snapshot for %s: %v", vol.Device.MountPoint, err)
 	}
 
-	err = btrfs.DeleteSnapshot(oldFsDelorianMountPoint)
+	err = schedule.RemoveOldRootAfterReboot(gui.config.RootDevice, oldFsDelorianMountPoint)
 	if err != nil {
-		return fmt.Errorf("can't remove directory %s: %v", oldFsDelorianMountPoint, err)
+		return fmt.Errorf("can't schedule to remove old directory %s: %v", oldFsDelorianMountPoint, err)
 	}
 
 	gui.state.status = colors.FgRed("reboot system to compete restore")

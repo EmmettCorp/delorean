@@ -15,12 +15,9 @@ import (
 	"github.com/EmmettCorp/delorean/pkg/commands"
 	"github.com/EmmettCorp/delorean/pkg/commands/btrfs"
 	"github.com/EmmettCorp/delorean/pkg/commands/findmnt"
+	"github.com/EmmettCorp/delorean/pkg/commands/schedule"
 	"github.com/EmmettCorp/delorean/pkg/domain"
 	"github.com/EmmettCorp/delorean/pkg/logger"
-)
-
-const (
-	deloreanPath = "/usr/local/delorean"
 )
 
 type (
@@ -37,7 +34,7 @@ type (
 // New returns config that is stored in default config path.
 func New() (*Config, error) {
 	// delorean path
-	configPath, err := getConfigPath(deloreanPath, domain.RWFileMode)
+	configPath, err := getConfigPath(domain.DeloreanPath, domain.RWFileMode)
 	if err != nil {
 		return nil, err
 	}
@@ -47,6 +44,21 @@ func New() (*Config, error) {
 		return nil, fmt.Errorf("can't open file: %v", err)
 	}
 	defer logger.Client.CloseOrLog(f)
+
+	err = checkDir(path.Join(domain.DeloreanPath, "scripts"), domain.RWFileMode)
+	if err != nil {
+		return nil, fmt.Errorf("can't create scripts directory: %v", err)
+	}
+
+	err = checkDir(path.Join(domain.DeloreanPath, "systemd"), domain.RWFileMode)
+	if err != nil {
+		return nil, fmt.Errorf("can't create systemd directory: %v", err)
+	}
+
+	err = schedule.CreateUnits()
+	if err != nil {
+		return nil, fmt.Errorf("can't create units: %v", err)
+	}
 
 	var cfg Config
 	err = json.NewDecoder(f).Decode(&cfg)
