@@ -1,0 +1,12 @@
+[Unit]
+Description=Delorean scripts running on boot after restore.
+
+[Service]
+ExecStartPre=/bin/mount / /run/delorean
+ExecStart=/bin/bash /usr/local/delorean/scripts/after-restore.sh
+ExecStartPost=/bin/echo > /usr/local/delorean/scripts/after-restore.sh
+Restart=no
+Type=oneshot
+
+[Install]
+WantedBy=multi-user.target

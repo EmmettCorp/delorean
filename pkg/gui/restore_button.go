@@ -78,9 +78,13 @@ func (gui *Gui) restoreSnapshot(g *gocui.Gui, v *gocui.View) error {
 		return fmt.Errorf("can't create snapshot for %s: %v", vol.Device.MountPoint, err)
 	}
 
-	err = btrfs.DeleteSnapshot(oldFsDelorianMountPoint)
+	gui.config.ToRemove = append(gui.config.ToRemove, oldFsDelorianMountPoint)
+	if vol.Device.MountPoint == "/" {
+		gui.config.Path = path.Join(subvolumeDelorianMountPoint, gui.config.Path)
+	}
+	err = gui.config.Save()
 	if err != nil {
-		return fmt.Errorf("can't remove directory %s: %v", oldFsDelorianMountPoint, err)
+		return fmt.Errorf("can't add old path to remove: %v", err)
 	}
 
 	gui.state.status = colors.FgRed("reboot system to compete restore")

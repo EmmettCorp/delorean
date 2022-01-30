@@ -1,0 +1,9 @@
+[Unit]
+Description=Delorean scripts running on boot after restore.
+
+[Timer]
+OnUnitActiveSec=10s
+OnBootSec=10s
+
+[Install]
+WantedBy=timers.target
