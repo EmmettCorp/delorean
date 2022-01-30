@@ -10,28 +10,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestCheckDir(t *testing.T) {
-	t.Parallel()
-	rq := require.New(t)
-
-	t.Run("ok", func(t *testing.T) {
-		t.Parallel()
-
-		ph := "./test_check_dir"
-		_, err := os.Stat(ph)
-		rq.Error(err)
-
-		err = checkDir(ph, 0o006)
-		rq.NoError(err)
-
-		_, err = os.Stat(ph)
-		rq.NoError(err)
-
-		err = os.Remove(ph)
-		rq.NoError(err)
-	})
-}
-
 func TestSave(t *testing.T) {
 	t.Parallel()
 	rq := require.New(t)
@@ -39,8 +17,10 @@ func TestSave(t *testing.T) {
 	t.Run("ok", func(t *testing.T) {
 		t.Parallel()
 		dir := "test_save"
-		ph, err := getConfigPath(dir, 0o777)
+		err := domain.CheckDir(dir, 0o777)
 		rq.NoError(err)
+
+		ph := path.Join(dir, "config.json")
 
 		cfg := Config{
 			Path:     ph,
@@ -100,22 +80,6 @@ func TestCreateSnapshotsPaths(t *testing.T) {
 		rq.NoError(err)
 
 		err = os.RemoveAll(ph)
-		rq.NoError(err)
-	})
-}
-
-func TestGetConfigPath(t *testing.T) {
-	t.Parallel()
-	rq := require.New(t)
-
-	t.Run("ok", func(t *testing.T) {
-		t.Parallel()
-		dir := "test_get_config_path"
-		ph, err := getConfigPath(dir, 0o777)
-		rq.NoError(err)
-		rq.Equal(path.Join(dir, "config", "config.json"), ph)
-
-		err = os.RemoveAll(dir)
 		rq.NoError(err)
 	})
 }

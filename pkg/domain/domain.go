@@ -21,6 +21,12 @@ const Subvol5 = "subvol5"
 // SnapshotsDirName represents main snapsshots root directory name.
 const SnapshotsDirName = ".snapshots"
 
+// Scripts and systemd units path.
+const (
+	ScriptsDirectoryName = "scripts"
+	SystemdDirectoryName = "systemd"
+)
+
 // Snapshots types.
 const (
 	Monthly = "monthly"
