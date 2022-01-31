@@ -1,4 +1,4 @@
-name: Go
+name: Lint go code.
 
 on:
   push:
@@ -8,13 +8,11 @@ on:
 
 jobs:
 
-  build:
+  lint:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
-
-    - name: Set up Go
-      uses: actions/setup-go@v2
+    - uses: actions/setup-go@v2
       with:
         go-version: 1.17
 
@@ -23,9 +21,3 @@ jobs:
 
     - name: Lint
       run: make lint
-
-    - name: Build
-      run: make build
-
-    - name: Test
-      run: make test
