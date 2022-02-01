@@ -33,11 +33,7 @@ func (gui *Gui) snapshotsView() (*gocui.View, error) {
 			g: gui,
 		}
 
-		err := gui.g.SetKeybinding(gui.views.snapshots.name, gocui.MouseLeft, gocui.ModNone, gui.editSnapshots)
-		if err != nil {
-			return nil, err
-		}
-		err = gui.g.SetKeybinding(gui.views.snapshots.name, gocui.KeyEsc, gocui.ModNone, gui.escapeFromEditableView)
+		err := gui.setSnapshotsKeybindings()
 		if err != nil {
 			return nil, err
 		}
@@ -49,6 +45,23 @@ func (gui *Gui) snapshotsView() (*gocui.View, error) {
 	}
 
 	return view, nil
+}
+
+func (gui *Gui) setSnapshotsKeybindings() error {
+	err := gui.g.SetKeybinding(gui.views.snapshots.name, gocui.MouseLeft, gocui.ModNone, gui.editSnapshots)
+	if err != nil {
+		return err
+	}
+	err = gui.g.SetKeybinding(gui.views.snapshots.name, gocui.KeyEsc, gocui.ModNone, gui.escapeFromEditableView)
+	if err != nil {
+		return err
+	}
+	err = gui.g.SetKeybinding(gui.views.snapshots.name, gocui.KeyDelete, gocui.ModNone, gui.deleteSnapshot)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (gui *Gui) updateSnapshotsList() error {
