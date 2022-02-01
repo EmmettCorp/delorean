@@ -37,6 +37,12 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			Modifier: gocui.ModNone,
 			Handler:  gui.escapeFromView,
 		},
+		{
+			ViewName: "",
+			Key:      gocui.KeyDelete,
+			Modifier: gocui.ModNone,
+			Handler:  dummyHandler,
+		},
 	}
 
 	return bindings
@@ -60,4 +66,8 @@ func (gui *Gui) setKeybindings(bindings []*Binding) error {
 
 func quit(g *gocui.Gui, v *gocui.View) error {
 	return gocui.ErrQuit
+}
+
+func dummyHandler(g *gocui.Gui, v *gocui.View) error {
+	return nil
 }
