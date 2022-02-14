@@ -28,6 +28,7 @@ type (
 		RootDevice     string          `json:"root_device"`
 		FileMode       os.FileMode     `json:"file_mode"`
 		ToRemove       []string        `json:"to_remove"`
+		Colors         Colors
 	}
 )
 
