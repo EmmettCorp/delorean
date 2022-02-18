@@ -28,7 +28,12 @@ type (
 		RootDevice     string          `json:"root_device"`
 		FileMode       os.FileMode     `json:"file_mode"`
 		ToRemove       []string        `json:"to_remove"`
-		Colors         Colors
+		Colors         colors          `json:"colors"`
+	}
+
+	colors struct {
+		Foreground string `json:"foreground"`
+		Highlight  string `json:"highlight"`
 	}
 )
 

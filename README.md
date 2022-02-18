@@ -25,6 +25,34 @@ Delorean allows you to rollback subvolumes, that are children of the top level s
 
 <img src="assets/screen.png" width="700">
 
+## Customization
+
+You can slightly customize the appearance. There could be the background that hides the fonts or inappropriate to highlight.
+So there are only two fields you can customize: font color (by default it is taken from the default, so I guess it could be seldom case) and highlight background (it looks like more often candidate to change).
+
+You can set needed color in config, like:
+
+    {
+        ...
+        "colors": {
+            "foreground": "",
+            "highlight": "cyan"
+        }
+    }
+
+
+Available values, according to color attributes in [this package](https://github.com/jroimartin/gocui/blob/master/attribute.go):
+
+- black
+- white
+- blue
+- green
+- magenta
+- red
+- yellow
+- cyan
+
+
 ## Requirements
 
 - linux

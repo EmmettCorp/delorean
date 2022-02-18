@@ -115,7 +115,7 @@ func (gui *Gui) editSnapshots(g *gocui.Gui, view *gocui.View) error {
 	gui.g.Cursor = false
 	view.Highlight = true
 	view.Editable = true
-	view.SelBgColor = gocui.ColorBlack
+	view.SelBgColor = gui.highlightBg
 
 	_, err = gui.g.SetCurrentView(gui.views.snapshots.name)
 	if err != nil {

@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/EmmettCorp/delorean/pkg/colors"
 	"github.com/EmmettCorp/delorean/pkg/config"
 	"github.com/EmmettCorp/delorean/pkg/domain"
 	"github.com/EmmettCorp/delorean/pkg/logger"
@@ -26,6 +27,8 @@ type (
 		maxX      int
 		maxY      int
 		snapshots []domain.Snapshot
+
+		highlightBg gocui.Attribute
 	}
 )
 
@@ -41,10 +44,26 @@ func New(cfg *config.Config) (*Gui, error) {
 	g.Mouse = true
 	g.InputEsc = true
 
+	if cfg.Colors.Foreground != "" {
+		c, err := colors.GetColorByName(cfg.Colors.Foreground)
+		if err == nil {
+			g.FgColor = c
+		}
+	}
+
+	highlightBg := gocui.ColorBlack
+	if cfg.Colors.Highlight != "" {
+		c, err := colors.GetColorByName(cfg.Colors.Highlight)
+		if err == nil {
+			highlightBg = c
+		}
+	}
+
 	return &Gui{
-		g:      g,
-		config: cfg,
-		state:  initState(),
+		g:           g,
+		config:      cfg,
+		state:       initState(),
+		highlightBg: highlightBg,
 	}, nil
 }
 

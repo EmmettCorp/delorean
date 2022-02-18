@@ -70,7 +70,7 @@ func (gui *Gui) editSchedule(g *gocui.Gui, view *gocui.View) error {
 	gui.g.Cursor = false
 	view.Highlight = true
 	view.Editable = true
-	view.SelBgColor = gocui.ColorBlack
+	view.SelBgColor = gui.highlightBg
 
 	_, err = gui.g.SetCurrentView(gui.views.schedule.name)
 	if err != nil {
