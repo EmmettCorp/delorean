@@ -5,11 +5,12 @@ import (
 )
 
 // Absolutely disputable constant.
-// By default highlight background gocui is gocui.ColorGreen that looks a bit more obvious and universal.
-// Green one looks ok on black terminal theme and theme like ubuntu has out of the box.
+// By default highlight background gocui is green that seems a bit more obvious and universal.
+// Green one looks ok on the terminal theme with black background
+// and background that ubuntu has out of the box (burgundy I guess) or white.
 // The reason why delorean has black color for highlight is only because author uses black background and in that case
-// this value looks way better. ))
-// But fortunately this options is changable in config. Look README.
+// this value looks way better. Author naively believes that all around uses black backround. ))
+// But fortunately this option is changable and can be set in config. Look README.
 const defaultHighlightBG = gocui.ColorBlack
 
 // GetColorByName returns the gocui.Attribute color if name is appropriate.
@@ -37,7 +38,7 @@ func GetColorByName(color string) gocui.Attribute {
 	}
 }
 
-// GetHighlightBG returns
+// GetHighlightBG returns color by name if set and valid otherwise defaultHighlightBG.
 func GetHighlightBG(color string) gocui.Attribute {
 	c := GetColorByName(color)
 	if c != gocui.ColorDefault {
