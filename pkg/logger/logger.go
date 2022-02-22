@@ -22,6 +22,7 @@ var once sync.Once // nolint:gochecknoglobals // used only in this file
 // Client is a singleton logger instance.
 var Client *Instance // nolint:gochecknoglobals // global on purpose
 
+// Instance represents an instance of log.
 type Instance struct {
 	InfoLog *log.Logger
 	ErrLog  *log.Logger
@@ -83,4 +84,16 @@ func checkDir(ph string, fileMode fs.FileMode) error {
 	}
 
 	return err
+}
+
+func InitDummyLogs() {
+	once.Do(
+		func() {
+			ld := log.Default()
+			Client = &Instance{
+				InfoLog: ld,
+				ErrLog:  ld,
+				logFile: nil,
+			}
+		})
 }

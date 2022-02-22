@@ -43,27 +43,13 @@ func New(cfg *config.Config) (*Gui, error) {
 
 	g.Mouse = true
 	g.InputEsc = true
-
-	if cfg.Colors.Foreground != "" {
-		c, err := colors.GetColorByName(cfg.Colors.Foreground)
-		if err == nil {
-			g.FgColor = c
-		}
-	}
-
-	highlightBg := gocui.ColorBlack
-	if cfg.Colors.Highlight != "" {
-		c, err := colors.GetColorByName(cfg.Colors.Highlight)
-		if err == nil {
-			highlightBg = c
-		}
-	}
+	g.FgColor = colors.GetColorByName(cfg.Colors.Foreground)
 
 	return &Gui{
 		g:           g,
 		config:      cfg,
 		state:       initState(),
-		highlightBg: highlightBg,
+		highlightBg: colors.GetHighlightBG(cfg.Colors.Highlight),
 	}, nil
 }
 
