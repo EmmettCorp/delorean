@@ -10,7 +10,7 @@ import (
 // and background that ubuntu has out of the box (burgundy I guess) or white.
 // The reason why delorean has black color for highlight is only because author uses black background and in that case
 // this value looks way better. Author naively believes that all around uses black backround. ))
-// But fortunately this option is changable and can be set in config. Look README.
+// But fortunately this option is changeable and can be set in config. Look README.
 const defaultHighlightBG = gocui.ColorBlack
 
 // GetColorByName returns the gocui.Attribute color if name is appropriate.
