@@ -5,12 +5,13 @@ import (
 )
 
 type Binding struct {
+	Keys        string
 	ViewName    string
 	Contexts    []string
 	Handler     func(*gocui.Gui, *gocui.View) error
 	Key         gocui.Key
 	Modifier    gocui.Modifier
-	Description string
+	Description []byte
 	Alternative string
 	Tag         string // e.g. 'navigation'. Used for grouping things in the cheatsheet
 	OpensMenu   bool
@@ -20,24 +21,28 @@ type Binding struct {
 func (gui *Gui) GetInitialKeybindings() []*Binding {
 	bindings := []*Binding{
 		{
+			Keys:     "Ctrl+C",
 			ViewName: "",
 			Key:      gocui.KeyCtrlC,
 			Modifier: gocui.ModNone,
 			Handler:  quit,
 		},
 		{
+			Keys:     "Ctrl+Q",
 			ViewName: "",
 			Key:      gocui.KeyCtrlQ,
 			Modifier: gocui.ModNone,
 			Handler:  quit,
 		},
 		{
+			Keys:     "Esc",
 			ViewName: "",
 			Key:      gocui.KeyEsc,
 			Modifier: gocui.ModNone,
 			Handler:  gui.escapeFromView,
 		},
 		{
+			Keys:     "Del",
 			ViewName: "",
 			Key:      gocui.KeyDelete,
 			Modifier: gocui.ModNone,

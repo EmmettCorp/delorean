@@ -33,6 +33,7 @@ type views struct {
 	schedule   view
 	volumes    view
 	errorView  view
+	helpView   view
 }
 
 func (gui *Gui) initViews() { // nolint:funlen // this here is ok that func is long
@@ -110,6 +111,8 @@ func (gui *Gui) initViews() { // nolint:funlen // this here is ok that func is l
 	gui.views.errorView.x1 = gui.maxX - borderGap
 	gui.views.errorView.y0 = 0
 	gui.views.errorView.y1 = gui.maxY - borderGap
+
+	gui.views.helpView.name = "help"
 }
 
 func (gui *Gui) layout(g *gocui.Gui) error {
