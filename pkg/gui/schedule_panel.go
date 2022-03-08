@@ -91,7 +91,7 @@ func (gui *Gui) updateSchedule(g *gocui.Gui) error {
 	}
 	view.Clear()
 	gui.drawSchedule(view)
-	gui.state.status = colors.FgRed("press enter to save schedule")
+	gui.state.status = colors.Paint("press enter to save schedule", colors.Red)
 
 	return nil
 }

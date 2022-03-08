@@ -36,7 +36,7 @@ func (gui *Gui) createButton() (*gocui.View, error) {
 
 func (gui *Gui) createSnapshot(g *gocui.Gui, view *gocui.View) error {
 	if !gui.views.createBtn.limiter.Allow() {
-		gui.state.status = colors.FgRed("too many create calls per second")
+		gui.state.status = colors.Paint("too many create calls per second", colors.Red)
 
 		return nil
 	}
@@ -67,12 +67,12 @@ func (gui *Gui) createSnapshot(g *gocui.Gui, view *gocui.View) error {
 	}
 
 	if !activeVolumeFound {
-		gui.state.status = colors.FgRed("there are no active volumes")
+		gui.state.status = colors.Paint("there are no active volumes", colors.Red)
 
 		return nil
 	}
 
-	gui.state.status = colors.FgGreen("new snapshot is created")
+	gui.state.status = colors.Paint("new snapshot is created", colors.Green)
 
 	return gui.updateSnapshotsList()
 }

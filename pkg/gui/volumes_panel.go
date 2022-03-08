@@ -49,9 +49,9 @@ func (gui *Gui) drawVolumes(view *gocui.View) {
 	for i := range gui.config.Volumes {
 		var activeSign string
 		if gui.config.Volumes[i].Active {
-			activeSign = colors.FgGreen(active)
+			activeSign = colors.Paint(active, colors.Green)
 		} else {
-			activeSign = colors.FgRed(inactive)
+			activeSign = colors.Paint(inactive, colors.Red)
 		}
 		label := gui.config.Volumes[i].Label
 		if gui.volumeInRootFs(gui.config.Volumes[i]) {
@@ -73,7 +73,7 @@ func (gui *Gui) editVolumes(g *gocui.Gui, view *gocui.View) error {
 	if cY < len(gui.config.Volumes) {
 		gui.config.Volumes[cY].Active = !gui.config.Volumes[cY].Active
 		gui.drawVolumes(view)
-		gui.state.status = colors.FgRed("press enter to save volumes settings")
+		gui.state.status = colors.Paint("press enter to save volumes settings", colors.Red)
 	}
 
 	_, err = gui.g.SetCurrentView(gui.views.volumes.name)
