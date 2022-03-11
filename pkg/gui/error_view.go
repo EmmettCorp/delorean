@@ -29,6 +29,7 @@ func (gui *Gui) errorView() (*gocui.View, error) {
 		view.SelFgColor = gocui.ColorRed
 		fmt.Fprintln(view, "Terminal window is too small")
 	}
+	gui.views.errorView.visible = true
 
 	return view, nil
 }
@@ -38,6 +39,7 @@ func (gui *Gui) deleteErrorView() error {
 	if err != nil {
 		return nil // nolint
 	}
+	gui.views.errorView.visible = false
 
 	return gui.g.DeleteView(gui.views.errorView.name)
 }

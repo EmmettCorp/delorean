@@ -5,7 +5,7 @@ import (
 )
 
 type Binding struct {
-	Keys        string
+	Name        string
 	ViewName    string
 	Contexts    []string
 	Handler     func(*gocui.Gui, *gocui.View) error
@@ -21,28 +21,39 @@ type Binding struct {
 func (gui *Gui) GetInitialKeybindings() []*Binding {
 	bindings := []*Binding{
 		{
-			Keys:     "Ctrl+C",
-			ViewName: "",
-			Key:      gocui.KeyCtrlC,
-			Modifier: gocui.ModNone,
-			Handler:  quit,
+			Name:        "Ctrl+h",
+			ViewName:    "",
+			Key:         gocui.KeyCtrlH,
+			Modifier:    gocui.ModNone,
+			Handler:     gui.toggleHelp,
+			Description: []byte("Show/hide this help dialog"),
 		},
 		{
-			Keys:     "Ctrl+Q",
-			ViewName: "",
-			Key:      gocui.KeyCtrlQ,
-			Modifier: gocui.ModNone,
-			Handler:  quit,
+			Name:        "Ctrl+c",
+			ViewName:    "",
+			Key:         gocui.KeyCtrlC,
+			Modifier:    gocui.ModNone,
+			Handler:     quit,
+			Description: []byte("Quit delorean"),
 		},
 		{
-			Keys:     "Esc",
-			ViewName: "",
-			Key:      gocui.KeyEsc,
-			Modifier: gocui.ModNone,
-			Handler:  gui.escapeFromView,
+			Name:        "Ctrl+q",
+			ViewName:    "",
+			Key:         gocui.KeyCtrlQ,
+			Modifier:    gocui.ModNone,
+			Handler:     quit,
+			Description: []byte("Quit delorean"),
 		},
 		{
-			Keys:     "Del",
+			Name:        "Esc",
+			ViewName:    "",
+			Key:         gocui.KeyEsc,
+			Modifier:    gocui.ModNone,
+			Handler:     gui.escapeFromView,
+			Description: []byte("Move focus from current view"),
+		},
+		{
+			Name:     "",
 			ViewName: "",
 			Key:      gocui.KeyDelete,
 			Modifier: gocui.ModNone,
@@ -75,4 +86,18 @@ func quit(g *gocui.Gui, v *gocui.View) error {
 
 func dummyHandler(g *gocui.Gui, v *gocui.View) error {
 	return nil
+}
+
+func (gui *Gui) toggleHelp(g *gocui.Gui, v *gocui.View) error {
+	if gui.views.errorView.visible {
+		return nil
+	}
+
+	if gui.views.helpView.visible {
+		return gui.deleteHelpView()
+	}
+
+	_, err := gui.helpView()
+
+	return err
 }
