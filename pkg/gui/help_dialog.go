@@ -12,14 +12,16 @@ import (
 const (
 	helpViewWidth = 55
 	helpViewHeigh = 20
+	contentLength = helpViewWidth - 5
+	two           = 2
 )
 
 func (gui *Gui) helpView() (*gocui.View, error) {
 	view, err := gui.g.SetView(gui.views.helpView.name,
-		gui.maxX/2-helpViewWidth/2,
-		gui.maxY/2-helpViewHeigh/2,
-		gui.maxX/2+helpViewWidth/2,
-		gui.maxY/2+helpViewHeigh/2+helpViewHeigh%2,
+		gui.maxX/two-helpViewWidth/two,
+		gui.maxY/two-helpViewHeigh/two,
+		gui.maxX/two+helpViewWidth/two,
+		gui.maxY/two+helpViewHeigh/two+helpViewHeigh%two,
 	)
 	if err != nil {
 		if !errors.Is(err, gocui.ErrUnknownView) {
@@ -33,7 +35,7 @@ func (gui *Gui) helpView() (*gocui.View, error) {
 		view.Wrap = false
 		gui.g.Cursor = false
 		view.Highlight = true
-		divider := strings.Repeat("-", helpViewWidth-2)
+		divider := strings.Repeat("-", helpViewWidth-two)
 
 		fmt.Fprint(view, " General keybindings\n")
 		fmt.Fprintf(view, "%s\n", divider)
@@ -41,8 +43,7 @@ func (gui *Gui) helpView() (*gocui.View, error) {
 			if kb.Name == "" {
 				continue
 			}
-			fmt.Fprintf(view, fmt.Sprintf(" %s %s\n",
-				kb.Name, fmt.Sprintf(fmt.Sprintf("%%%ds", helpViewWidth-len(kb.Name)-5), kb.Description)))
+			fmt.Fprint(view, getKeybindingDescription(kb))
 		}
 	}
 	gui.views.helpView.visible = true
@@ -58,4 +59,12 @@ func (gui *Gui) deleteHelpView() error {
 	gui.views.helpView.visible = false
 
 	return gui.g.DeleteView(gui.views.helpView.name)
+}
+
+func getKeybindingDescription(kb *Binding) string {
+	return fmt.Sprintf(" %s %s\n",
+		kb.Name,
+		fmt.Sprintf(
+			fmt.Sprintf("%%%ds", contentLength-len(kb.Name)), kb.Description),
+	)
 }

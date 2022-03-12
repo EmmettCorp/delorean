@@ -11,7 +11,7 @@ type Binding struct {
 	Handler     func(*gocui.Gui, *gocui.View) error
 	Key         gocui.Key
 	Modifier    gocui.Modifier
-	Description []byte
+	Description string
 	Alternative string
 	Tag         string // e.g. 'navigation'. Used for grouping things in the cheatsheet
 	OpensMenu   bool
@@ -26,7 +26,7 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			Key:         gocui.KeyCtrlH,
 			Modifier:    gocui.ModNone,
 			Handler:     gui.toggleHelp,
-			Description: []byte("Show/hide this help dialog"),
+			Description: "Show/hide this help dialog",
 		},
 		{
 			Name:        "Ctrl+c",
@@ -34,7 +34,7 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			Key:         gocui.KeyCtrlC,
 			Modifier:    gocui.ModNone,
 			Handler:     quit,
-			Description: []byte("Quit delorean"),
+			Description: "Quit delorean",
 		},
 		{
 			Name:        "Ctrl+q",
@@ -42,7 +42,7 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			Key:         gocui.KeyCtrlQ,
 			Modifier:    gocui.ModNone,
 			Handler:     quit,
-			Description: []byte("Quit delorean"),
+			Description: "Quit delorean",
 		},
 		{
 			Name:        "Esc",
@@ -50,7 +50,7 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			Key:         gocui.KeyEsc,
 			Modifier:    gocui.ModNone,
 			Handler:     gui.escapeFromView,
-			Description: []byte("Move focus from current view"),
+			Description: "Move focus from current view",
 		},
 		{
 			Name:     "",
