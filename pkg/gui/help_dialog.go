@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/EmmettCorp/delorean/pkg/colors"
 	"github.com/EmmettCorp/delorean/pkg/logger"
 	"github.com/jroimartin/gocui"
 )
@@ -63,7 +64,7 @@ func (gui *Gui) deleteHelpView() error {
 
 func getKeybindingDescription(kb *Binding) string {
 	return fmt.Sprintf(" %s %s\n",
-		kb.Name,
+		colors.Paint(kb.Name, colors.Yellow),
 		fmt.Sprintf(
 			fmt.Sprintf("%%%ds", contentLength-len(kb.Name)), kb.Description),
 	)
