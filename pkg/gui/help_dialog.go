@@ -70,81 +70,22 @@ func (gui *Gui) buildHelpContent() []byte {
 
 	content = append(content, []byte(" General keybindings\n")...)
 	content = append(content, divider...)
-	for _, kb := range gui.getGeneralKeybindings() {
-		if kb.Name == "" {
-			continue
-		}
-		content = append(content, []byte(getKeybindingDescription(kb))...)
-	}
+	content = append(content, gui.generalKeybindingsInfo()...)
 	content = append(content, '\n')
 
 	content = append(content, []byte(" Schedule keybindings\n")...)
 	content = append(content, divider...)
-	schedKb := gui.getScheduleKeybindings()
-	schedKb = append(schedKb, []*binding{
-		{
-			Name:        "Arrow left",
-			Description: "Decrease items value",
-		},
-		{
-			Name:        "Arrow right",
-			Description: "Increase items value",
-		},
-		{
-			Name:        "Arrow up",
-			Description: "Move cursor up",
-		},
-		{
-			Name:        "Arrow down",
-			Description: "Move cursor down",
-		},
-	}...)
-	for _, kb := range schedKb {
-		if kb.Name == "" {
-			continue
-		}
-		content = append(content, []byte(getKeybindingDescription(kb))...)
-	}
+	content = append(content, gui.scheduleKeybindingsInfo()...)
 	content = append(content, '\n')
 
 	content = append(content, []byte(" Snapshots keybindings\n")...)
 	content = append(content, divider...)
-	snapKb := []*binding{
-		{
-			Name:        "Arrow up",
-			Description: "Move cursor up",
-		},
-		{
-			Name:        "Arrow down",
-			Description: "Move cursor down",
-		},
-	}
-	for _, kb := range snapKb {
-		if kb.Name == "" {
-			continue
-		}
-		content = append(content, []byte(getKeybindingDescription(kb))...)
-	}
+	content = append(content, gui.snapshotsKeybindingsInfo()...)
 	content = append(content, '\n')
 
 	content = append(content, []byte(" Volumes keybindings\n")...)
 	content = append(content, divider...)
-	volKb := []*binding{
-		{
-			Name:        "Left mouse click",
-			Description: "Toggle volumes observability",
-		},
-		{
-			Name:        "Enter",
-			Description: "Save volumes config",
-		},
-	}
-	for _, kb := range volKb {
-		if kb.Name == "" {
-			continue
-		}
-		content = append(content, []byte(getKeybindingDescription(kb))...)
-	}
+	content = append(content, gui.volumesKeybindingsInfo()...)
 	content = append(content, '\n')
 
 	return content
@@ -182,4 +123,91 @@ func (gui *Gui) helpScrollUp(g *gocui.Gui, view *gocui.View) error {
 	}
 
 	return view.SetOrigin(ox, oy+1)
+}
+
+func (gui *Gui) generalKeybindingsInfo() []byte {
+	content := []byte{}
+	for _, kb := range gui.getGeneralKeybindings() {
+		if kb.Name == "" {
+			continue
+		}
+		content = append(content, []byte(getKeybindingDescription(kb))...)
+	}
+
+	return content
+}
+
+func (gui *Gui) scheduleKeybindingsInfo() []byte {
+	content := []byte{}
+	schedKb := gui.getScheduleKeybindings()
+	schedKb = append(schedKb, []*binding{
+		{
+			Name:        "Arrow left",
+			Description: "Decrease items value",
+		},
+		{
+			Name:        "Arrow right",
+			Description: "Increase items value",
+		},
+		{
+			Name:        "Arrow up",
+			Description: "Move cursor up",
+		},
+		{
+			Name:        "Arrow down",
+			Description: "Move cursor down",
+		},
+	}...)
+	for _, kb := range schedKb {
+		if kb.Name == "" {
+			continue
+		}
+		content = append(content, []byte(getKeybindingDescription(kb))...)
+	}
+
+	return content
+}
+
+func (gui *Gui) snapshotsKeybindingsInfo() []byte {
+	content := []byte{}
+	snapKb := []*binding{
+		{
+			Name:        "Arrow up",
+			Description: "Move cursor up",
+		},
+		{
+			Name:        "Arrow down",
+			Description: "Move cursor down",
+		},
+	}
+	for _, kb := range snapKb {
+		if kb.Name == "" {
+			continue
+		}
+		content = append(content, []byte(getKeybindingDescription(kb))...)
+	}
+
+	return content
+}
+
+func (gui *Gui) volumesKeybindingsInfo() []byte {
+	content := []byte{}
+	volKb := []*binding{
+		{
+			Name:        "Left mouse click",
+			Description: "Toggle volumes observability",
+		},
+		{
+			Name:        "Enter",
+			Description: "Save volumes config",
+		},
+	}
+	for _, kb := range volKb {
+		if kb.Name == "" {
+			continue
+		}
+		content = append(content, []byte(getKeybindingDescription(kb))...)
+	}
+
+	return content
 }
