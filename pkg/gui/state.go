@@ -30,7 +30,7 @@ func (gui *Gui) saveConfig(g *gocui.Gui, view *gocui.View) error {
 	if err != nil {
 		return err
 	}
-	gui.state.status = colors.FgGreen(fmt.Sprintf("%s data is saved ", view.Name()))
+	gui.state.status = colors.Paint(fmt.Sprintf("%s data is saved ", view.Name()), colors.Green)
 
 	return gui.updateSnapshotsList()
 }

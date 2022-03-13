@@ -39,7 +39,7 @@ func (gui *Gui) deleteSnapshot(g *gocui.Gui, v *gocui.View) error {
 	snap, err := gui.getChosenSnapshot()
 	if err != nil {
 		if errors.Is(err, domain.ErrSnapshotIsNotChosen) {
-			gui.state.status = colors.FgRed(err.Error())
+			gui.state.status = colors.Paint(err.Error(), colors.Red)
 
 			return nil
 		}
@@ -52,7 +52,7 @@ func (gui *Gui) deleteSnapshot(g *gocui.Gui, v *gocui.View) error {
 		return err
 	}
 
-	gui.state.status = colors.FgGreen(fmt.Sprintf("snapshot %s is deleted", snap.Label))
+	gui.state.status = colors.Paint(fmt.Sprintf("snapshot %s is deleted", snap.Label), colors.Green)
 	err = gui.updateSnapshotsList()
 	if err != nil {
 		return err

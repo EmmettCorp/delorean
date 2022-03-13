@@ -40,7 +40,7 @@ func (gui *Gui) restoreSnapshot(g *gocui.Gui, v *gocui.View) error {
 	snap, err := gui.getChosenSnapshot()
 	if err != nil {
 		if errors.Is(err, domain.ErrSnapshotIsNotChosen) {
-			gui.state.status = colors.FgRed(err.Error())
+			gui.state.status = colors.Paint(err.Error(), colors.Red)
 
 			return nil
 		}
@@ -54,8 +54,8 @@ func (gui *Gui) restoreSnapshot(g *gocui.Gui, v *gocui.View) error {
 	}
 
 	if !gui.volumeInRootFs(vol) {
-		gui.state.status = colors.FgRed(
-			fmt.Sprintf("volume %s is not a child of top level subvolume", vol.Label))
+		gui.state.status = colors.Paint(
+			fmt.Sprintf("volume %s is not a child of top level subvolume", vol.Label), colors.Red)
 
 		return gui.escapeFromViewsByName(gui.views.snapshots.name)
 	}
@@ -87,7 +87,7 @@ func (gui *Gui) restoreSnapshot(g *gocui.Gui, v *gocui.View) error {
 		return fmt.Errorf("can't add old path to remove: %v", err)
 	}
 
-	gui.state.status = colors.FgRed("reboot system to compete restore")
+	gui.state.status = colors.Paint("reboot system to compete restore", colors.Red)
 
 	return gui.escapeFromViewsByName(gui.views.snapshots.name)
 }
