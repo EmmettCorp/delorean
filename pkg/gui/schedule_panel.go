@@ -36,15 +36,7 @@ func (gui *Gui) scheduleView() (*gocui.View, error) {
 
 		gui.drawSchedule(view)
 
-		err := gui.g.SetKeybinding(gui.views.schedule.name, gocui.MouseLeft, gocui.ModNone, gui.editSchedule)
-		if err != nil {
-			return nil, err
-		}
-		err = gui.g.SetKeybinding(gui.views.schedule.name, gocui.KeyEsc, gocui.ModNone, gui.escapeFromEditableView)
-		if err != nil {
-			return nil, err
-		}
-		err = gui.g.SetKeybinding(gui.views.schedule.name, gocui.KeyEnter, gocui.ModNone, gui.saveConfig)
+		err := gui.setKeybindings(gui.getScheduleKeybindings())
 		if err != nil {
 			return nil, err
 		}
@@ -137,5 +129,34 @@ func (e *scheduleEditor) Edit(view *gocui.View, key gocui.Key, ch rune, mod gocu
 		if err != nil {
 			logger.Client.ErrLog.Printf("can't update schedule: %v", err)
 		}
+	}
+}
+
+func (gui *Gui) getScheduleKeybindings() []*binding {
+	return []*binding{
+		{
+			Name:        "Left mouse click",
+			ViewName:    gui.views.schedule.name,
+			Key:         gocui.MouseLeft,
+			Modifier:    gocui.ModNone,
+			Handler:     gui.editSchedule,
+			Description: "Select schedule item",
+		},
+		{
+			Name:        "Enter",
+			ViewName:    gui.views.schedule.name,
+			Key:         gocui.KeyEnter,
+			Modifier:    gocui.ModNone,
+			Handler:     gui.saveConfig,
+			Description: "Save schedule config",
+		},
+		{
+			Name:        "",
+			ViewName:    gui.views.schedule.name,
+			Key:         gocui.KeyEsc,
+			Modifier:    gocui.ModNone,
+			Handler:     gui.escapeFromEditableView,
+			Description: "",
+		},
 	}
 }

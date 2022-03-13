@@ -23,6 +23,7 @@ type view struct {
 	y1      int
 	limiter *rate.Limiter
 	visible bool
+	lines   int
 }
 
 type views struct {

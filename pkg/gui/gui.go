@@ -64,7 +64,7 @@ func (gui *Gui) Run() error {
 	gui.g.SetManager(gocui.ManagerFunc(gui.layout))
 
 	// keybindings
-	bb := gui.GetInitialKeybindings()
+	bb := gui.getGeneralKeybindings()
 	err := gui.setKeybindings(bb)
 	if err != nil {
 		logger.Client.ErrLog.Printf("can't set keybindings: %v", err)
@@ -90,4 +90,17 @@ func (gui *Gui) Run() error {
 	}
 
 	return err
+}
+
+func scrollDown(g *gocui.Gui, view *gocui.View) error {
+	if view == nil {
+		return nil
+	}
+
+	ox, oy := view.Origin()
+	if oy == 0 {
+		return nil
+	}
+
+	return view.SetOrigin(ox, oy-1)
 }

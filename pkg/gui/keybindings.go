@@ -4,7 +4,7 @@ import (
 	"github.com/jroimartin/gocui"
 )
 
-type Binding struct {
+type binding struct {
 	Name        string
 	ViewName    string
 	Contexts    []string
@@ -17,9 +17,8 @@ type Binding struct {
 	OpensMenu   bool
 }
 
-// GetInitialKeybindings is a function.
-func (gui *Gui) GetInitialKeybindings() []*Binding {
-	bindings := []*Binding{
+func (gui *Gui) getGeneralKeybindings() []*binding {
+	return []*binding{
 		{
 			Name:        "Ctrl+h",
 			ViewName:    "",
@@ -60,11 +59,9 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			Handler:  dummyHandler,
 		},
 	}
-
-	return bindings
 }
 
-func (gui *Gui) setKeybindings(bindings []*Binding) error {
+func (gui *Gui) setKeybindings(bindings []*binding) error {
 	for b := range bindings {
 		err := gui.g.SetKeybinding(
 			bindings[b].ViewName,

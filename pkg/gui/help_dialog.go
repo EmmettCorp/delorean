@@ -1,6 +1,7 @@
 package gui
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"strings"
@@ -13,8 +14,8 @@ import (
 const (
 	helpViewWidth = 55
 	helpViewHeigh = 20
-	contentLength = helpViewWidth - 5
 	two           = 2
+	contentLength = helpViewWidth - 5
 )
 
 func (gui *Gui) helpView() (*gocui.View, error) {
@@ -35,16 +36,15 @@ func (gui *Gui) helpView() (*gocui.View, error) {
 		view.Frame = true
 		view.Wrap = false
 		gui.g.Cursor = false
-		view.Highlight = true
-		divider := strings.Repeat("-", helpViewWidth-two)
+		view.Autoscroll = false
 
-		fmt.Fprint(view, " General keybindings\n")
-		fmt.Fprintf(view, "%s\n", divider)
-		for _, kb := range gui.GetInitialKeybindings() {
-			if kb.Name == "" {
-				continue
-			}
-			fmt.Fprint(view, getKeybindingDescription(kb))
+		content := gui.buildHelpContent()
+		gui.views.helpView.lines = bytes.Count(content, []byte{'\n'})
+		fmt.Fprintf(view, "%s\n", content)
+
+		err := gui.setKeybindings(gui.getHelpKeybindings())
+		if err != nil {
+			return nil, err
 		}
 	}
 	gui.views.helpView.visible = true
@@ -62,10 +62,124 @@ func (gui *Gui) deleteHelpView() error {
 	return gui.g.DeleteView(gui.views.helpView.name)
 }
 
-func getKeybindingDescription(kb *Binding) string {
+func (gui *Gui) buildHelpContent() []byte {
+	var content []byte
+
+	divider := []byte(strings.Repeat("-", helpViewWidth-two))
+	divider = append(divider, '\n')
+
+	content = append(content, []byte(" General keybindings\n")...)
+	content = append(content, divider...)
+	for _, kb := range gui.getGeneralKeybindings() {
+		if kb.Name == "" {
+			continue
+		}
+		content = append(content, []byte(getKeybindingDescription(kb))...)
+	}
+	content = append(content, '\n')
+
+	content = append(content, []byte(" Schedule keybindings\n")...)
+	content = append(content, divider...)
+	schedKb := gui.getScheduleKeybindings()
+	schedKb = append(schedKb, []*binding{
+		{
+			Name:        "Arrow left",
+			Description: "Decrease items value",
+		},
+		{
+			Name:        "Arrow right",
+			Description: "Increase items value",
+		},
+		{
+			Name:        "Arrow up",
+			Description: "Move cursor up",
+		},
+		{
+			Name:        "Arrow down",
+			Description: "Move cursor down",
+		},
+	}...)
+	for _, kb := range schedKb {
+		if kb.Name == "" {
+			continue
+		}
+		content = append(content, []byte(getKeybindingDescription(kb))...)
+	}
+	content = append(content, '\n')
+
+	content = append(content, []byte(" Snapshots keybindings\n")...)
+	content = append(content, divider...)
+	snapKb := []*binding{
+		{
+			Name:        "Arrow up",
+			Description: "Move cursor up",
+		},
+		{
+			Name:        "Arrow down",
+			Description: "Move cursor down",
+		},
+	}
+	for _, kb := range snapKb {
+		if kb.Name == "" {
+			continue
+		}
+		content = append(content, []byte(getKeybindingDescription(kb))...)
+	}
+	content = append(content, '\n')
+
+	content = append(content, []byte(" Volumes keybindings\n")...)
+	content = append(content, divider...)
+	volKb := []*binding{
+		{
+			Name:        "Left mouse click",
+			Description: "Toggle volumes observability",
+		},
+		{
+			Name:        "Enter",
+			Description: "Save volumes config",
+		},
+	}
+	for _, kb := range volKb {
+		if kb.Name == "" {
+			continue
+		}
+		content = append(content, []byte(getKeybindingDescription(kb))...)
+	}
+	content = append(content, '\n')
+
+	return content
+}
+
+func getKeybindingDescription(kb *binding) string {
 	return fmt.Sprintf(" %s %s\n",
 		colors.Paint(kb.Name, colors.Yellow),
 		fmt.Sprintf(
 			fmt.Sprintf("%%%ds", contentLength-len(kb.Name)), kb.Description),
 	)
+}
+
+func (gui *Gui) getHelpKeybindings() []*binding {
+	return []*binding{
+		{
+			ViewName: gui.views.helpView.name,
+			Key:      gocui.MouseWheelUp,
+			Modifier: gocui.ModNone,
+			Handler:  scrollDown,
+		},
+		{
+			ViewName: gui.views.helpView.name,
+			Key:      gocui.MouseWheelDown,
+			Modifier: gocui.ModNone,
+			Handler:  gui.helpScrollUp,
+		},
+	}
+}
+
+func (gui *Gui) helpScrollUp(g *gocui.Gui, view *gocui.View) error {
+	ox, oy := view.Origin()
+	if oy >= gui.views.helpView.lines-helpViewHeigh {
+		return nil
+	}
+
+	return view.SetOrigin(ox, oy+1)
 }
