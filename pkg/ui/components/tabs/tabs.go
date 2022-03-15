@@ -21,9 +21,10 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 }
 
 func (m Model) View(ctx context.ProgramContext) string {
-	sectionTitles := make([]string, 0, len(ctx.Config.PRSections))
-	for _, section := range ctx.Config.PRSections {
-		sectionTitles = append(sectionTitles, section.Title)
+	sectionTitles := []string{
+		"Snapshots",
+		"Schedule",
+		"Settings",
 	}
 
 	var tabs []string
