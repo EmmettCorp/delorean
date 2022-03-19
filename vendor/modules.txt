@@ -2,6 +2,8 @@
 ## explicit; go 1.13
 github.com/charmbracelet/bubbles/help
 github.com/charmbracelet/bubbles/key
+github.com/charmbracelet/bubbles/spinner
+github.com/charmbracelet/bubbles/viewport
 # github.com/charmbracelet/bubbletea v0.20.0
 ## explicit; go 1.13
 github.com/charmbracelet/bubbletea

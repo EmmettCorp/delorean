@@ -1,91 +1,80 @@
 package ui
 
 import (
-	"fmt"
 	"strings"
 
+	"github.com/EmmettCorp/delorean/pkg/config"
+	"github.com/EmmettCorp/delorean/pkg/ui/components/help"
+	"github.com/EmmettCorp/delorean/pkg/ui/components/tabs"
+	"github.com/EmmettCorp/delorean/pkg/ui/context"
+	"github.com/EmmettCorp/delorean/pkg/utils"
+	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 )
 
-const (
-	// In real life situations we'd adjust the document to fit the width we've
-	// detected. In the case of this example we're hardcoding the width, and
-	// later using the detected width only to truncate in order to avoid jaggy
-	// wrapping.
-	width = 96
-)
-
-// Style definitions.
-var (
-
-	// General.
-
-	subtle    = lipgloss.AdaptiveColor{Light: "#D9DCCF", Dark: "#383838"}
-	highlight = lipgloss.AdaptiveColor{Light: "#874BFD", Dark: "#7D56F4"}
-	special   = lipgloss.AdaptiveColor{Light: "#43BF6D", Dark: "#73F59F"}
-
-	// Tabs.
-
-	activeTabBorder = lipgloss.Border{
-		Top:         "─",
-		Bottom:      " ",
-		Left:        "│",
-		Right:       "│",
-		TopLeft:     "╭",
-		TopRight:    "╮",
-		BottomLeft:  "┘",
-		BottomRight: "└",
-	}
-
-	tabBorder = lipgloss.Border{
-		Top:         "─",
-		Bottom:      "─",
-		Left:        "│",
-		Right:       "│",
-		TopLeft:     "╭",
-		TopRight:    "╮",
-		BottomLeft:  "┴",
-		BottomRight: "┴",
-	}
-
-	tab = lipgloss.NewStyle().
-		Border(tabBorder, true).
-		BorderForeground(highlight).
-		Padding(0, 1)
-
-	activeTab = tab.Copy().Border(activeTabBorder, true)
-
-	tabGap = tab.Copy().
-		BorderTop(false).
-		BorderLeft(false).
-		BorderRight(false)
-
-	docStyle = lipgloss.NewStyle().Padding(1, 2, 1, 2)
-)
-
-func Draw() {
-	// physicalWidth, _, _ := term.GetSize(int(os.Stdout.Fd()))
-	doc := strings.Builder{}
-
-	// Tabs
-	{
-		row := lipgloss.JoinHorizontal(
-			lipgloss.Top,
-			activeTab.Render("Snapshots"),
-			tab.Render("Schedule"),
-			tab.Render("Settings"),
-		)
-		gap := tabGap.Render(strings.Repeat(" ", max(0, width-lipgloss.Width(row)-2)))
-		row = lipgloss.JoinHorizontal(lipgloss.Bottom, row, gap)
-		doc.WriteString(row + "\n\n")
-	}
-
-	fmt.Println(docStyle.Render(doc.String()))
+type Model struct {
+	keys          utils.KeyMap
+	err           error
+	currSectionId int
+	help          help.Model
+	ready         bool
+	isSidebarOpen bool
+	tabs          tabs.Model
+	ctx           context.ProgramContext
 }
 
-func max(a, b int) int {
-	if a > b {
-		return a
+func NewModel() Model {
+	tabsModel := tabs.NewModel()
+	return Model{
+		keys:          utils.Keys,
+		help:          help.NewModel(),
+		currSectionId: 0,
+		tabs:          tabsModel,
 	}
-	return b
 }
+
+func initScreen() tea.Msg {
+	config, err := config.New()
+	if err != nil {
+		return errMsg{err}
+	}
+
+	return initMsg{Config: *config}
+}
+
+func (m Model) Init() tea.Cmd {
+	return tea.Batch(initScreen, tea.EnterAltScreen)
+}
+
+func (m Model) View() string {
+	if m.err != nil {
+		return m.err.Error()
+	}
+
+	// if m.ctx.Config == nil {
+	// 	return "Reading config...\n"
+	// }
+
+	s := strings.Builder{}
+	s.WriteString(m.tabs.View(m.ctx))
+	s.WriteString("\n")
+	mainContent := lipgloss.JoinHorizontal(
+		lipgloss.Top,
+		m.getCurrSection().View(),
+		// m.sidebar.View(),
+	)
+	s.WriteString(mainContent)
+	s.WriteString("\n")
+	s.WriteString(m.help.View(m.ctx))
+	return s.String()
+}
+
+type initMsg struct {
+	Config config.Config
+}
+
+type errMsg struct {
+	error
+}
+
+func (e errMsg) Error() string { return e.error.Error() }
