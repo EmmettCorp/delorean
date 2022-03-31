@@ -2,7 +2,6 @@ package tabs
 
 import (
 	"errors"
-	"math"
 	"os"
 	"strings"
 
@@ -19,7 +18,6 @@ type tab struct {
 type Model struct {
 	currentTabID int
 	tabs         []tab
-	indent       int
 }
 
 func NewModel(titles []string) (Model, error) {
@@ -35,10 +33,6 @@ func NewModel(titles []string) (Model, error) {
 			title: titles[i],
 		})
 	}
-
-	m.indent = int(math.Ceil(
-		float64(len(m.tabs)) / 2),
-	)
 
 	return m, nil
 }
@@ -63,7 +57,7 @@ func (m Model) View() string {
 	)
 
 	physicalWidth, _, _ := term.GetSize(int(os.Stdout.Fd()))
-	gap := tabGap.Render(strings.Repeat(" ", max(0, physicalWidth-lipgloss.Width(row)-m.indent)))
+	gap := tabGap.Render(strings.Repeat(" ", max(0, physicalWidth-lipgloss.Width(row)-2)))
 
 	return lipgloss.JoinHorizontal(lipgloss.Bottom, row, gap)
 }

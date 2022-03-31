@@ -10,7 +10,7 @@ import (
 
 var tabsTitles = []string{
 	"Snapshots",
-	"Schedule",
+	// "Schedule",
 	"Settings",
 }
 
