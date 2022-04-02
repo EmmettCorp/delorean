@@ -59,7 +59,7 @@ func (m Model) View() string {
 	physicalWidth, _, _ := term.GetSize(int(os.Stdout.Fd()))
 	gap := tabGap.Render(strings.Repeat(" ", max(0, physicalWidth-lipgloss.Width(row)-2)))
 
-	return lipgloss.JoinHorizontal(lipgloss.Bottom, row, gap)
+	return docStyle.Render(lipgloss.JoinHorizontal(lipgloss.Bottom, row, gap))
 }
 
 func (m *Model) SetcurrentTabID(id int) {

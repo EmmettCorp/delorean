@@ -2,6 +2,7 @@ package ui
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/EmmettCorp/delorean/pkg/ui/components/tabs"
 	"github.com/charmbracelet/bubbles/key"
@@ -30,6 +31,7 @@ func NewModel() (Model, error) {
 	// default current section id is 0
 	return Model{
 		tabs: tabModel,
+		keys: Keys,
 	}, nil
 }
 
@@ -54,11 +56,13 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	cmds = append(cmds, cmd)
 
 	return m, tea.Batch(cmds...)
-	// return m, tea.Batch(tea.ClearScreen, tea.Draw)
 }
 
 func (m Model) View() string {
-	return fmt.Sprintf("%v", m.err)
+	s := strings.Builder{}
+	s.WriteString(m.tabs.View())
+	s.WriteString("\n")
+	return s.String()
 }
 
 func Draw() {
