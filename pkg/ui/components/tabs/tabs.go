@@ -13,6 +13,10 @@ import (
 type tab struct {
 	id    int
 	title string
+	x1    int
+	y1    int
+	x2    int
+	y2    int
 }
 
 type Model struct {
@@ -27,11 +31,18 @@ func NewModel(titles []string) (Model, error) {
 
 	m := Model{}
 
+	x1 := 0
 	for i := range titles {
+		x2 := x1 + len(titles[i]) + 3
 		m.tabs = append(m.tabs, tab{
 			id:    i,
 			title: titles[i],
+			x1:    x1,
+			y1:    0,
+			x2:    x2,
+			y2:    2,
 		})
+		x1 = x2 + 1
 	}
 
 	return m, nil
@@ -64,6 +75,16 @@ func (m Model) View() string {
 
 func (m *Model) SetcurrentTabID(id int) {
 	m.currentTabID = id
+}
+
+func (m *Model) OnClick(e tea.MouseMsg) int {
+	for _, t := range m.tabs {
+		if t.x1 <= e.X && e.X <= t.x2 && t.y1 <= e.Y && e.Y <= t.y2 {
+			return t.id
+		}
+	}
+
+	return m.currentTabID
 }
 
 func max(a, b int) int {

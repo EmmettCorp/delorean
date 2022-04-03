@@ -6,6 +6,7 @@ import (
 
 	"github.com/EmmettCorp/delorean/pkg/app"
 	"github.com/EmmettCorp/delorean/pkg/commands"
+	"github.com/EmmettCorp/delorean/pkg/config"
 	"github.com/EmmettCorp/delorean/pkg/logger"
 	"github.com/EmmettCorp/delorean/pkg/ui"
 	tea "github.com/charmbracelet/bubbletea"
@@ -19,7 +20,11 @@ func main() {
 }
 
 func run() error {
-	model, err := ui.NewModel()
+	cfg, err := config.New()
+	if err != nil {
+		return fmt.Errorf("can't get new config: %v", err)
+	}
+	model, err := ui.NewModel(cfg)
 	if err != nil {
 		return err
 	}
