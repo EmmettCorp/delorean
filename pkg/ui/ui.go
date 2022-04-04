@@ -1,32 +1,28 @@
+/*
+Package ui implements the UI for the delorean application.
+*/
 package ui
 
 import (
-	"fmt"
 	"strings"
 
 	"github.com/EmmettCorp/delorean/pkg/config"
 	"github.com/EmmettCorp/delorean/pkg/ui/components/tabs"
+	"github.com/EmmettCorp/delorean/pkg/ui/shared"
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
 )
 
-var tabsTitles = []string{
-	"Snapshots",
-	// "Schedule",
-	"Settings",
-}
-
 type Model struct {
-	currentTab int
-	tabs       tabs.Model
-	keys       KeyMap
-	config     *config.Config
-	mouseEvent tea.MouseEvent
-	err        error
+	tabs   tabs.Model
+	keys   KeyMap
+	state  *shared.State
+	config *config.Config
 }
 
 func NewModel(cfg *config.Config) (*Model, error) {
-	tabModel, err := tabs.NewModel(tabsTitles)
+	st := shared.State{}
+	tabModel, err := tabs.NewModel(&st, getCurrentTabTitles())
 	if err != nil {
 		return &Model{}, err
 	}
@@ -34,7 +30,8 @@ func NewModel(cfg *config.Config) (*Model, error) {
 	// default current section id is 0
 	return &Model{
 		tabs:   tabModel,
-		keys:   Keys,
+		keys:   getKeyMaps(),
+		state:  &st,
 		config: cfg,
 	}, nil
 }
@@ -51,8 +48,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
-		switch {
-		case key.Matches(msg, m.keys.Quit):
+		if key.Matches(msg, m.keys.Quit) {
 			cmd = tea.Quit
 		}
 	case tea.MouseMsg:
@@ -70,21 +66,20 @@ func (m *Model) View() string {
 	s := strings.Builder{}
 	s.WriteString(m.tabs.View())
 	s.WriteString("\n")
+
 	return s.String()
 }
 
-func Draw() {
-	tabModel, err := tabs.NewModel(tabsTitles)
-	if err != nil {
-		return
+func (m *Model) onClick(event tea.MouseMsg) {
+	if event.Y <= tabs.TabsHeigh {
+		m.tabs.OnClick(event)
 	}
-
-	fmt.Println(tabModel.View())
 }
 
-func (m *Model) onClick(event tea.MouseMsg) {
-	if event.Y < 3 {
-		m.currentTab = m.tabs.OnClick(event)
-		m.tabs.SetcurrentTabID(m.currentTab)
+func getCurrentTabTitles() []string {
+	return []string{
+		"Snapshots",
+		// "Schedule",
+		"Settings",
 	}
 }
