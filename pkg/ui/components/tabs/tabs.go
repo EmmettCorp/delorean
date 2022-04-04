@@ -90,6 +90,7 @@ func (m *Model) OnClick(e tea.MouseMsg) {
 	for _, t := range m.tabs {
 		if t.x1 <= e.X && e.X <= t.x2 && t.y1 <= e.Y && e.Y <= t.y2 {
 			m.state.CurrentTab = t.id
+
 			return
 		}
 	}
