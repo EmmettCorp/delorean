@@ -6,38 +6,61 @@ package ui
 import (
 	"strings"
 
+	"github.com/EmmettCorp/delorean/pkg/commands/btrfs"
 	"github.com/EmmettCorp/delorean/pkg/config"
+	"github.com/EmmettCorp/delorean/pkg/domain"
+	"github.com/EmmettCorp/delorean/pkg/ui/components/snapshots"
 	"github.com/EmmettCorp/delorean/pkg/ui/components/tabs"
 	"github.com/EmmettCorp/delorean/pkg/ui/shared"
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
 )
 
+type components struct {
+	tabs      *tabs.Model
+	snapshots *snapshots.Model
+}
+
 type Model struct {
-	tabs   tabs.Model
-	keys   KeyMap
-	state  *shared.State
-	config *config.Config
+	components components
+	snapshots  []domain.Snapshot
+	keys       KeyMap
+	state      *shared.State
+	config     *config.Config
 }
 
 func NewModel(cfg *config.Config) (*Model, error) {
 	st := shared.State{}
-	tabModel, err := tabs.NewModel(&st, getCurrentTabTitles())
+	tabsCmp, err := tabs.NewModel(&st, shared.GetTabItems())
+	if err != nil {
+		return &Model{}, err
+	}
+	snapshotsCmp, err := snapshots.NewModel()
 	if err != nil {
 		return &Model{}, err
 	}
 
-	// default current section id is 0
+	snaps, err := btrfs.SnapshotsList(cfg.Volumes)
+	if err != nil {
+		return &Model{}, err
+	}
+
 	return &Model{
-		tabs:   tabModel,
-		keys:   getKeyMaps(),
-		state:  &st,
-		config: cfg,
+		components: components{
+			tabs:      &tabsCmp,
+			snapshots: &snapshotsCmp,
+		},
+		snapshots: snaps,
+		keys:      getKeyMaps(),
+		state:     &st,
+		config:    cfg,
 	}, nil
 }
 
 func (m *Model) Init() tea.Cmd {
-	return tea.Batch(tea.EnterAltScreen)
+	m.components.snapshots.UpdateList(m.snapshots)
+	return nil
 }
 
 func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -64,22 +87,24 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (m *Model) View() string {
 	s := strings.Builder{}
-	s.WriteString(m.tabs.View())
+	// tabs
+	s.WriteString(m.components.tabs.View())
 	s.WriteString("\n")
+
+	// content
+	if m.state.CurrentTab == shared.SnapshotsTab {
+		mainContent := lipgloss.JoinHorizontal(lipgloss.Top, m.components.snapshots.View())
+		s.WriteString(mainContent)
+		s.WriteString("\n")
+	} else if m.state.CurrentTab == shared.SettingsTab {
+		s.WriteString(" settings\n")
+	}
 
 	return s.String()
 }
 
 func (m *Model) onClick(event tea.MouseMsg) {
-	if event.Y <= tabs.TabsHeigh {
-		m.tabs.OnClick(event)
-	}
-}
-
-func getCurrentTabTitles() []string {
-	return []string{
-		"Snapshots",
-		// "Schedule",
-		"Settings",
+	if event.Y <= tabs.TabsHeigh { // tabs area gets full length of the prompt
+		m.components.tabs.OnClick(event)
 	}
 }

@@ -20,7 +20,7 @@ const (
 )
 
 type tab struct {
-	id    int
+	id    shared.TabItem
 	title string
 	x1    int
 	y1    int
@@ -33,9 +33,9 @@ type Model struct {
 	tabs  []tab
 }
 
-func NewModel(state *shared.State, titles []string) (Model, error) {
-	if len(titles) == 0 {
-		return Model{}, errors.New("empty titles")
+func NewModel(state *shared.State, tabItems []shared.TabItem) (Model, error) {
+	if len(tabItems) == 0 {
+		return Model{}, errors.New("empty tabItems")
 	}
 
 	m := Model{
@@ -43,11 +43,12 @@ func NewModel(state *shared.State, titles []string) (Model, error) {
 	}
 
 	var x1 int
-	for i := range titles {
-		x2 := x1 + len(titles[i]) + 3 // nolint:gomnd // 3 = 2 vertical bars + 1 space
+	for i := range tabItems {
+		title := tabItems[i].String()
+		x2 := x1 + len(title) + 3 // nolint:gomnd // 3 = 2 vertical bars + 1 space
 		m.tabs = append(m.tabs, tab{
-			id:    i,
-			title: titles[i],
+			id:    tabItems[i],
+			title: title,
 			x1:    x1,
 			x2:    x2,
 			y2:    TabsHeigh,
@@ -65,7 +66,7 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 func (m Model) View() string {
 	var tabs []string
 	for i := range m.tabs {
-		if m.state.CurrentTab == i {
+		if m.state.CurrentTab == m.tabs[i].id {
 			tabs = append(tabs, activeTab.Render(m.tabs[i].title))
 		} else {
 			tabs = append(tabs, inactiveTab.Render((m.tabs[i].title)))
