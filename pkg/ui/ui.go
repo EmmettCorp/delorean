@@ -22,48 +22,57 @@ type components struct {
 	snapshots *snapshots.Model
 }
 
-type Model struct {
+type App struct {
+	shared.Clickable
+
+	state      *shared.State
 	components components
 	snapshots  []domain.Snapshot
 	keys       KeyMap
-	state      *shared.State
 	config     *config.Config
 }
 
-func NewModel(cfg *config.Config) (*Model, error) {
+func NewModel(cfg *config.Config) (*App, error) {
 	st := shared.State{}
 	tabsCmp, err := tabs.NewModel(&st, shared.GetTabItems())
 	if err != nil {
-		return &Model{}, err
+		return &App{}, err
 	}
 	snapshotsCmp, err := snapshots.NewModel()
 	if err != nil {
-		return &Model{}, err
+		return &App{}, err
 	}
 
 	snaps, err := btrfs.SnapshotsList(cfg.Volumes)
 	if err != nil {
-		return &Model{}, err
+		return &App{}, err
 	}
 
-	return &Model{
+	a := App{
 		components: components{
-			tabs:      &tabsCmp,
+			tabs:      tabsCmp,
 			snapshots: &snapshotsCmp,
 		},
 		snapshots: snaps,
 		keys:      getKeyMaps(),
-		state:     &st,
 		config:    cfg,
-	}, nil
+		state:     &st,
+	}
+
+	err = a.AddSuccessor(tabsCmp)
+	if err != nil {
+		return nil, err
+	}
+
+	return &a, nil
 }
 
-func (m *Model) Init() tea.Cmd {
-	m.components.snapshots.UpdateList(m.snapshots)
+func (a *App) Init() tea.Cmd {
+	a.components.snapshots.UpdateList(a.snapshots)
 	return nil
 }
 
-func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (a *App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var (
 		cmd  tea.Cmd
 		cmds []tea.Cmd
@@ -71,40 +80,36 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
-		if key.Matches(msg, m.keys.Quit) {
+		if key.Matches(msg, a.keys.Quit) {
 			cmd = tea.Quit
 		}
 	case tea.MouseMsg:
 		if msg.Type == tea.MouseLeft {
-			m.onClick(msg)
+			a.OnClick(msg)
 		}
 	}
-
 	cmds = append(cmds, cmd)
 
-	return m, tea.Batch(cmds...)
+	_, cmd = a.components.snapshots.Update(msg)
+	cmds = append(cmds, cmd)
+
+	return a, tea.Batch(cmds...)
 }
 
-func (m *Model) View() string {
+func (a *App) View() string {
 	s := strings.Builder{}
 	// tabs
-	s.WriteString(m.components.tabs.View())
+	s.WriteString(a.components.tabs.View())
 	s.WriteString("\n")
 
 	// content
-	if m.state.CurrentTab == shared.SnapshotsTab {
-		mainContent := lipgloss.JoinHorizontal(lipgloss.Top, m.components.snapshots.View())
+	if a.state.CurrentTab == shared.SnapshotsTab {
+		mainContent := lipgloss.JoinHorizontal(lipgloss.Top, a.components.snapshots.View())
 		s.WriteString(mainContent)
 		s.WriteString("\n")
-	} else if m.state.CurrentTab == shared.SettingsTab {
+	} else if a.state.CurrentTab == shared.SettingsTab {
 		s.WriteString(" settings\n")
 	}
 
 	return s.String()
-}
-
-func (m *Model) onClick(event tea.MouseMsg) {
-	if event.Y <= tabs.TabsHeigh { // tabs area gets full length of the prompt
-		m.components.tabs.OnClick(event)
-	}
 }

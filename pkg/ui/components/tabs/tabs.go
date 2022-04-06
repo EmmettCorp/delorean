@@ -19,51 +19,55 @@ const (
 	tabsLeftRightIndents = 2
 )
 
-type tab struct {
-	id    shared.TabItem
-	title string
-	x1    int
-	y1    int
-	x2    int
-	y2    int
-}
-
 type Model struct {
+	shared.Clickable
+
 	state *shared.State
-	tabs  []tab
+	tabs  []*Tab
 }
 
-func NewModel(state *shared.State, tabItems []shared.TabItem) (Model, error) {
+func NewModel(state *shared.State, tabItems []shared.TabItem) (*Model, error) {
 	if len(tabItems) == 0 {
-		return Model{}, errors.New("empty tabItems")
+		return nil, errors.New("empty tabItems")
 	}
 
 	m := Model{
 		state: state,
 	}
 
+	m.X1, m.Y1, m.X2, m.Y2 = m.getCoords()
+
 	var x1 int
 	for i := range tabItems {
 		title := tabItems[i].String()
 		x2 := x1 + len(title) + 3 // nolint:gomnd // 3 = 2 vertical bars + 1 space
-		m.tabs = append(m.tabs, tab{
-			id:    tabItems[i],
-			title: title,
-			x1:    x1,
-			x2:    x2,
-			y2:    TabsHeigh,
-		})
+		nt := NewTab(state, tabItems[i], title, x1, 0, x2, TabsHeigh)
+		m.tabs = append(m.tabs, nt)
+		m.AddSuccessor(nt)
 		x1 = x2 + 1
 	}
 
-	return m, nil
+	return &m, nil
 }
 
 func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 	return m, nil
 }
 
-func (m Model) View() string {
+func (m *Model) GetCoords() (int, int, int, int) {
+	return m.X1, m.Y1, m.X2, m.Y2
+}
+
+func (m *Model) getCoords() (int, int, int, int) {
+	physicalWidth, _, err := term.GetSize(int(os.Stdout.Fd()))
+	if err != nil {
+		return -1, -1, -1, -1
+	}
+
+	return 0, 0, physicalWidth, TabsHeigh
+}
+
+func (m *Model) View() string {
 	var tabs []string
 	for i := range m.tabs {
 		if m.state.CurrentTab == m.tabs[i].id {
@@ -85,16 +89,6 @@ func (m Model) View() string {
 	gap := tabGap.Render(strings.Repeat(" ", max(0, physicalWidth-lipgloss.Width(row)-tabsLeftRightIndents)))
 
 	return docStyle.Render(lipgloss.JoinHorizontal(lipgloss.Bottom, row, gap))
-}
-
-func (m *Model) OnClick(e tea.MouseMsg) {
-	for _, t := range m.tabs {
-		if t.x1 <= e.X && e.X <= t.x2 && t.y1 <= e.Y && e.Y <= t.y2 {
-			m.state.CurrentTab = t.id
-
-			return
-		}
-	}
 }
 
 func max(a, b int) int {
