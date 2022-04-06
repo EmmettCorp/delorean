@@ -12,9 +12,9 @@ type Tab struct {
 	id    shared.TabItem
 }
 
-func NewTab(state *shared.State, id shared.TabItem, title string, X1, Y1, X2, Y2 int) *Tab {
+func NewTab(state *shared.State, id shared.TabItem, X1, Y1, X2, Y2 int) *Tab {
 	t := Tab{
-		title: title,
+		title: id.String(),
 		state: state,
 		id:    id,
 	}

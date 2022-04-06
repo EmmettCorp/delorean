@@ -41,7 +41,7 @@ func NewModel(state *shared.State, tabItems []shared.TabItem) (*Model, error) {
 	for i := range tabItems {
 		title := tabItems[i].String()
 		x2 := x1 + len(title) + 3 // nolint:gomnd // 3 = 2 vertical bars + 1 space
-		nt := NewTab(state, tabItems[i], title, x1, 0, x2, TabsHeigh)
+		nt := NewTab(state, tabItems[i], x1, 0, x2, TabsHeigh)
 		m.tabs = append(m.tabs, nt)
 		m.AddSuccessor(nt)
 		x1 = x2 + 1
