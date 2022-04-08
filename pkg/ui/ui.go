@@ -6,9 +6,7 @@ package ui
 import (
 	"strings"
 
-	"github.com/EmmettCorp/delorean/pkg/commands/btrfs"
 	"github.com/EmmettCorp/delorean/pkg/config"
-	"github.com/EmmettCorp/delorean/pkg/domain"
 	"github.com/EmmettCorp/delorean/pkg/ui/components/snapshots"
 	"github.com/EmmettCorp/delorean/pkg/ui/components/tabs"
 	"github.com/EmmettCorp/delorean/pkg/ui/shared"
@@ -18,32 +16,26 @@ import (
 )
 
 type components struct {
-	tabs      *tabs.Model
-	snapshots *snapshots.Model
+	tabs      tea.Model
+	snapshots tea.Model
 }
 
 type App struct {
-	shared.Clickable
-
 	state      *shared.State
 	components components
-	snapshots  []domain.Snapshot
 	keys       KeyMap
 	config     *config.Config
 }
 
 func NewModel(cfg *config.Config) (*App, error) {
-	st := shared.State{}
+	st := shared.State{
+		ActiveVolumes: cfg.Volumes,
+	}
 	tabsCmp, err := tabs.NewModel(&st, shared.GetTabItems())
 	if err != nil {
 		return &App{}, err
 	}
-	snapshotsCmp, err := snapshots.NewModel()
-	if err != nil {
-		return &App{}, err
-	}
-
-	snaps, err := btrfs.SnapshotsList(cfg.Volumes)
+	snapshotsCmp, err := snapshots.NewModel(&st)
 	if err != nil {
 		return &App{}, err
 	}
@@ -51,24 +43,17 @@ func NewModel(cfg *config.Config) (*App, error) {
 	a := App{
 		components: components{
 			tabs:      tabsCmp,
-			snapshots: &snapshotsCmp,
+			snapshots: snapshotsCmp,
 		},
-		snapshots: snaps,
-		keys:      getKeyMaps(),
-		config:    cfg,
-		state:     &st,
-	}
-
-	err = a.AddSuccessor(tabsCmp)
-	if err != nil {
-		return nil, err
+		keys:   getKeyMaps(),
+		config: cfg,
+		state:  &st,
 	}
 
 	return &a, nil
 }
 
 func (a *App) Init() tea.Cmd {
-	a.components.snapshots.UpdateList(a.snapshots)
 	return nil
 }
 
@@ -112,4 +97,11 @@ func (a *App) View() string {
 	}
 
 	return s.String()
+}
+
+func (a *App) OnClick(msg tea.MouseMsg) {
+	clickable := a.state.FindClickable(msg.X, msg.Y)
+	if clickable != nil {
+		clickable.OnClick(msg)
+	}
 }

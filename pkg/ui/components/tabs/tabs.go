@@ -19,11 +19,15 @@ const (
 	tabsLeftRightIndents = 2
 )
 
-type Model struct {
+type clickableTab interface {
 	shared.Clickable
+	getTitle() string
+	getID() shared.TabItem
+}
 
+type Model struct {
 	state *shared.State
-	tabs  []*Tab
+	Tabs  []clickableTab
 }
 
 func NewModel(state *shared.State, tabItems []shared.TabItem) (*Model, error) {
@@ -35,45 +39,38 @@ func NewModel(state *shared.State, tabItems []shared.TabItem) (*Model, error) {
 		state: state,
 	}
 
-	m.X1, m.Y1, m.X2, m.Y2 = m.getCoords()
-
 	var x1 int
 	for i := range tabItems {
 		title := tabItems[i].String()
 		x2 := x1 + len(title) + 3 // nolint:gomnd // 3 = 2 vertical bars + 1 space
-		nt := NewTab(state, tabItems[i], x1, 0, x2, TabsHeigh)
-		m.tabs = append(m.tabs, nt)
-		m.AddSuccessor(nt)
+		nt := NewTab(state, tabItems[i], shared.Coords{
+			X1: x1,
+			Y1: 0,
+			X2: x2,
+			Y2: TabsHeigh,
+		})
+		m.Tabs = append(m.Tabs, nt)
 		x1 = x2 + 1
 	}
 
 	return &m, nil
 }
 
-func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
+func (m *Model) Init() tea.Cmd {
+	return nil
+}
+
+func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, nil
-}
-
-func (m *Model) GetCoords() (int, int, int, int) {
-	return m.X1, m.Y1, m.X2, m.Y2
-}
-
-func (m *Model) getCoords() (int, int, int, int) {
-	physicalWidth, _, err := term.GetSize(int(os.Stdout.Fd()))
-	if err != nil {
-		return -1, -1, -1, -1
-	}
-
-	return 0, 0, physicalWidth, TabsHeigh
 }
 
 func (m *Model) View() string {
 	var tabs []string
-	for i := range m.tabs {
-		if m.state.CurrentTab == m.tabs[i].id {
-			tabs = append(tabs, activeTab.Render(m.tabs[i].title))
+	for i := range m.Tabs {
+		if m.state.CurrentTab == m.Tabs[i].getID() {
+			tabs = append(tabs, activeTab.Render(m.Tabs[i].getTitle()))
 		} else {
-			tabs = append(tabs, inactiveTab.Render((m.tabs[i].title)))
+			tabs = append(tabs, inactiveTab.Render((m.Tabs[i].getTitle())))
 		}
 	}
 
