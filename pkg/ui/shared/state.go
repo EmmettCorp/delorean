@@ -11,36 +11,36 @@ import (
 type State struct {
 	ActiveVolumes     []domain.Volume
 	CurrentTab        TabItem
-	ClickableElements []Clickable
+	ClickableElements map[TabItem][]Clickable
 }
 
-func (s *State) UpdateClickable(cc []Clickable) {
-	s.ClickableElements = cc
+func (s *State) Update(ti TabItem) {
+	s.CurrentTab = ti
 }
 
-func (s *State) CleanClickable() {
-	s.ClickableElements = []Clickable{}
+func (s *State) CleanClickable(ti TabItem) {
+	s.ClickableElements[ti] = []Clickable{}
 }
 
-func (s *State) AppendClickable(c ...Clickable) {
-	s.ClickableElements = append(s.ClickableElements, c...)
+func (s *State) AppendClickable(ti TabItem, c ...Clickable) {
+	s.ClickableElements[ti] = append(s.ClickableElements[ti], c...)
 }
 
 func (s *State) FindClickable(x, y int) Clickable {
 	var nearestClickable Clickable
 	nearestCoords := Coords{}
 
-	for i := range s.ClickableElements {
-		coords := s.ClickableElements[i].GetCoords()
+	elements := append(s.ClickableElements[AnyTab], s.ClickableElements[s.CurrentTab]...)
+
+	for i := range elements {
+		coords := elements[i].GetCoords()
 		if x >= coords.X1 && x <= coords.X2 && y >= coords.Y1 && y <= coords.Y2 {
 			if nearestClickable == nil {
-				nearestClickable = s.ClickableElements[i]
+				nearestClickable = elements[i]
 				nearestCoords = coords
-			} else { // if there is a clickable inside another clickable
-				if coords.X2-coords.X1 < nearestCoords.X2-nearestCoords.X1 {
-					nearestClickable = s.ClickableElements[i]
-					nearestCoords = coords
-				}
+			} else if x-coords.X1 < x-nearestCoords.X1 { // if there is a clickable inside another clickable
+				nearestClickable = elements[i]
+				nearestCoords = coords
 			}
 		}
 	}

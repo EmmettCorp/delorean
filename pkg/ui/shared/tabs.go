@@ -6,6 +6,7 @@ const (
 	SnapshotsTab TabItem = iota
 	ScheduleTab
 	SettingsTab
+	AnyTab // used for elements that don't belong to any tab. As example, tabs themselves.
 )
 
 func (t TabItem) String() string {

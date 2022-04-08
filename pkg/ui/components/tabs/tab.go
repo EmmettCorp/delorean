@@ -19,7 +19,7 @@ func NewTab(state *shared.State, id shared.TabItem, coords shared.Coords) *tab {
 		id:    id,
 	}
 	t.SetCoords(coords)
-	t.state.AppendClickable(&t)
+	t.state.AppendClickable(shared.AnyTab, &t)
 	return &t
 }
 
@@ -40,5 +40,5 @@ func (t *tab) SetCoords(c shared.Coords) {
 }
 
 func (t *tab) OnClick(event tea.MouseMsg) {
-	t.state.CurrentTab = t.id
+	t.state.Update(t.id)
 }

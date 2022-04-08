@@ -29,7 +29,8 @@ type App struct {
 
 func NewModel(cfg *config.Config) (*App, error) {
 	st := shared.State{
-		ActiveVolumes: cfg.Volumes,
+		ActiveVolumes:     cfg.Volumes,
+		ClickableElements: make(map[shared.TabItem][]shared.Clickable),
 	}
 	tabsCmp, err := tabs.NewModel(&st, shared.GetTabItems())
 	if err != nil {
@@ -75,8 +76,10 @@ func (a *App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	}
 	cmds = append(cmds, cmd)
 
-	_, cmd = a.components.snapshots.Update(msg)
-	cmds = append(cmds, cmd)
+	if a.state.CurrentTab == shared.SnapshotsTab {
+		_, cmd = a.components.snapshots.Update(msg)
+		cmds = append(cmds, cmd)
+	}
 
 	return a, tea.Batch(cmds...)
 }
