@@ -61,10 +61,20 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.list.SetSize(msg.Width-h, msg.Height-v)
 	}
 
+	if len(m.list.Items()) == 0 {
+		m.UpdateList()
+	}
+	var cmd tea.Cmd
+	m.list, cmd = m.list.Update(msg)
+
+	return m, cmd
+}
+
+func (m *Model) UpdateList() {
 	snaps, err := btrfs.SnapshotsList(m.state.ActiveVolumes)
 	if err != nil {
 		m.err = err
-		return nil, nil
+		return
 	}
 
 	items := []list.Item{}
@@ -77,8 +87,4 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	}
 
 	m.list.SetItems(items)
-
-	var cmd tea.Cmd
-	m.list, cmd = m.list.Update(msg)
-	return m, cmd
 }

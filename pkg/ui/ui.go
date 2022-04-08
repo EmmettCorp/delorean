@@ -76,6 +76,9 @@ func (a *App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	}
 	cmds = append(cmds, cmd)
 
+	// // tabs
+	a.components.tabs.Update(msg)
+
 	if a.state.CurrentTab == shared.SnapshotsTab {
 		_, cmd = a.components.snapshots.Update(msg)
 		cmds = append(cmds, cmd)

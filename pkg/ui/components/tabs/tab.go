@@ -6,21 +6,25 @@ import (
 )
 
 type tab struct {
-	title  string
-	state  *shared.State
 	id     shared.TabItem
+	state  *shared.State
 	coords shared.Coords
+	title  string
 }
 
-func NewTab(state *shared.State, id shared.TabItem, coords shared.Coords) *tab {
+func NewTab(state *shared.State, id shared.TabItem, coords shared.Coords) (*tab, error) {
 	t := tab{
 		title: id.String(),
 		state: state,
 		id:    id,
 	}
 	t.SetCoords(coords)
-	t.state.AppendClickable(shared.AnyTab, &t)
-	return &t
+	err := t.state.AppendClickable(shared.AnyTab, &t)
+	if err != nil {
+		return nil, err
+	}
+
+	return &t, nil
 }
 
 func (t *tab) getTitle() string {

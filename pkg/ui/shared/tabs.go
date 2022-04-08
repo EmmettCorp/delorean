@@ -22,6 +22,7 @@ func (t TabItem) String() string {
 	}
 }
 
+// GetTabItems returns the list of all available (visually) tabs.
 func GetTabItems() []TabItem {
 	return []TabItem{
 		SnapshotsTab,

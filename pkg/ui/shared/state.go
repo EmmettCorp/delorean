@@ -4,16 +4,19 @@ Package shared keeps shared domains.
 package shared
 
 import (
+	"errors"
+
 	"github.com/EmmettCorp/delorean/pkg/domain"
 )
 
 // State is the state of the ui application.
 type State struct {
-	ActiveVolumes     []domain.Volume
 	CurrentTab        TabItem
+	ActiveVolumes     []domain.Volume
 	ClickableElements map[TabItem][]Clickable
 }
 
+// Update changes the current tab.
 func (s *State) Update(ti TabItem) {
 	s.CurrentTab = ti
 }
@@ -22,8 +25,15 @@ func (s *State) CleanClickable(ti TabItem) {
 	s.ClickableElements[ti] = []Clickable{}
 }
 
-func (s *State) AppendClickable(ti TabItem, c ...Clickable) {
-	s.ClickableElements[ti] = append(s.ClickableElements[ti], c...)
+func (s *State) AppendClickable(ti TabItem, cc ...Clickable) error {
+	for i := range cc {
+		if err := validateClickable(cc[i]); err != nil {
+			return err
+		}
+	}
+	s.ClickableElements[ti] = append(s.ClickableElements[ti], cc...)
+
+	return nil
 }
 
 func (s *State) FindClickable(x, y int) Clickable {
@@ -46,4 +56,17 @@ func (s *State) FindClickable(x, y int) Clickable {
 	}
 
 	return nearestClickable
+}
+
+func validateClickable(c Clickable) error {
+	if c == nil {
+		return errors.New("nil clickable")
+	}
+
+	coords := c.GetCoords()
+	if coords.X1 >= coords.X2 || coords.Y1 >= coords.Y2 {
+		return errors.New("invalid coords")
+	}
+
+	return nil
 }
