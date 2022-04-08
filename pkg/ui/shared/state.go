@@ -5,7 +5,6 @@ package shared
 
 import (
 	"github.com/EmmettCorp/delorean/pkg/domain"
-	tea "github.com/charmbracelet/bubbletea"
 )
 
 // State is the state of the ui application.
@@ -25,13 +24,6 @@ func (s *State) CleanClickable() {
 
 func (s *State) AppendClickable(c ...Clickable) {
 	s.ClickableElements = append(s.ClickableElements, c...)
-}
-
-func (s *State) OnClick(event tea.MouseMsg) {
-	nearestClickable := s.FindClickable(event.X, event.Y)
-	if nearestClickable != nil {
-		nearestClickable.OnClick(event)
-	}
 }
 
 func (s *State) FindClickable(x, y int) Clickable {
