@@ -10,6 +10,7 @@ import (
 
 	"github.com/EmmettCorp/delorean/pkg/commands/btrfs"
 	"github.com/EmmettCorp/delorean/pkg/ui/components/divider"
+	"github.com/EmmettCorp/delorean/pkg/ui/components/tabs"
 	"github.com/EmmettCorp/delorean/pkg/ui/shared"
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
@@ -58,7 +59,6 @@ func (m *Model) View() string {
 	if err != nil {
 		return err.Error()
 	}
-	m.list.SetSize(w, h-7)
 
 	s := strings.Builder{}
 	s.WriteString("\n")
@@ -66,14 +66,14 @@ func (m *Model) View() string {
 	s.WriteString("\n")
 	s.WriteString(divider.Horizontal(w, subtle))
 	s.WriteString("\n")
+	m.list.SetSize(w, h-((tabs.TabsHeigh+1)+2+2)) // nolint:gomnd // (TabsHeigh + bottom line) + Header + Divider
 	s.WriteString(docStyle.Render(m.list.View()))
 
 	return s.String()
 }
 
 func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	switch msg := msg.(type) {
-	case tea.WindowSizeMsg:
+	if msg, ok := msg.(tea.WindowSizeMsg); ok {
 		h, v := docStyle.GetFrameSize()
 		m.list.SetSize(msg.Width-h, msg.Height-v)
 	}

@@ -67,8 +67,7 @@ func (m *Model) Init() tea.Cmd {
 }
 
 func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	switch msg := msg.(type) {
-	case tea.KeyMsg:
+	if msg, ok := msg.(tea.KeyMsg); ok {
 		if key.Matches(msg, m.keys.Tab) {
 			m.next()
 		} else if key.Matches(msg, m.keys.ShiftTab) {
