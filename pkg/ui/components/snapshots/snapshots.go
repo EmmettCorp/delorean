@@ -3,11 +3,14 @@ package snapshots
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/EmmettCorp/delorean/pkg/commands/btrfs"
+	"github.com/EmmettCorp/delorean/pkg/ui/components/divider"
 	"github.com/EmmettCorp/delorean/pkg/ui/shared"
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
 	"golang.org/x/term"
 )
 
@@ -34,6 +37,8 @@ func NewModel(st *shared.State) (*Model, error) {
 	itemsModel.SetFilteringEnabled(false)
 	itemsModel.SetShowFilter(false)
 	itemsModel.SetShowTitle(false)
+	itemsModel.SetShowStatusBar(false)
+	itemsModel.SetShowHelp(false)
 
 	return &Model{
 		list:  itemsModel,
@@ -50,8 +55,16 @@ func (m *Model) View() string {
 	if err != nil {
 		return err.Error()
 	}
-	m.list.SetSize(w, h-6)
-	return docStyle.Render(m.list.View())
+	m.list.SetSize(w, h-7)
+
+	s := strings.Builder{}
+	s.WriteString("\n")
+	s.WriteString(lipgloss.NewStyle().SetString("  Info\t\t\t\t\tID\t\tKernel").Foreground(subtle).String())
+	s.WriteString("\n")
+	s.WriteString(divider.Horizontal(w, subtle))
+	s.WriteString("\n")
+	s.WriteString(docStyle.Render(m.list.View()))
+	return s.String()
 }
 
 func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
