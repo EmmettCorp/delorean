@@ -41,14 +41,6 @@ func getKeyMaps() KeyMap {
 			key.WithKeys("down", "j"),
 			key.WithHelp("↓/j", "move down"),
 		),
-		PrevSection: key.NewBinding(
-			key.WithKeys("left", "h"),
-			key.WithHelp("/h", "previous section"),
-		),
-		NextSection: key.NewBinding(
-			key.WithKeys("right", "l"),
-			key.WithHelp("/l", "next section"),
-		),
 		PageUp: key.NewBinding(
 			key.WithKeys("ctrl+u"),
 			key.WithHelp("Ctrl+u", "preview page up"),
@@ -60,10 +52,6 @@ func getKeyMaps() KeyMap {
 		TogglePreview: key.NewBinding(
 			key.WithKeys("p"),
 			key.WithHelp("p", "open in Preview"),
-		),
-		OpenGithub: key.NewBinding(
-			key.WithKeys("o"),
-			key.WithHelp("o", "open in GitHub"),
 		),
 		Refresh: key.NewBinding(
 			key.WithKeys("r"),
