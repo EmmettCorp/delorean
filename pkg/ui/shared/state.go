@@ -40,7 +40,9 @@ func (s *State) FindClickable(x, y int) Clickable {
 	var nearestClickable Clickable
 	nearestCoords := Coords{}
 
-	elements := append(s.ClickableElements[AnyTab], s.ClickableElements[s.CurrentTab]...)
+	elements := make([]Clickable, 0, len(s.ClickableElements[AnyTab])+len(s.ClickableElements[s.CurrentTab]))
+	elements = append(elements, s.ClickableElements[AnyTab]...)
+	elements = append(elements, s.ClickableElements[s.CurrentTab]...)
 
 	for i := range elements {
 		coords := elements[i].GetCoords()

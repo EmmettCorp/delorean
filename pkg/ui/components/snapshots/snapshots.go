@@ -1,3 +1,6 @@
+/*
+Package snapshots keeps all the logic for snapshots component.
+*/
 package snapshots
 
 import (
@@ -64,6 +67,7 @@ func (m *Model) View() string {
 	s.WriteString(divider.Horizontal(w, subtle))
 	s.WriteString("\n")
 	s.WriteString(docStyle.Render(m.list.View()))
+
 	return s.String()
 }
 
@@ -87,6 +91,7 @@ func (m *Model) UpdateList() {
 	snaps, err := btrfs.SnapshotsList(m.state.ActiveVolumes)
 	if err != nil {
 		m.err = err
+
 		return
 	}
 

@@ -113,7 +113,7 @@ linters:
     # - errorlint           # errorlint is a linter for that can be used to find code that will cause problems with the error wrapping scheme introduced in Go 1.13.
     # TODO: check if it's worth it
 
-    - exhaustive          # check exhaustiveness of enum switch statements
+    # - exhaustive          # check exhaustiveness of enum switch statements
 
     # - exhaustivestruct    # Checks if all struct's fields are initialized
 
