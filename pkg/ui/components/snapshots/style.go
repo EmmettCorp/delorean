@@ -6,4 +6,5 @@ import "github.com/charmbracelet/lipgloss"
 var (
 	docStyle = lipgloss.NewStyle().Margin(0, 0)
 	subtle   = lipgloss.AdaptiveColor{Light: "#D9DCCF", Dark: "#383838"}
+	inactive = lipgloss.AdaptiveColor{Light: "#DDDADA", Dark: "#5C5C5C"}
 )

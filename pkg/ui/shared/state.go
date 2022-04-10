@@ -6,14 +6,14 @@ package shared
 import (
 	"errors"
 
-	"github.com/EmmettCorp/delorean/pkg/domain"
+	"github.com/EmmettCorp/delorean/pkg/config"
 )
 
 // State is the state of the ui application.
 type State struct {
 	CurrentTab        TabItem
-	ActiveVolumes     []domain.Volume
 	ClickableElements map[TabItem][]Clickable
+	Config            *config.Config
 }
 
 // Update changes the current tab.

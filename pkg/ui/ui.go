@@ -29,8 +29,8 @@ type App struct {
 
 func NewModel(cfg *config.Config) (*App, error) {
 	st := shared.State{
-		ActiveVolumes:     cfg.Volumes,
 		ClickableElements: make(map[shared.TabItem][]shared.Clickable),
+		Config:            cfg,
 	}
 	tabsCmp, err := tabs.NewModel(&st, shared.GetTabItems())
 	if err != nil {

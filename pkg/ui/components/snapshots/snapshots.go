@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/EmmettCorp/delorean/pkg/commands/btrfs"
+	"github.com/EmmettCorp/delorean/pkg/ui/components/button"
 	"github.com/EmmettCorp/delorean/pkg/ui/components/divider"
 	"github.com/EmmettCorp/delorean/pkg/ui/components/tabs"
 	"github.com/EmmettCorp/delorean/pkg/ui/shared"
@@ -31,9 +32,10 @@ func (s snapshot) Description() string {
 func (s snapshot) FilterValue() string { return s.Label }
 
 type Model struct {
-	state *shared.State
-	list  list.Model
-	err   error
+	state     *shared.State
+	createBtn button.Model
+	list      list.Model
+	err       error
 }
 
 func NewModel(st *shared.State) (*Model, error) {
@@ -61,12 +63,13 @@ func (m *Model) View() string {
 	}
 
 	s := strings.Builder{}
+	s.WriteString(button.DrawButton(m.createBtn.GetTitle()))
 	s.WriteString("\n")
-	s.WriteString(lipgloss.NewStyle().SetString("  Info\t\t\t\t\tID\t\tKernel").Foreground(subtle).String())
+	s.WriteString(lipgloss.NewStyle().SetString("  Info\t\t\t\t\tID\t\tKernel").Foreground(inactive).String())
 	s.WriteString("\n")
 	s.WriteString(divider.Horizontal(w, subtle))
 	s.WriteString("\n")
-	m.list.SetSize(w, h-((tabs.TabsHeigh+1)+2+2)) // nolint:gomnd // (TabsHeigh + bottom line) + Header + Divider
+	m.list.SetSize(w, h-((tabs.TabsHeigh+1)+2+2+2)) // nolint:gomnd // (TabsHeigh + bottom line) + Header + Divider
 	s.WriteString(docStyle.Render(m.list.View()))
 
 	return s.String()
@@ -88,7 +91,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m *Model) UpdateList() {
-	snaps, err := btrfs.SnapshotsList(m.state.ActiveVolumes)
+	snaps, err := btrfs.SnapshotsList(m.state.Config.Volumes)
 	if err != nil {
 		m.err = err
 
