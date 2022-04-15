@@ -46,9 +46,17 @@ func NewModel(st *shared.State) (*Model, error) {
 	itemsModel.SetShowStatusBar(false)
 	itemsModel.SetShowHelp(false)
 
+	createBtn := newCreateButton("Create", shared.Coords{
+		X1: 0,
+		Y1: 5,
+		X2: 3,
+		Y2: 7,
+	})
+
 	return &Model{
-		list:  itemsModel,
-		state: st,
+		list:      itemsModel,
+		state:     st,
+		createBtn: createBtn,
 	}, nil
 }
 
