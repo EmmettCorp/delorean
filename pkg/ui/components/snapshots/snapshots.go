@@ -5,7 +5,6 @@ package snapshots
 
 import (
 	"fmt"
-	"os"
 	"strings"
 
 	"github.com/EmmettCorp/delorean/pkg/commands/btrfs"
@@ -13,10 +12,10 @@ import (
 	"github.com/EmmettCorp/delorean/pkg/ui/components/divider"
 	"github.com/EmmettCorp/delorean/pkg/ui/components/tabs"
 	"github.com/EmmettCorp/delorean/pkg/ui/shared"
+	"github.com/EmmettCorp/delorean/pkg/ui/shared/styles"
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"golang.org/x/term"
 )
 
 type snapshot struct {
@@ -65,19 +64,17 @@ func (m *Model) Init() tea.Cmd {
 }
 
 func (m *Model) View() string {
-	w, h, err := term.GetSize(int(os.Stdout.Fd()))
-	if err != nil {
-		return err.Error()
-	}
-
 	s := strings.Builder{}
 	s.WriteString(button.DrawButton(m.createBtn.GetTitle()))
 	s.WriteString("\n")
-	s.WriteString(lipgloss.NewStyle().SetString("  Info\t\t\t\t\tID\t\tKernel").Foreground(inactive).String())
+
+	s.WriteString(lipgloss.NewStyle().SetString("  Info\t\t\t\t\tID\t\tKernel").
+		Foreground(styles.DefaultTheme.InactiveText).String())
 	s.WriteString("\n")
-	s.WriteString(divider.Horizontal(w, subtle))
+	s.WriteString(divider.Horizontal(m.state.ScreenWidth, styles.DefaultTheme.InactiveText))
 	s.WriteString("\n")
-	m.list.SetSize(w, h-((tabs.TabsHeigh+1)+2+2+2)) // nolint:gomnd // (TabsHeigh + bottom line) + Header + Divider
+	m.list.SetSize(m.state.ScreenWidth,
+		m.state.ScreenHeight-((tabs.TabsHeigh)+2*4)) // nolint:gomnd // (TabsHeigh + bottom line) + Header + Divider
 	s.WriteString(docStyle.Render(m.list.View()))
 
 	return s.String()

@@ -11,6 +11,8 @@ import (
 
 // State is the state of the ui application.
 type State struct {
+	ScreenHeight      int
+	ScreenWidth       int
 	CurrentTab        TabItem
 	ClickableElements map[TabItem][]Clickable
 	Config            *config.Config

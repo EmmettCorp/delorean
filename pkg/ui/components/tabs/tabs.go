@@ -5,14 +5,12 @@ package tabs
 
 import (
 	"errors"
-	"os"
 	"strings"
 
 	"github.com/EmmettCorp/delorean/pkg/ui/shared"
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"golang.org/x/term"
 )
 
 const (
@@ -93,11 +91,7 @@ func (m *Model) View() string {
 		tabs...,
 	)
 
-	physicalWidth, _, err := term.GetSize(int(os.Stdout.Fd()))
-	if err != nil {
-		return err.Error()
-	}
-	gap := tabGap.Render(strings.Repeat(" ", max(0, physicalWidth-lipgloss.Width(row)-tabsLeftRightIndents)))
+	gap := tabGap.Render(strings.Repeat(" ", max(0, m.state.ScreenWidth-lipgloss.Width(row)-tabsLeftRightIndents)))
 
 	return docStyle.Render(lipgloss.JoinHorizontal(lipgloss.Bottom, row, gap))
 }
