@@ -14,7 +14,6 @@ import (
 )
 
 const (
-	TabsHeigh            = 2
 	tabsLeftRightIndents = 2
 )
 
@@ -46,9 +45,8 @@ func NewModel(state *shared.State, tabItems []shared.TabItem) (*Model, error) {
 		x2 := x1 + len(title) + 3 // nolint:gomnd // 3 = 2 vertical bars + 1 space
 		nt, err := NewTab(state, tabItems[i], shared.Coords{
 			X1: x1,
-			Y1: 0,
 			X2: x2,
-			Y2: TabsHeigh,
+			Y2: state.Areas.TabBar.Height,
 		})
 		if err != nil {
 			return nil, err

@@ -10,7 +10,6 @@ import (
 	"github.com/EmmettCorp/delorean/pkg/commands/btrfs"
 	"github.com/EmmettCorp/delorean/pkg/ui/components/button"
 	"github.com/EmmettCorp/delorean/pkg/ui/components/divider"
-	"github.com/EmmettCorp/delorean/pkg/ui/components/tabs"
 	"github.com/EmmettCorp/delorean/pkg/ui/shared"
 	"github.com/EmmettCorp/delorean/pkg/ui/shared/styles"
 	"github.com/charmbracelet/bubbles/list"
@@ -31,10 +30,11 @@ func (s snapshot) Description() string {
 func (s snapshot) FilterValue() string { return s.Label }
 
 type Model struct {
-	state     *shared.State
-	createBtn button.Model
-	list      list.Model
-	err       error
+	state      *shared.State
+	createBtn  button.Model
+	list       list.Model
+	listHeight int
+	err        error
 }
 
 func NewModel(st *shared.State) (*Model, error) {
@@ -45,12 +45,19 @@ func NewModel(st *shared.State) (*Model, error) {
 	itemsModel.SetShowStatusBar(false)
 	itemsModel.SetShowHelp(false)
 
-	createBtn := newCreateButton("Create", shared.Coords{
-		X1: 0,
-		Y1: 5,
-		X2: 3,
-		Y2: 7,
+	btnTitle := "Create"
+	createButtongY1 := st.Areas.TabBar.Height + 1
+
+	createBtn := newCreateButton(st, btnTitle, shared.Coords{
+		Y1: createButtongY1,
+		X2: len(btnTitle) + 3,
+		Y2: createButtongY1 + CreateButtonHeight,
 	})
+
+	err := st.AppendClickable(shared.SnapshotsTab, createBtn)
+	if err != nil {
+		return nil, err
+	}
 
 	return &Model{
 		list:      itemsModel,
@@ -73,15 +80,19 @@ func (m *Model) View() string {
 	s.WriteString("\n")
 	s.WriteString(divider.Horizontal(m.state.ScreenWidth, styles.DefaultTheme.InactiveText))
 	s.WriteString("\n")
-	m.list.SetSize(m.state.ScreenWidth,
-		m.state.ScreenHeight-((tabs.TabsHeigh)+2*4)) // nolint:gomnd // (TabsHeigh + bottom line) + Header + Divider
-	s.WriteString(docStyle.Render(m.list.View()))
+	if !m.state.TestBool {
+		m.list.SetSize(m.state.ScreenWidth, m.listHeight)
+		s.WriteString(docStyle.Render(m.list.View()))
+	} else {
+		s.WriteString("Peeeep!")
+	}
 
 	return s.String()
 }
 
 func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	if msg, ok := msg.(tea.WindowSizeMsg); ok {
+		m.listHeight = m.getListHeight()
 		h, v := docStyle.GetFrameSize()
 		m.list.SetSize(msg.Width-h, msg.Height-v)
 	}
@@ -113,4 +124,10 @@ func (m *Model) UpdateList() {
 	}
 
 	m.list.SetItems(items)
+}
+
+func (m *Model) getListHeight() int {
+	return m.state.Areas.MainContent.Height - (CreateButtonHeight +
+		2 + // divider height with padding
+		2) // list header
 }

@@ -16,6 +16,19 @@ type State struct {
 	CurrentTab        TabItem
 	ClickableElements map[TabItem][]Clickable
 	Config            *config.Config
+	Areas             *uiAreas
+
+	TestBool bool
+}
+
+func NewState(cfg *config.Config) *State {
+	st := State{
+		ClickableElements: make(map[TabItem][]Clickable),
+		Config:            cfg,
+		Areas:             initAreas(),
+	}
+
+	return &st
 }
 
 // Update changes the current tab.
@@ -60,6 +73,10 @@ func (s *State) FindClickable(x, y int) Clickable {
 	}
 
 	return nearestClickable
+}
+
+func (s *State) ResizeAreas() {
+	s.Areas.MainContent.Height = s.ScreenHeight - (s.Areas.TabBar.Height + s.Areas.HelpBar.Height)
 }
 
 func validateClickable(c Clickable) error {

@@ -33,24 +33,21 @@ type App struct {
 
 func NewModel(cfg *config.Config) (*App, error) {
 	var err error
-	st := shared.State{
-		ClickableElements: make(map[shared.TabItem][]shared.Clickable),
-		Config:            cfg,
-	}
+	st := shared.NewState(cfg)
 	st.ScreenWidth, st.ScreenHeight, err = term.GetSize(int(os.Stdout.Fd()))
 	if err != nil {
 		return nil, err
 	}
 
-	tabsCmp, err := tabs.NewModel(&st, shared.GetTabItems())
+	tabsCmp, err := tabs.NewModel(st, shared.GetTabItems())
 	if err != nil {
 		return &App{}, err
 	}
-	snapshotsCmp, err := snapshots.NewModel(&st)
+	snapshotsCmp, err := snapshots.NewModel(st)
 	if err != nil {
 		return &App{}, err
 	}
-	helpCmp := help.NewModel(&st)
+	helpCmp := help.NewModel(st)
 
 	a := App{
 		components: components{
@@ -60,7 +57,7 @@ func NewModel(cfg *config.Config) (*App, error) {
 		},
 		keys:   shared.GetKeyMaps(),
 		config: cfg,
-		state:  &st,
+		state:  st,
 	}
 
 	return &a, nil
@@ -130,4 +127,5 @@ func (a *App) OnClick(msg tea.MouseMsg) {
 func (a *App) onWindowSizeChanged(msg tea.WindowSizeMsg) {
 	a.state.ScreenWidth = msg.Width
 	a.state.ScreenHeight = msg.Height
+	a.state.ResizeAreas()
 }

@@ -1,16 +1,19 @@
+/*
+Package help keeps the logic for bottom help bar.
+*/
 package help
 
 import (
+	"github.com/EmmettCorp/delorean/pkg/ui/shared"
 	"github.com/EmmettCorp/delorean/pkg/ui/shared/styles"
 	"github.com/charmbracelet/lipgloss"
 )
 
+// nolint:gochecknoglobals // this is used only in this package
 var (
-	FooterHeight = 2
-
 	helpTextStyle = lipgloss.NewStyle().Foreground(styles.DefaultTheme.InactiveText)
 	helpStyle     = lipgloss.NewStyle().
-			Height(FooterHeight - 1).
+			Height(shared.HelpBarHeight - 1).
 			BorderTop(true).
 			BorderStyle(lipgloss.NormalBorder()).
 			BorderForeground(styles.DefaultTheme.InactiveText)
