@@ -38,6 +38,7 @@ func (cb *createButton) GetTitle() string {
 func (cb *createButton) GetCoords() shared.Coords {
 	return cb.coords
 }
+
 func (cb *createButton) SetCoords(c shared.Coords) {
 	cb.coords = c
 }

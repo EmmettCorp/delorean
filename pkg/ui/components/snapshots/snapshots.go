@@ -50,7 +50,7 @@ func NewModel(st *shared.State) (*Model, error) {
 
 	createBtn := newCreateButton(st, btnTitle, shared.Coords{
 		Y1: createButtongY1,
-		X2: len(btnTitle) + 3,
+		X2: len(btnTitle) + 3, // nolint:gomnd // left and right borders + 1
 		Y2: createButtongY1 + CreateButtonHeight,
 	})
 
@@ -129,5 +129,5 @@ func (m *Model) UpdateList() {
 func (m *Model) getListHeight() int {
 	return m.state.Areas.MainContent.Height - (CreateButtonHeight +
 		2 + // divider height with padding
-		2) // list header
+		2) // nolint:gomnd // list header
 }

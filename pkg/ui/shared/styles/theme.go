@@ -1,9 +1,14 @@
+/*
+Package styles keeps default styles.
+*/
 package styles
 
 import "github.com/charmbracelet/lipgloss"
 
+// nolint:gochecknoglobals // this is used only in this package
 var indigo = lipgloss.AdaptiveColor{Light: "#5A56E0", Dark: "#383B5B"}
 
+// Theme is a struct to keep all the application styles.
 type Theme struct {
 	MainText           lipgloss.AdaptiveColor
 	BrightMainText     lipgloss.AdaptiveColor
@@ -19,8 +24,11 @@ type Theme struct {
 	InactiveText       lipgloss.AdaptiveColor
 }
 
+// nolint:gochecknoglobals // this is used only in this package
 var subtleIndigo = lipgloss.AdaptiveColor{Light: "#5A57B5", Dark: "#242347"}
 
+// DefaultTheme is an application default theme.
+// nolint:gochecknoglobals // global on purpose
 var DefaultTheme = Theme{
 	MainText:           lipgloss.AdaptiveColor{Light: "#242347", Dark: "#E2E1ED"},
 	BrightMainText:     lipgloss.AdaptiveColor{Light: "#242347", Dark: "#E2E1ED"},
@@ -36,7 +44,7 @@ var DefaultTheme = Theme{
 	InactiveText:       lipgloss.AdaptiveColor{Light: "#DDDADA", Dark: "#5C5C5C"},
 }
 
-var (
+const (
 	SingleRuneWidth    = 4
 	MainContentPadding = 1
 )
