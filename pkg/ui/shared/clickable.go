@@ -16,5 +16,5 @@ type Coords struct {
 type Clickable interface {
 	GetCoords() Coords
 	SetCoords(c Coords)
-	OnClick(event tea.MouseMsg)
+	OnClick(event tea.MouseMsg) error
 }

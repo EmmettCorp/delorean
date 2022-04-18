@@ -17,8 +17,6 @@ type State struct {
 	ClickableElements map[TabItem][]Clickable
 	Config            *config.Config
 	Areas             *uiAreas
-
-	TestBool bool
 }
 
 func NewState(cfg *config.Config) *State {

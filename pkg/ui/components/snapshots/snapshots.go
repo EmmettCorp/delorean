@@ -38,32 +38,33 @@ type Model struct {
 }
 
 func NewModel(st *shared.State) (*Model, error) {
+	m := Model{
+		state: st,
+	}
+
 	itemsModel := list.New([]list.Item{}, list.NewDefaultDelegate(), 0, 0)
 	itemsModel.SetFilteringEnabled(false)
 	itemsModel.SetShowFilter(false)
 	itemsModel.SetShowTitle(false)
 	itemsModel.SetShowStatusBar(false)
 	itemsModel.SetShowHelp(false)
+	m.list = itemsModel
 
 	btnTitle := "Create"
 	createButtongY1 := st.Areas.TabBar.Height + 1
-
 	createBtn := newCreateButton(st, btnTitle, shared.Coords{
 		Y1: createButtongY1,
 		X2: len(btnTitle) + 3, // nolint:gomnd // left and right borders + 1
 		Y2: createButtongY1 + CreateButtonHeight,
-	})
+	}, m.UpdateList)
+	m.createBtn = createBtn
 
 	err := st.AppendClickable(shared.SnapshotsTab, createBtn)
 	if err != nil {
 		return nil, err
 	}
 
-	return &Model{
-		list:      itemsModel,
-		state:     st,
-		createBtn: createBtn,
-	}, nil
+	return &m, nil
 }
 
 func (m *Model) Init() tea.Cmd {
@@ -80,12 +81,8 @@ func (m *Model) View() string {
 	s.WriteString("\n")
 	s.WriteString(divider.Horizontal(m.state.ScreenWidth, styles.DefaultTheme.InactiveText))
 	s.WriteString("\n")
-	if !m.state.TestBool {
-		m.list.SetSize(m.state.ScreenWidth, m.listHeight)
-		s.WriteString(docStyle.Render(m.list.View()))
-	} else {
-		s.WriteString("Peeeep!")
-	}
+	m.list.SetSize(m.state.ScreenWidth, m.listHeight)
+	s.WriteString(docStyle.Render(m.list.View()))
 
 	return s.String()
 }
