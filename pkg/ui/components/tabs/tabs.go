@@ -5,18 +5,15 @@ package tabs
 
 import (
 	"errors"
-	"os"
 	"strings"
 
 	"github.com/EmmettCorp/delorean/pkg/ui/shared"
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"golang.org/x/term"
 )
 
 const (
-	TabsHeigh            = 2
 	tabsLeftRightIndents = 2
 )
 
@@ -48,9 +45,8 @@ func NewModel(state *shared.State, tabItems []shared.TabItem) (*Model, error) {
 		x2 := x1 + len(title) + 3 // nolint:gomnd // 3 = 2 vertical bars + 1 space
 		nt, err := NewTab(state, tabItems[i], shared.Coords{
 			X1: x1,
-			Y1: 0,
 			X2: x2,
-			Y2: TabsHeigh,
+			Y2: state.Areas.TabBar.Height,
 		})
 		if err != nil {
 			return nil, err
@@ -93,11 +89,7 @@ func (m *Model) View() string {
 		tabs...,
 	)
 
-	physicalWidth, _, err := term.GetSize(int(os.Stdout.Fd()))
-	if err != nil {
-		return err.Error()
-	}
-	gap := tabGap.Render(strings.Repeat(" ", max(0, physicalWidth-lipgloss.Width(row)-tabsLeftRightIndents)))
+	gap := tabGap.Render(strings.Repeat(" ", max(0, m.state.ScreenWidth-lipgloss.Width(row)-tabsLeftRightIndents)))
 
 	return docStyle.Render(lipgloss.JoinHorizontal(lipgloss.Bottom, row, gap))
 }

@@ -43,6 +43,8 @@ func (t *tab) SetCoords(c shared.Coords) {
 	t.coords = c
 }
 
-func (t *tab) OnClick(event tea.MouseMsg) {
+func (t *tab) OnClick(event tea.MouseMsg) error {
 	t.state.Update(t.id)
+
+	return nil
 }

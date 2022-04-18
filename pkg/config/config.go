@@ -220,3 +220,7 @@ func mountTopLevelSubvolume(device string, fm fs.FileMode) error {
 
 	return commands.Mount(device, domain.DeloreanMountPoint)
 }
+
+func (cfg *Config) VolumeInRootFs(vol domain.Volume) bool {
+	return vol.Device.Path == cfg.RootDevice
+}

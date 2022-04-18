@@ -6,14 +6,27 @@ package shared
 import (
 	"errors"
 
-	"github.com/EmmettCorp/delorean/pkg/domain"
+	"github.com/EmmettCorp/delorean/pkg/config"
 )
 
 // State is the state of the ui application.
 type State struct {
+	ScreenHeight      int
+	ScreenWidth       int
 	CurrentTab        TabItem
-	ActiveVolumes     []domain.Volume
 	ClickableElements map[TabItem][]Clickable
+	Config            *config.Config
+	Areas             *uiAreas
+}
+
+func NewState(cfg *config.Config) *State {
+	st := State{
+		ClickableElements: make(map[TabItem][]Clickable),
+		Config:            cfg,
+		Areas:             initAreas(),
+	}
+
+	return &st
 }
 
 // Update changes the current tab.
@@ -58,6 +71,10 @@ func (s *State) FindClickable(x, y int) Clickable {
 	}
 
 	return nearestClickable
+}
+
+func (s *State) ResizeAreas() {
+	s.Areas.MainContent.Height = s.ScreenHeight - (s.Areas.TabBar.Height + s.Areas.HelpBar.Height)
 }
 
 func validateClickable(c Clickable) error {

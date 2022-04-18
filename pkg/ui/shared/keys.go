@@ -1,4 +1,4 @@
-package ui
+package shared
 
 import "github.com/charmbracelet/bubbles/key"
 
@@ -31,7 +31,8 @@ func (k KeyMap) FullHelp() [][]key.Binding {
 	}
 }
 
-func getKeyMaps() KeyMap {
+// GetKeyMaps returns all the shortcats available.
+func GetKeyMaps() KeyMap {
 	return KeyMap{
 		Up: key.NewBinding(
 			key.WithKeys("up", "k"),

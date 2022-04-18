@@ -5,17 +5,16 @@ package snapshots
 
 import (
 	"fmt"
-	"os"
 	"strings"
 
 	"github.com/EmmettCorp/delorean/pkg/commands/btrfs"
+	"github.com/EmmettCorp/delorean/pkg/ui/components/button"
 	"github.com/EmmettCorp/delorean/pkg/ui/components/divider"
-	"github.com/EmmettCorp/delorean/pkg/ui/components/tabs"
 	"github.com/EmmettCorp/delorean/pkg/ui/shared"
+	"github.com/EmmettCorp/delorean/pkg/ui/shared/styles"
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"golang.org/x/term"
 )
 
 type snapshot struct {
@@ -31,23 +30,41 @@ func (s snapshot) Description() string {
 func (s snapshot) FilterValue() string { return s.Label }
 
 type Model struct {
-	state *shared.State
-	list  list.Model
-	err   error
+	state      *shared.State
+	createBtn  button.Model
+	list       list.Model
+	listHeight int
+	err        error
 }
 
 func NewModel(st *shared.State) (*Model, error) {
+	m := Model{
+		state: st,
+	}
+
 	itemsModel := list.New([]list.Item{}, list.NewDefaultDelegate(), 0, 0)
 	itemsModel.SetFilteringEnabled(false)
 	itemsModel.SetShowFilter(false)
 	itemsModel.SetShowTitle(false)
 	itemsModel.SetShowStatusBar(false)
 	itemsModel.SetShowHelp(false)
+	m.list = itemsModel
 
-	return &Model{
-		list:  itemsModel,
-		state: st,
-	}, nil
+	btnTitle := "Create"
+	createButtongY1 := st.Areas.TabBar.Height + 1
+	createBtn := newCreateButton(st, btnTitle, shared.Coords{
+		Y1: createButtongY1,
+		X2: len(btnTitle) + 3, // nolint:gomnd // left and right borders + 1
+		Y2: createButtongY1 + CreateButtonHeight,
+	}, m.UpdateList)
+	m.createBtn = createBtn
+
+	err := st.AppendClickable(shared.SnapshotsTab, createBtn)
+	if err != nil {
+		return nil, err
+	}
+
+	return &m, nil
 }
 
 func (m *Model) Init() tea.Cmd {
@@ -55,18 +72,16 @@ func (m *Model) Init() tea.Cmd {
 }
 
 func (m *Model) View() string {
-	w, h, err := term.GetSize(int(os.Stdout.Fd()))
-	if err != nil {
-		return err.Error()
-	}
-
 	s := strings.Builder{}
+	s.WriteString(button.DrawButton(m.createBtn.GetTitle()))
 	s.WriteString("\n")
-	s.WriteString(lipgloss.NewStyle().SetString("  Info\t\t\t\t\tID\t\tKernel").Foreground(subtle).String())
+
+	s.WriteString(lipgloss.NewStyle().SetString("  Info\t\t\t\t\tID\t\tKernel").
+		Foreground(styles.DefaultTheme.InactiveText).String())
 	s.WriteString("\n")
-	s.WriteString(divider.Horizontal(w, subtle))
+	s.WriteString(divider.Horizontal(m.state.ScreenWidth, styles.DefaultTheme.InactiveText))
 	s.WriteString("\n")
-	m.list.SetSize(w, h-((tabs.TabsHeigh+1)+2+2)) // nolint:gomnd // (TabsHeigh + bottom line) + Header + Divider
+	m.list.SetSize(m.state.ScreenWidth, m.listHeight)
 	s.WriteString(docStyle.Render(m.list.View()))
 
 	return s.String()
@@ -74,6 +89,7 @@ func (m *Model) View() string {
 
 func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	if msg, ok := msg.(tea.WindowSizeMsg); ok {
+		m.listHeight = m.getListHeight()
 		h, v := docStyle.GetFrameSize()
 		m.list.SetSize(msg.Width-h, msg.Height-v)
 	}
@@ -88,7 +104,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m *Model) UpdateList() {
-	snaps, err := btrfs.SnapshotsList(m.state.ActiveVolumes)
+	snaps, err := btrfs.SnapshotsList(m.state.Config.Volumes)
 	if err != nil {
 		m.err = err
 
@@ -105,4 +121,10 @@ func (m *Model) UpdateList() {
 	}
 
 	m.list.SetItems(items)
+}
+
+func (m *Model) getListHeight() int {
+	return m.state.Areas.MainContent.Height - (CreateButtonHeight +
+		2 + // divider height with padding
+		2) // nolint:gomnd // list header
 }
