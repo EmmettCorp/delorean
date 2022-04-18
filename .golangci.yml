@@ -212,7 +212,7 @@ linters:
 
 # Turn them on when there is nothing to do.
 
-    - godox               # Tool for detection of FIXME, TODO and other comment keywords
+    # - godox               # Tool for detection of FIXME, TODO and other comment keywords
 
 # CONSIDER TO TURN ON:
 
