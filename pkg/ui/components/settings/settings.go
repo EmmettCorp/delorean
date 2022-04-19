@@ -39,6 +39,7 @@ func (m *Model) View() string {
 	content := " settings" // Just dummy "settings" string for now.
 
 	res := docStyle.Height(m.height).Render(content)
+
 	return res[:len(res)-len(content)] // will be changes in future
 }
 

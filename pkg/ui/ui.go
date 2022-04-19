@@ -133,7 +133,6 @@ func (a *App) componentsKeyEventHandle(msg tea.KeyMsg) tea.Cmd {
 	switch a.state.CurrentTab {
 	case shared.SnapshotsTab:
 		_, cmd = a.components.snapshots.Update(msg)
-		return cmd
 	case shared.SettingsTab:
 		_, cmd = a.components.settings.Update(msg)
 	}
