@@ -30,11 +30,11 @@ func (s snapshot) Description() string {
 func (s snapshot) FilterValue() string { return s.Label }
 
 type Model struct {
-	state      *shared.State
-	createBtn  button.Model
-	list       list.Model
-	listHeight int
-	err        error
+	state     *shared.State
+	createBtn button.Model
+	list      list.Model
+	height    int
+	err       error
 }
 
 func NewModel(st *shared.State) (*Model, error) {
@@ -81,7 +81,7 @@ func (m *Model) View() string {
 	s.WriteString("\n")
 	s.WriteString(divider.Horizontal(m.state.ScreenWidth, styles.DefaultTheme.InactiveText))
 	s.WriteString("\n")
-	m.list.SetSize(m.state.ScreenWidth, m.listHeight)
+	m.list.SetSize(m.state.ScreenWidth, m.height)
 	s.WriteString(docStyle.Render(m.list.View()))
 
 	return s.String()
@@ -89,7 +89,7 @@ func (m *Model) View() string {
 
 func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	if msg, ok := msg.(tea.WindowSizeMsg); ok {
-		m.listHeight = m.getListHeight()
+		m.height = m.getHeight()
 		h, v := docStyle.GetFrameSize()
 		m.list.SetSize(msg.Width-h, msg.Height-v)
 	}
@@ -123,7 +123,7 @@ func (m *Model) UpdateList() {
 	m.list.SetItems(items)
 }
 
-func (m *Model) getListHeight() int {
+func (m *Model) getHeight() int {
 	return m.state.Areas.MainContent.Height - (CreateButtonHeight +
 		2 + // divider height with padding
 		2) // nolint:gomnd // list header
