@@ -9,6 +9,7 @@ import (
 
 	"github.com/EmmettCorp/delorean/pkg/config"
 	"github.com/EmmettCorp/delorean/pkg/ui/components/help"
+	"github.com/EmmettCorp/delorean/pkg/ui/components/settings"
 	"github.com/EmmettCorp/delorean/pkg/ui/components/snapshots"
 	"github.com/EmmettCorp/delorean/pkg/ui/components/tabs"
 	"github.com/EmmettCorp/delorean/pkg/ui/shared"
@@ -21,6 +22,7 @@ import (
 type components struct {
 	tabs      tea.Model
 	snapshots tea.Model
+	settings  tea.Model
 	help      tea.Model
 }
 
@@ -47,12 +49,17 @@ func NewModel(cfg *config.Config) (*App, error) {
 	if err != nil {
 		return &App{}, err
 	}
+	settingsCmp, err := settings.NewModel(st)
+	if err != nil {
+		return &App{}, err
+	}
 	helpCmp := help.NewModel(st)
 
 	a := App{
 		components: components{
 			tabs:      tabsCmp,
 			snapshots: snapshotsCmp,
+			settings:  settingsCmp,
 			help:      helpCmp,
 		},
 		keys:   shared.GetKeyMaps(),
@@ -75,25 +82,20 @@ func (a *App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
-		if key.Matches(msg, a.keys.Quit) {
-			cmd = tea.Quit
-		}
+		cmd = a.keyEventHandle(msg)
 	case tea.MouseMsg:
 		if msg.Type == tea.MouseLeft {
 			a.OnClick(msg)
 		}
 	case tea.WindowSizeMsg:
 		a.onWindowSizeChanged(msg)
+		a.components.snapshots.Update(msg)
+		a.components.settings.Update(msg)
 	}
 	cmds = append(cmds, cmd)
 
-	// // tabs
+	// tabs
 	a.components.tabs.Update(msg)
-
-	if a.state.CurrentTab == shared.SnapshotsTab {
-		_, cmd = a.components.snapshots.Update(msg)
-		cmds = append(cmds, cmd)
-	}
 
 	return a, tea.Batch(cmds...)
 }
@@ -110,11 +112,33 @@ func (a *App) View() string {
 		s.WriteString(mainContent)
 		s.WriteString("\n")
 	} else if a.state.CurrentTab == shared.SettingsTab {
-		s.WriteString(" settings\n")
+		s.WriteString(a.components.settings.View())
 	}
 	s.WriteString(a.components.help.View())
 
 	return s.String()
+}
+
+func (a *App) keyEventHandle(msg tea.KeyMsg) tea.Cmd {
+	switch {
+	case key.Matches(msg, a.keys.Quit):
+		return tea.Quit
+	default:
+		return a.componentsKeyEventHandle(msg)
+	}
+}
+
+func (a *App) componentsKeyEventHandle(msg tea.KeyMsg) tea.Cmd {
+	var cmd tea.Cmd
+	switch a.state.CurrentTab {
+	case shared.SnapshotsTab:
+		_, cmd = a.components.snapshots.Update(msg)
+		return cmd
+	case shared.SettingsTab:
+		_, cmd = a.components.settings.Update(msg)
+	}
+
+	return cmd
 }
 
 func (a *App) OnClick(msg tea.MouseMsg) {
