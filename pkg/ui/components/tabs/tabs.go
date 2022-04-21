@@ -26,7 +26,7 @@ type clickableTab interface {
 type Model struct {
 	state *shared.State
 	Tabs  []clickableTab
-	keys  KeyMap
+	keys  shared.KeyMap
 }
 
 func NewModel(state *shared.State, tabItems []shared.TabItem) (*Model, error) {
@@ -36,7 +36,7 @@ func NewModel(state *shared.State, tabItems []shared.TabItem) (*Model, error) {
 
 	m := Model{
 		state: state,
-		keys:  getKeyMaps(),
+		keys:  shared.GetKeyMaps(),
 	}
 
 	var x1 int

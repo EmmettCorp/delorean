@@ -3,6 +3,8 @@ package shared
 import "github.com/charmbracelet/bubbles/key"
 
 type KeyMap struct {
+	Tab           key.Binding
+	ShiftTab      key.Binding
 	Up            key.Binding
 	Down          key.Binding
 	TogglePreview key.Binding
@@ -34,6 +36,14 @@ func (k KeyMap) FullHelp() [][]key.Binding {
 // GetKeyMaps returns all the shortcats available.
 func GetKeyMaps() KeyMap {
 	return KeyMap{
+		Tab: key.NewBinding(
+			key.WithKeys("tab"),
+			key.WithHelp("tab", "next tab"),
+		),
+		ShiftTab: key.NewBinding(
+			key.WithKeys("shift+tab"),
+			key.WithHelp("Shift+tab", "previous tab"),
+		),
 		Up: key.NewBinding(
 			key.WithKeys("up", "k"),
 			key.WithHelp("↑/k", "move up"),

@@ -94,9 +94,6 @@ func (a *App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	}
 	cmds = append(cmds, cmd)
 
-	// tabs
-	a.components.tabs.Update(msg)
-
 	return a, tea.Batch(cmds...)
 }
 
@@ -123,6 +120,9 @@ func (a *App) keyEventHandle(msg tea.KeyMsg) tea.Cmd {
 	switch {
 	case key.Matches(msg, a.keys.Quit):
 		return tea.Quit
+	case key.Matches(msg, a.keys.Tab, a.keys.ShiftTab):
+		a.components.tabs.Update(msg)
+		return nil
 	default:
 		return a.componentsKeyEventHandle(msg)
 	}
