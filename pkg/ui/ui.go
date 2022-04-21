@@ -122,6 +122,7 @@ func (a *App) keyEventHandle(msg tea.KeyMsg) tea.Cmd {
 		return tea.Quit
 	case key.Matches(msg, a.keys.Tab, a.keys.ShiftTab):
 		a.components.tabs.Update(msg)
+
 		return nil
 	default:
 		return a.componentsKeyEventHandle(msg)
