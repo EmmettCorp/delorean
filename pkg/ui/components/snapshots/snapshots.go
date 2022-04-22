@@ -49,6 +49,7 @@ func NewModel(st *shared.State) (*Model, error) {
 	itemsModel.SetShowStatusBar(false)
 	itemsModel.SetShowHelp(false)
 	m.list = itemsModel
+	m.UpdateList()
 
 	btnTitle := "Create"
 	createButtongY1 := st.Areas.TabBar.Height + 1
