@@ -1,19 +1,22 @@
-package tabs
+/*
+Package tab keeps helpers to create tabs.
+*/
+package tab
 
 import (
 	"github.com/EmmettCorp/delorean/pkg/ui/shared"
 	tea "github.com/charmbracelet/bubbletea"
 )
 
-type tab struct {
+type Tab struct {
 	id     shared.TabItem
 	state  *shared.State
 	coords shared.Coords
 	title  string
 }
 
-func NewTab(state *shared.State, id shared.TabItem, coords shared.Coords) (*tab, error) {
-	t := tab{
+func New(state *shared.State, id shared.TabItem, coords shared.Coords) (*Tab, error) {
+	t := Tab{
 		title: id.String(),
 		state: state,
 		id:    id,
@@ -27,23 +30,23 @@ func NewTab(state *shared.State, id shared.TabItem, coords shared.Coords) (*tab,
 	return &t, nil
 }
 
-func (t *tab) getTitle() string {
+func (t *Tab) GetTitle() string {
 	return t.title
 }
 
-func (t *tab) getID() shared.TabItem {
+func (t *Tab) GetID() shared.TabItem {
 	return t.id
 }
 
-func (t *tab) GetCoords() shared.Coords {
+func (t *Tab) GetCoords() shared.Coords {
 	return t.coords
 }
 
-func (t *tab) SetCoords(c shared.Coords) {
+func (t *Tab) SetCoords(c shared.Coords) {
 	t.coords = c
 }
 
-func (t *tab) OnClick(event tea.MouseMsg) error {
+func (t *Tab) OnClick(event tea.MouseMsg) error {
 	t.state.Update(t.id)
 
 	return nil

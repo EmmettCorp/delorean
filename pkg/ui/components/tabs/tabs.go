@@ -7,6 +7,7 @@ import (
 	"errors"
 	"strings"
 
+	"github.com/EmmettCorp/delorean/pkg/ui/elements/tab"
 	"github.com/EmmettCorp/delorean/pkg/ui/shared"
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
@@ -19,8 +20,8 @@ const (
 
 type clickableTab interface {
 	shared.Clickable
-	getTitle() string
-	getID() shared.TabItem
+	GetTitle() string
+	GetID() shared.TabItem
 }
 
 type Model struct {
@@ -43,7 +44,7 @@ func NewModel(state *shared.State, tabItems []shared.TabItem) (*Model, error) {
 	for i := range tabItems {
 		title := tabItems[i].String()
 		x2 := x1 + len(title) + 3 // nolint:gomnd // 3 = 2 vertical bars + 1 space
-		nt, err := NewTab(state, tabItems[i], shared.Coords{
+		nt, err := tab.New(state, tabItems[i], shared.Coords{
 			X1: x1,
 			X2: x2,
 			Y2: state.Areas.TabBar.Height,
@@ -77,10 +78,10 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 func (m *Model) View() string {
 	var tabs []string
 	for i := range m.Tabs {
-		if m.state.CurrentTab == m.Tabs[i].getID() {
-			tabs = append(tabs, activeTab.Render(m.Tabs[i].getTitle()))
+		if m.state.CurrentTab == m.Tabs[i].GetID() {
+			tabs = append(tabs, activeTab.Render(m.Tabs[i].GetTitle()))
 		} else {
-			tabs = append(tabs, inactiveTab.Render((m.Tabs[i].getTitle())))
+			tabs = append(tabs, inactiveTab.Render((m.Tabs[i].GetTitle())))
 		}
 	}
 
@@ -96,17 +97,17 @@ func (m *Model) View() string {
 
 func (m *Model) next() {
 	i := m.getNextTabIndex()
-	m.state.CurrentTab = m.Tabs[i].getID()
+	m.state.CurrentTab = m.Tabs[i].GetID()
 }
 
 func (m *Model) prev() {
 	i := m.getPrevTabIndex()
-	m.state.CurrentTab = m.Tabs[i].getID()
+	m.state.CurrentTab = m.Tabs[i].GetID()
 }
 
 func (m *Model) getCurrentTabIndex() int {
 	for i := range m.Tabs {
-		if m.state.CurrentTab == m.Tabs[i].getID() {
+		if m.state.CurrentTab == m.Tabs[i].GetID() {
 			return i
 		}
 	}
