@@ -4,8 +4,15 @@ Package tab keeps helpers to create tabs.
 package tab
 
 import (
+	"strings"
+
 	"github.com/EmmettCorp/delorean/pkg/ui/shared"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
+)
+
+const (
+	tabsLeftRightIndents = 2
 )
 
 type Tab struct {
@@ -30,10 +37,6 @@ func New(state *shared.State, id shared.TabItem, coords shared.Coords) (*Tab, er
 	return &t, nil
 }
 
-func (t *Tab) GetTitle() string {
-	return t.title
-}
-
 func (t *Tab) GetID() shared.TabItem {
 	return t.id
 }
@@ -50,4 +53,31 @@ func (t *Tab) OnClick(event tea.MouseMsg) error {
 	t.state.Update(t.id)
 
 	return nil
+}
+
+func (t *Tab) Render() string {
+	if t.id == t.state.CurrentTab {
+		return activeTab.Render(t.title)
+	}
+
+	return inactiveTab.Render(t.title)
+}
+
+func RenderTabBar(screenWidth int, tabs []string) string {
+	row := lipgloss.JoinHorizontal(
+		lipgloss.Top,
+		tabs...,
+	)
+
+	gap := tabGap.Render(strings.Repeat(" ", max(0, screenWidth-lipgloss.Width(row)-tabsLeftRightIndents)))
+
+	return docStyle.Render(lipgloss.JoinHorizontal(lipgloss.Bottom, row, gap))
+}
+
+func max(a, b int) int {
+	if a > b {
+		return a
+	}
+
+	return b
 }

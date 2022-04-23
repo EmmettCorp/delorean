@@ -5,23 +5,17 @@ package tabs
 
 import (
 	"errors"
-	"strings"
 
 	"github.com/EmmettCorp/delorean/pkg/ui/elements/tab"
 	"github.com/EmmettCorp/delorean/pkg/ui/shared"
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
-)
-
-const (
-	tabsLeftRightIndents = 2
 )
 
 type clickableTab interface {
 	shared.Clickable
-	GetTitle() string
 	GetID() shared.TabItem
+	Render() string
 }
 
 type Model struct {
@@ -76,23 +70,12 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m *Model) View() string {
-	var tabs []string
+	tabs := make([]string, 0, len(m.Tabs))
 	for i := range m.Tabs {
-		if m.state.CurrentTab == m.Tabs[i].GetID() {
-			tabs = append(tabs, activeTab.Render(m.Tabs[i].GetTitle()))
-		} else {
-			tabs = append(tabs, inactiveTab.Render((m.Tabs[i].GetTitle())))
-		}
+		tabs = append(tabs, m.Tabs[i].Render())
 	}
 
-	row := lipgloss.JoinHorizontal(
-		lipgloss.Top,
-		tabs...,
-	)
-
-	gap := tabGap.Render(strings.Repeat(" ", max(0, m.state.ScreenWidth-lipgloss.Width(row)-tabsLeftRightIndents)))
-
-	return docStyle.Render(lipgloss.JoinHorizontal(lipgloss.Bottom, row, gap))
+	return tab.RenderTabBar(m.state.ScreenWidth, tabs)
 }
 
 func (m *Model) next() {
@@ -121,12 +104,4 @@ func (m *Model) getNextTabIndex() int {
 
 func (m *Model) getPrevTabIndex() int {
 	return (m.getCurrentTabIndex() - 1 + len(m.Tabs)) % len(m.Tabs)
-}
-
-func max(a, b int) int {
-	if a > b {
-		return a
-	}
-
-	return b
 }
