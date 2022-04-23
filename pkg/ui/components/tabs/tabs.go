@@ -5,22 +5,17 @@ package tabs
 
 import (
 	"errors"
-	"strings"
 
+	"github.com/EmmettCorp/delorean/pkg/ui/elements/tab"
 	"github.com/EmmettCorp/delorean/pkg/ui/shared"
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
-)
-
-const (
-	tabsLeftRightIndents = 2
 )
 
 type clickableTab interface {
 	shared.Clickable
-	getTitle() string
-	getID() shared.TabItem
+	GetID() shared.TabItem
+	Render() string
 }
 
 type Model struct {
@@ -43,7 +38,7 @@ func NewModel(state *shared.State, tabItems []shared.TabItem) (*Model, error) {
 	for i := range tabItems {
 		title := tabItems[i].String()
 		x2 := x1 + len(title) + 3 // nolint:gomnd // 3 = 2 vertical bars + 1 space
-		nt, err := NewTab(state, tabItems[i], shared.Coords{
+		nt, err := tab.New(state, tabItems[i], shared.Coords{
 			X1: x1,
 			X2: x2,
 			Y2: state.Areas.TabBar.Height,
@@ -75,38 +70,27 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m *Model) View() string {
-	var tabs []string
+	tabs := make([]string, 0, len(m.Tabs))
 	for i := range m.Tabs {
-		if m.state.CurrentTab == m.Tabs[i].getID() {
-			tabs = append(tabs, activeTab.Render(m.Tabs[i].getTitle()))
-		} else {
-			tabs = append(tabs, inactiveTab.Render((m.Tabs[i].getTitle())))
-		}
+		tabs = append(tabs, m.Tabs[i].Render())
 	}
 
-	row := lipgloss.JoinHorizontal(
-		lipgloss.Top,
-		tabs...,
-	)
-
-	gap := tabGap.Render(strings.Repeat(" ", max(0, m.state.ScreenWidth-lipgloss.Width(row)-tabsLeftRightIndents)))
-
-	return docStyle.Render(lipgloss.JoinHorizontal(lipgloss.Bottom, row, gap))
+	return tab.RenderTabBar(m.state.ScreenWidth, tabs)
 }
 
 func (m *Model) next() {
 	i := m.getNextTabIndex()
-	m.state.CurrentTab = m.Tabs[i].getID()
+	m.state.CurrentTab = m.Tabs[i].GetID()
 }
 
 func (m *Model) prev() {
 	i := m.getPrevTabIndex()
-	m.state.CurrentTab = m.Tabs[i].getID()
+	m.state.CurrentTab = m.Tabs[i].GetID()
 }
 
 func (m *Model) getCurrentTabIndex() int {
 	for i := range m.Tabs {
-		if m.state.CurrentTab == m.Tabs[i].getID() {
+		if m.state.CurrentTab == m.Tabs[i].GetID() {
 			return i
 		}
 	}
@@ -120,12 +104,4 @@ func (m *Model) getNextTabIndex() int {
 
 func (m *Model) getPrevTabIndex() int {
 	return (m.getCurrentTabIndex() - 1 + len(m.Tabs)) % len(m.Tabs)
-}
-
-func max(a, b int) int {
-	if a > b {
-		return a
-	}
-
-	return b
 }

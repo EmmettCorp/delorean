@@ -8,14 +8,20 @@ import (
 	"strings"
 
 	"github.com/EmmettCorp/delorean/pkg/commands/btrfs"
-	"github.com/EmmettCorp/delorean/pkg/ui/components/button"
-	"github.com/EmmettCorp/delorean/pkg/ui/components/divider"
+	"github.com/EmmettCorp/delorean/pkg/ui/elements/button"
+	"github.com/EmmettCorp/delorean/pkg/ui/elements/divider"
 	"github.com/EmmettCorp/delorean/pkg/ui/shared"
 	"github.com/EmmettCorp/delorean/pkg/ui/shared/styles"
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 )
+
+type buttonModel interface {
+	shared.Clickable
+	SetTitle(title string)
+	GetTitle() string
+}
 
 type snapshot struct {
 	Label       string
@@ -31,7 +37,7 @@ func (s snapshot) FilterValue() string { return s.Label }
 
 type Model struct {
 	state     *shared.State
-	createBtn button.Model
+	createBtn buttonModel
 	list      list.Model
 	height    int
 	err       error
@@ -74,13 +80,13 @@ func (m *Model) Init() tea.Cmd {
 
 func (m *Model) View() string {
 	s := strings.Builder{}
-	s.WriteString(button.DrawButton(m.createBtn.GetTitle()))
+	s.WriteString(button.New(m.createBtn.GetTitle()))
 	s.WriteString("\n")
 
 	s.WriteString(lipgloss.NewStyle().SetString("  Info\t\t\t\t\tID\t\tKernel").
 		Foreground(styles.DefaultTheme.InactiveText).String())
 	s.WriteString("\n")
-	s.WriteString(divider.Horizontal(m.state.ScreenWidth, styles.DefaultTheme.InactiveText))
+	s.WriteString(divider.HorizontalLine(m.state.ScreenWidth, styles.DefaultTheme.InactiveText))
 	s.WriteString("\n")
 	m.list.SetSize(m.state.ScreenWidth, m.height)
 	s.WriteString(docStyle.Render(m.list.View()))

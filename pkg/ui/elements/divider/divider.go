@@ -1,5 +1,5 @@
 /*
-Package divider keeps all kinds of dividers.
+Package divider keeps helpers to draw dividers.
 */
 package divider
 
@@ -8,9 +8,6 @@ import (
 
 	"github.com/charmbracelet/lipgloss"
 )
-
-// nolint:gochecknoglobals // this is used only in this package
-var subtle = lipgloss.AdaptiveColor{Light: "#D9DCCF", Dark: "#383838"}
 
 // Dot is a dot divider.
 func Dot(ac lipgloss.AdaptiveColor) string {
@@ -25,8 +22,8 @@ func Dot(ac lipgloss.AdaptiveColor) string {
 		String()
 }
 
-// Horizontal is a horizontal line.
-func Horizontal(width int, ac lipgloss.AdaptiveColor) string {
+// HorizontalLine is a horizontal line.
+func HorizontalLine(width int, ac lipgloss.AdaptiveColor) string {
 	if ac.Light == "" || ac.Dark == "" {
 		ac = subtle
 	}

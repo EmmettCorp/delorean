@@ -1,4 +1,4 @@
-package tabs
+package tab
 
 import "github.com/charmbracelet/lipgloss"
 
