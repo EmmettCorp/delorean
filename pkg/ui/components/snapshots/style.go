@@ -6,5 +6,7 @@ import (
 
 // nolint:gochecknoglobals // this is used only in this package
 var (
-	docStyle = lipgloss.NewStyle().Margin(0, 0)
+	docStyle          = lipgloss.NewStyle().Margin(0, 0)
+	itemStyle         = lipgloss.NewStyle().BorderLeft(true).Margin(0, 0, 1, 1)
+	selectedItemStyle = lipgloss.NewStyle().BorderLeft(true).Margin(0, 0, 1, 1).Foreground(lipgloss.Color("170"))
 )

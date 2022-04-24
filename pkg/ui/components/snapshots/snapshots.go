@@ -17,6 +17,8 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
+var screenWidth = 0
+
 type buttonModel interface {
 	shared.Clickable
 	SetTitle(title string)
@@ -24,14 +26,30 @@ type buttonModel interface {
 }
 
 type snapshot struct {
-	Label       string
-	VolumeLabel string
-	Type        string
+	Label         string
+	VolumeLabel   string
+	Type          string
+	VolumeID      string
+	CurrentKernel string
 }
 
-func (s snapshot) Title() string { return s.Label }
+func (s snapshot) Title() string {
+	// return s.Label
+	row := fmt.Sprintf("%s           %s     %s", s.Label, s.VolumeID, s.Type)
+
+	deleteIcon := "↻    ✖"
+
+	gap := strings.Repeat(" ", max(0, screenWidth-lipgloss.Width(row)-len(deleteIcon)))
+
+	return lipgloss.JoinHorizontal(lipgloss.Left, row, gap, deleteIcon)
+}
 func (s snapshot) Description() string {
-	return fmt.Sprintf("type: %s | volume: %s ", s.Type, s.VolumeLabel)
+	// return fmt.Sprintf("type: %s | volume: %s ", s.Type, s.VolumeLabel)
+	if s.VolumeLabel == "Root" {
+		return fmt.Sprintf("volume: %s | kernel: 5.16.20-200.fc35.x86_64 ", s.VolumeLabel)
+	}
+
+	return fmt.Sprintf("volume: %s", s.VolumeLabel)
 }
 func (s snapshot) FilterValue() string { return s.Label }
 
@@ -48,7 +66,12 @@ func NewModel(st *shared.State) (*Model, error) {
 		state: st,
 	}
 
-	itemsModel := list.New([]list.Item{}, list.NewDefaultDelegate(), 0, 0)
+	screenWidth = m.state.ScreenWidth
+
+	itemsModel := list.New([]list.Item{},
+		// itemDelegate{},
+		list.NewDefaultDelegate(),
+		0, 0)
 	itemsModel.SetFilteringEnabled(false)
 	itemsModel.SetShowFilter(false)
 	itemsModel.SetShowTitle(false)
@@ -83,7 +106,7 @@ func (m *Model) View() string {
 	s.WriteString(button.New(m.createBtn.GetTitle()))
 	s.WriteString("\n")
 
-	s.WriteString(lipgloss.NewStyle().SetString("  Info\t\t\t\t\tID\t\tKernel").
+	s.WriteString(lipgloss.NewStyle().SetString("  Info\t\t\t\tID\tType").
 		Foreground(styles.DefaultTheme.InactiveText).String())
 	s.WriteString("\n")
 	s.WriteString(divider.HorizontalLine(m.state.ScreenWidth, styles.DefaultTheme.InactiveText))
@@ -96,6 +119,7 @@ func (m *Model) View() string {
 
 func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	if msg, ok := msg.(tea.WindowSizeMsg); ok {
+		screenWidth = m.state.ScreenWidth
 		m.height = m.getHeight()
 		h, v := docStyle.GetFrameSize()
 		m.list.SetSize(msg.Width-h, msg.Height-v)
@@ -124,6 +148,7 @@ func (m *Model) UpdateList() {
 			Label:       snaps[i].Label,
 			VolumeLabel: snaps[i].VolumeLabel,
 			Type:        snaps[i].Type,
+			VolumeID:    snaps[i].VolumeID,
 		})
 	}
 
@@ -133,5 +158,14 @@ func (m *Model) UpdateList() {
 func (m *Model) getHeight() int {
 	return m.state.Areas.MainContent.Height - (CreateButtonHeight +
 		2 + // divider height with padding
+		// 19 +
 		2) // nolint:gomnd // list header
+}
+
+func max(a, b int) int {
+	if a > b {
+		return a
+	}
+
+	return b
 }
