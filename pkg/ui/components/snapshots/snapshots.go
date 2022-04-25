@@ -4,7 +4,6 @@ Package snapshots keeps all the logic for snapshots component.
 package snapshots
 
 import (
-	"fmt"
 	"strings"
 
 	"github.com/EmmettCorp/delorean/pkg/commands/btrfs"
@@ -26,31 +25,13 @@ type buttonModel interface {
 }
 
 type snapshot struct {
-	Label         string
-	VolumeLabel   string
-	Type          string
-	VolumeID      string
-	CurrentKernel string
+	Label       string
+	VolumeLabel string
+	Type        string
+	VolumeID    string
+	Kernel      string
 }
 
-func (s snapshot) Title() string {
-	// return s.Label
-	row := fmt.Sprintf("%s           %s     %s", s.Label, s.VolumeID, s.Type)
-
-	deleteIcon := "↻    ✖"
-
-	gap := strings.Repeat(" ", max(0, screenWidth-lipgloss.Width(row)-len(deleteIcon)))
-
-	return lipgloss.JoinHorizontal(lipgloss.Left, row, gap, deleteIcon)
-}
-func (s snapshot) Description() string {
-	// return fmt.Sprintf("type: %s | volume: %s ", s.Type, s.VolumeLabel)
-	if s.VolumeLabel == "Root" {
-		return fmt.Sprintf("volume: %s | kernel: 5.16.20-200.fc35.x86_64 ", s.VolumeLabel)
-	}
-
-	return fmt.Sprintf("volume: %s", s.VolumeLabel)
-}
 func (s snapshot) FilterValue() string { return s.Label }
 
 type Model struct {
@@ -69,8 +50,10 @@ func NewModel(st *shared.State) (*Model, error) {
 	screenWidth = m.state.ScreenWidth
 
 	itemsModel := list.New([]list.Item{},
-		// itemDelegate{},
-		list.NewDefaultDelegate(),
+		itemDelegate{
+			state:  st,
+			styles: list.NewDefaultItemStyles(),
+		},
 		0, 0)
 	itemsModel.SetFilteringEnabled(false)
 	itemsModel.SetShowFilter(false)
@@ -158,7 +141,6 @@ func (m *Model) UpdateList() {
 func (m *Model) getHeight() int {
 	return m.state.Areas.MainContent.Height - (CreateButtonHeight +
 		2 + // divider height with padding
-		// 19 +
 		2) // nolint:gomnd // list header
 }
 

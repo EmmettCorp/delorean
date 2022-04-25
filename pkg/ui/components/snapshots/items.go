@@ -3,31 +3,53 @@ package snapshots
 import (
 	"fmt"
 	"io"
+	"strings"
 
+	"github.com/EmmettCorp/delorean/pkg/ui/shared"
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
+)
+
+const (
+	rowIcons = "↻    ✖"
+	minGap   = 2
 )
 
 type itemDelegate struct {
+	state  *shared.State // state here is needed to track screenWidth
+	styles list.DefaultItemStyles
 }
 
-func (d itemDelegate) Height() int                               { return 1 }
-func (d itemDelegate) Spacing() int                              { return 0 }
+func (d itemDelegate) Height() int                               { return 2 }
+func (d itemDelegate) Spacing() int                              { return 1 }
 func (d itemDelegate) Update(msg tea.Msg, m *list.Model) tea.Cmd { return nil }
 func (d itemDelegate) Render(w io.Writer, m list.Model, index int, listItem list.Item) {
-	i, ok := listItem.(snapshot)
+	s, ok := listItem.(snapshot)
 	if !ok {
 		return
 	}
 
-	str := fmt.Sprintf("%s\t\t\t%d\t\t%s\n%s | %s", i.Label, index+1, i.Type, i.VolumeLabel, "5.16.20-200.fc35.x86_64")
+	row := fmt.Sprintf("%s           %s     %s", s.Label, s.VolumeID, s.Type)
 
-	fn := itemStyle.Render
-	if index == m.Index() {
-		fn = func(s string) string {
-			return selectedItemStyle.Render(s)
-		}
+	gap := strings.Repeat(" ", max(minGap, d.state.ScreenWidth-lipgloss.Width(row)-len(rowIcons)))
+
+	title := lipgloss.JoinHorizontal(lipgloss.Left, row, gap, rowIcons)
+
+	var description string
+	if s.VolumeLabel == "Root" {
+		description = fmt.Sprintf("volume: %s | kernel: %s ", s.VolumeLabel, s.Kernel)
+	} else {
+		description = fmt.Sprintf("volume: %s", s.VolumeLabel)
 	}
 
-	fmt.Fprintf(w, fn(str))
+	if index == m.Index() {
+		title = d.styles.SelectedTitle.Render(title)
+		description = d.styles.SelectedDesc.Render(description)
+	} else {
+		title = d.styles.NormalTitle.Render(title)
+		description = d.styles.NormalDesc.Render(description)
+	}
+
+	fmt.Fprintf(w, "%s\n%s", title, description)
 }
