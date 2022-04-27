@@ -16,8 +16,6 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
-var screenWidth = 0
-
 type buttonModel interface {
 	shared.Clickable
 	SetTitle(title string)
@@ -46,8 +44,6 @@ func NewModel(st *shared.State) (*Model, error) {
 	m := Model{
 		state: st,
 	}
-
-	screenWidth = m.state.ScreenWidth
 
 	itemsModel := list.New([]list.Item{},
 		itemDelegate{
@@ -102,7 +98,6 @@ func (m *Model) View() string {
 
 func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	if msg, ok := msg.(tea.WindowSizeMsg); ok {
-		screenWidth = m.state.ScreenWidth
 		m.height = m.getHeight()
 		h, v := docStyle.GetFrameSize()
 		m.list.SetSize(msg.Width-h, msg.Height-v)
