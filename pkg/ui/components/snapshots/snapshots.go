@@ -17,6 +17,14 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
+const (
+	infoTitle       = "Info"
+	idTitle         = "ID"
+	typeTitle       = "Type"
+	infoColumnWidth = 30
+	idColumnWidth   = 6
+)
+
 type buttonModel interface {
 	shared.Clickable
 	SetTitle(title string)
@@ -27,12 +35,10 @@ type snapshot struct {
 	Label       string
 	VolumeLabel string
 	Type        string
+	VolumeID    string
+	Kernel      string
 }
 
-func (s snapshot) Title() string { return s.Label }
-func (s snapshot) Description() string {
-	return fmt.Sprintf("type: %s | volume: %s ", s.Type, s.VolumeLabel)
-}
 func (s snapshot) FilterValue() string { return s.Label }
 
 type Model struct {
@@ -48,7 +54,12 @@ func NewModel(st *shared.State) (*Model, error) {
 		state: st,
 	}
 
-	itemsModel := list.New([]list.Item{}, list.NewDefaultDelegate(), 0, 0)
+	itemsModel := list.New([]list.Item{},
+		itemDelegate{
+			state:  st,
+			styles: list.NewDefaultItemStyles(),
+		},
+		0, 0)
 	itemsModel.SetFilteringEnabled(false)
 	itemsModel.SetShowFilter(false)
 	itemsModel.SetShowTitle(false)
@@ -82,8 +93,12 @@ func (m *Model) View() string {
 	s := strings.Builder{}
 	s.WriteString(button.New(m.createBtn.GetTitle()))
 	s.WriteString("\n")
-
-	s.WriteString(lipgloss.NewStyle().SetString("  Info\t\t\t\t\tID\t\tKernel").
+	header := fmt.Sprintf("%s%s%s%s%s%s%s",
+		"  ", infoTitle, strings.Repeat(" ", infoColumnWidth-len(infoTitle)-minGap),
+		idTitle, strings.Repeat(" ", idColumnWidth-len(idTitle)),
+		typeTitle, strings.Repeat(" ", idColumnWidth-len(idTitle)),
+	)
+	s.WriteString(lipgloss.NewStyle().SetString(header).
 		Foreground(styles.DefaultTheme.InactiveText).String())
 	s.WriteString("\n")
 	s.WriteString(divider.HorizontalLine(m.state.ScreenWidth, styles.DefaultTheme.InactiveText))
@@ -124,6 +139,7 @@ func (m *Model) UpdateList() {
 			Label:       snaps[i].Label,
 			VolumeLabel: snaps[i].VolumeLabel,
 			Type:        snaps[i].Type,
+			VolumeID:    snaps[i].VolumeID,
 		})
 	}
 
@@ -134,4 +150,12 @@ func (m *Model) getHeight() int {
 	return m.state.Areas.MainContent.Height - (CreateButtonHeight +
 		2 + // divider height with padding
 		2) // nolint:gomnd // list header
+}
+
+func max(a, b int) int {
+	if a > b {
+		return a
+	}
+
+	return b
 }
