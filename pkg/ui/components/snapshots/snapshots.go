@@ -23,7 +23,6 @@ const (
 	typeTitle       = "Type"
 	infoColumnWidth = 30
 	idColumnWidth   = 6
-	typeColumnWidth = 10
 )
 
 type buttonModel interface {
