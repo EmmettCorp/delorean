@@ -4,6 +4,7 @@ Package snapshots keeps all the logic for snapshots component.
 package snapshots
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/EmmettCorp/delorean/pkg/commands/btrfs"
@@ -14,6 +15,15 @@ import (
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+)
+
+const (
+	infoTitle       = "Info"
+	idTitle         = "ID"
+	typeTitle       = "Type"
+	infoColumnWidth = 30
+	idColumnWidth   = 6
+	typeColumnWidth = 10
 )
 
 type buttonModel interface {
@@ -84,8 +94,12 @@ func (m *Model) View() string {
 	s := strings.Builder{}
 	s.WriteString(button.New(m.createBtn.GetTitle()))
 	s.WriteString("\n")
-
-	s.WriteString(lipgloss.NewStyle().SetString("  Info\t\t\t\tID\tType").
+	header := fmt.Sprintf("%s%s%s%s%s%s%s",
+		"  ", infoTitle, strings.Repeat(" ", infoColumnWidth-len(infoTitle)-minGap),
+		idTitle, strings.Repeat(" ", idColumnWidth-len(idTitle)),
+		typeTitle, strings.Repeat(" ", idColumnWidth-len(idTitle)),
+	)
+	s.WriteString(lipgloss.NewStyle().SetString(header).
 		Foreground(styles.DefaultTheme.InactiveText).String())
 	s.WriteString("\n")
 	s.WriteString(divider.HorizontalLine(m.state.ScreenWidth, styles.DefaultTheme.InactiveText))
