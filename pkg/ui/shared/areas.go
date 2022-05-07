@@ -22,14 +22,14 @@ func initAreas() *uiAreas {
 	ua := uiAreas{
 		TabBar: uiArea{
 			Height: TabsBarHeight,
-			Width:  -1,
+			Width:  FullScreen,
 		},
 		MainContent: uiArea{
-			Width: -1,
+			Width: FullScreen,
 		},
 		HelpBar: uiArea{
 			Height: HelpBarHeight,
-			Width:  -1,
+			Width:  FullScreen,
 		},
 	}
 

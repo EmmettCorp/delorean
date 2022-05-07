@@ -151,11 +151,3 @@ func (m *Model) getHeight() int {
 		2 + // divider height with padding
 		2) // nolint:gomnd // list header
 }
-
-func max(a, b int) int {
-	if a > b {
-		return a
-	}
-
-	return b
-}

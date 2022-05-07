@@ -40,7 +40,7 @@ func (d itemDelegate) Render(w io.Writer, m list.Model, index int, listItem list
 	)
 	rowIcons := fmt.Sprintf("%s%s%s", restoreIcon, strings.Repeat(" ", iconsGap), deleteIcon)
 
-	gap := strings.Repeat(" ", max(minGap, d.state.ScreenWidth-lipgloss.Width(row)-len(rowIcons)))
+	gap := strings.Repeat(" ", shared.Max(minGap, d.state.ScreenWidth-lipgloss.Width(row)-len(rowIcons)))
 
 	title := lipgloss.JoinHorizontal(lipgloss.Left, row, gap, rowIcons)
 

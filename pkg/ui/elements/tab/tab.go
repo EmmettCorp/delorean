@@ -69,15 +69,7 @@ func RenderTabBar(screenWidth int, tabs []string) string {
 		tabs...,
 	)
 
-	gap := tabGap.Render(strings.Repeat(" ", max(0, screenWidth-lipgloss.Width(row)-tabsLeftRightIndents)))
+	gap := tabGap.Render(strings.Repeat(" ", shared.Max(0, screenWidth-lipgloss.Width(row)-tabsLeftRightIndents)))
 
 	return docStyle.Render(lipgloss.JoinHorizontal(lipgloss.Bottom, row, gap))
-}
-
-func max(a, b int) int {
-	if a > b {
-		return a
-	}
-
-	return b
 }
