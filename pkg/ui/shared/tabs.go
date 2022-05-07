@@ -9,14 +9,20 @@ const (
 	AnyTab // used for elements that don't belong to any tab. As example, tabs themselves.
 )
 
+const (
+	snapshotsTabTitle = "Snapshots"
+	scheduleTabTitle  = "Schedule"
+	settingsTabTitle  = "Settings"
+)
+
 func (t TabItem) String() string {
 	switch t {
 	case SnapshotsTab:
-		return "Snapshots"
+		return snapshotsTabTitle
 	case ScheduleTab:
-		return "Schedule"
+		return scheduleTabTitle
 	case SettingsTab:
-		return "Settings"
+		return settingsTabTitle
 	default:
 		return ""
 	}
