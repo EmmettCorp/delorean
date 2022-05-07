@@ -7,6 +7,11 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+const (
+	testRoot         = "root"
+	testPathToRemove = "/some/path/to/remove"
+)
+
 func Test_NewState(t *testing.T) {
 	t.Parallel()
 
@@ -15,19 +20,16 @@ func Test_NewState(t *testing.T) {
 
 		rq := require.New(t)
 
-		root := "root"
-		somePathToRemove := "/some/path/to/remove"
-
 		st := NewState(&config.Config{
 			BtrfsSupported: true,
-			RootDevice:     root,
-			ToRemove:       []string{somePathToRemove},
+			RootDevice:     testRoot,
+			ToRemove:       []string{testPathToRemove},
 		})
 
 		rq.True(st.Config.BtrfsSupported)
-		rq.Equal(root, st.Config.RootDevice)
+		rq.Equal(testRoot, st.Config.RootDevice)
 		rq.Len(st.Config.ToRemove, 1)
-		rq.Equal(somePathToRemove, st.Config.ToRemove[0])
+		rq.Equal(testPathToRemove, st.Config.ToRemove[0])
 
 		rq.NotNil(st.ClickableElements)
 
@@ -74,13 +76,10 @@ func Test_State_AppendClickable(t *testing.T) {
 
 		rq := require.New(t)
 
-		root := "root"
-		somePathToRemove := "/some/path/to/remove"
-
 		st := NewState(&config.Config{
 			BtrfsSupported: true,
-			RootDevice:     root,
-			ToRemove:       []string{somePathToRemove},
+			RootDevice:     testRoot,
+			ToRemove:       []string{testPathToRemove},
 		})
 
 		rq.Empty(st.ClickableElements[SnapshotsTab])
@@ -102,13 +101,10 @@ func Test_State_AppendClickable(t *testing.T) {
 
 		rq := require.New(t)
 
-		root := "root"
-		somePathToRemove := "/some/path/to/remove"
-
 		st := NewState(&config.Config{
 			BtrfsSupported: true,
-			RootDevice:     root,
-			ToRemove:       []string{somePathToRemove},
+			RootDevice:     testRoot,
+			ToRemove:       []string{testPathToRemove},
 		})
 
 		rq.Empty(st.ClickableElements[SnapshotsTab])
@@ -134,13 +130,10 @@ func Test_State_CleanClickable(t *testing.T) {
 
 		rq := require.New(t)
 
-		root := "root"
-		somePathToRemove := "/some/path/to/remove"
-
 		st := NewState(&config.Config{
 			BtrfsSupported: true,
-			RootDevice:     root,
-			ToRemove:       []string{somePathToRemove},
+			RootDevice:     testRoot,
+			ToRemove:       []string{testPathToRemove},
 		})
 
 		rq.Empty(st.ClickableElements[SnapshotsTab])
@@ -176,13 +169,10 @@ func Test_State_FindClickable(t *testing.T) {
 
 		rq := require.New(t)
 
-		root := "root"
-		somePathToRemove := "/some/path/to/remove"
-
 		st := NewState(&config.Config{
 			BtrfsSupported: true,
-			RootDevice:     root,
-			ToRemove:       []string{somePathToRemove},
+			RootDevice:     testRoot,
+			ToRemove:       []string{testPathToRemove},
 		})
 
 		rq.Empty(st.ClickableElements[SnapshotsTab])
@@ -249,13 +239,10 @@ func Test_ResizeAreas(t *testing.T) {
 
 		rq := require.New(t)
 
-		root := "root"
-		somePathToRemove := "/some/path/to/remove"
-
 		st := NewState(&config.Config{
 			BtrfsSupported: true,
-			RootDevice:     root,
-			ToRemove:       []string{somePathToRemove},
+			RootDevice:     testRoot,
+			ToRemove:       []string{testPathToRemove},
 		})
 
 		rq.Equal(0, st.Areas.MainContent.Height)
