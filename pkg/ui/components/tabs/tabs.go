@@ -6,8 +6,8 @@ package tabs
 import (
 	"errors"
 
-	"github.com/EmmettCorp/delorean/pkg/ui/elements/tab"
 	"github.com/EmmettCorp/delorean/pkg/ui/shared"
+	"github.com/EmmettCorp/delorean/pkg/ui/shared/elements/tab"
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
 )

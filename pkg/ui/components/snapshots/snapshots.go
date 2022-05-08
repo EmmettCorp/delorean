@@ -8,9 +8,9 @@ import (
 	"strings"
 
 	"github.com/EmmettCorp/delorean/pkg/commands/btrfs"
-	"github.com/EmmettCorp/delorean/pkg/ui/elements/button"
-	"github.com/EmmettCorp/delorean/pkg/ui/elements/divider"
 	"github.com/EmmettCorp/delorean/pkg/ui/shared"
+	"github.com/EmmettCorp/delorean/pkg/ui/shared/elements/button"
+	"github.com/EmmettCorp/delorean/pkg/ui/shared/elements/divider"
 	"github.com/EmmettCorp/delorean/pkg/ui/shared/styles"
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
