@@ -92,14 +92,10 @@ func snapshotsListByVolume(volume domain.Volume) ([]domain.Snapshot, error) {
 	}
 
 	for i := range sn {
-		sn := domain.Snapshot{
-			Path:        sn[i],
-			VolumeLabel: volume.Label,
-			VolumeID:    volume.ID,
+		sn, err := domain.NewSnapshot(sn[i], volume.Label, volume.ID)
+		if err != nil {
+			return nil, err
 		}
-		sn.SetLabel()
-		sn.SetType()
-		sn.SetTimestamp()
 		snaps = append(snaps, sn)
 	}
 
@@ -130,6 +126,7 @@ func SupportedByKernel() (bool, error) {
 	return false, nil
 }
 
+// GetVolumeID returns volume id by path.
 func GetVolumeID(ph string) (string, error) {
 	minSubvolIDFields := 3
 	cmd := exec.Command("btrfs", "subvolume", "show", ph)

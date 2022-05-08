@@ -6,86 +6,37 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestSetLabel(t *testing.T) {
+func TestNewSnapshot(t *testing.T) {
 	t.Parallel()
+	rq := require.New(t)
 
-	t.Run("empty", func(t *testing.T) {
+	t.Run("err: empty path", func(t *testing.T) {
 		t.Parallel()
 
-		s := Snapshot{}
-		s.SetLabel()
+		_, err := NewSnapshot("", "some_label", "some_id")
 
-		rq := require.New(t)
-
-		rq.Empty(s.Label)
+		rq.Error(err)
 	})
 
-	t.Run("set", func(t *testing.T) {
+	t.Run("err: invalid snapshot id", func(t *testing.T) {
 		t.Parallel()
 
-		s := Snapshot{
-			Path: "/home",
-		}
-		s.SetLabel()
+		_, err := NewSnapshot("manual/invalid snapshot id", "some_label", "some_id")
 
-		rq := require.New(t)
-
-		rq.Equal("home", s.Label)
-	})
-}
-
-func TestSetType(t *testing.T) {
-	t.Parallel()
-
-	t.Run("empty", func(t *testing.T) {
-		t.Parallel()
-
-		s := Snapshot{}
-		s.SetType()
-
-		rq := require.New(t)
-
-		rq.Empty(s.Label)
+		rq.Error(err)
 	})
 
-	t.Run("set", func(t *testing.T) {
+	t.Run("err: invalid snapshot id", func(t *testing.T) {
 		t.Parallel()
 
-		s := Snapshot{
-			Path: "/home/manual/time",
-		}
-		s.SetType()
+		sn, err := NewSnapshot("/run/delorean/.snapshots/@/manual/2022-01-25_16:56:37", "some_label", "some_id")
 
-		rq := require.New(t)
-
-		rq.Equal("manual", s.Type)
-	})
-}
-
-func TestSetTimestamp(t *testing.T) {
-	t.Parallel()
-
-	t.Run("empty", func(t *testing.T) {
-		t.Parallel()
-
-		s := Snapshot{}
-		s.SetTimestamp()
-
-		rq := require.New(t)
-
-		rq.Empty(s.Timestamp)
-	})
-
-	t.Run("set", func(t *testing.T) {
-		t.Parallel()
-
-		s := Snapshot{
-			Label: "2022-01-25_16:56:37",
-		}
-		s.SetTimestamp()
-
-		rq := require.New(t)
-
-		rq.Equal(int64(1643129797), s.Timestamp)
+		rq.NoError(err)
+		rq.Equal("/run/delorean/.snapshots/@/manual/2022-01-25_16:56:37", sn.Path)
+		rq.Equal("manual", sn.Type)
+		rq.Equal("2022-01-25_16:56:37", sn.Label)
+		rq.Equal("some_label", sn.VolumeLabel)
+		rq.Equal("some_id", sn.VolumeID)
+		rq.Equal(int64(1643129797), sn.Timestamp)
 	})
 }

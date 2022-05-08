@@ -13,6 +13,7 @@ const (
 	bootType
 )
 
+// Schedule represents the settings of scheduled snapshots.
 type Schedule struct {
 	Monthly int `json:"monthly"`
 	Weekly  int `json:"weekly"`
@@ -21,6 +22,7 @@ type Schedule struct {
 	Boot    int `json:"boot"`
 }
 
+// Increase increases value of `schedType` for settings.
 func (s *Schedule) Increase(schedType int) bool {
 	updated := false
 	switch schedType {
@@ -54,6 +56,7 @@ func (s *Schedule) Increase(schedType int) bool {
 	return updated
 }
 
+// Decrease decreases value of `schedType` for settings.
 func (s *Schedule) Decrease(schedType int) bool {
 	updated := false
 	switch schedType {

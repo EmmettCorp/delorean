@@ -20,6 +20,8 @@ import (
 )
 
 type (
+	// Config represents configuration of application.
+	// It keeps all needed settings. Config is saved on a disk.
 	Config struct {
 		RootDevice     string          `json:"root_device"`
 		Path           string          `json:"path"` // needs to save config file from app.
@@ -215,6 +217,7 @@ func mountTopLevelSubvolume(device string, fm fs.FileMode) error {
 	return commands.Mount(device, domain.DeloreanMountPoint)
 }
 
+// VolumeInRootFs checks if the volume is in root.
 func (cfg *Config) VolumeInRootFs(vol domain.Volume) bool {
 	return vol.Device.Path == cfg.RootDevice
 }
