@@ -7,12 +7,13 @@ import (
 	"fmt"
 
 	"github.com/EmmettCorp/delorean/pkg/config"
-	"github.com/EmmettCorp/delorean/pkg/gui"
+	"github.com/EmmettCorp/delorean/pkg/ui"
+	tea "github.com/charmbracelet/bubbletea"
 )
 
 type (
 	App struct {
-		gui *gui.Gui
+		gui *tea.Program
 	}
 )
 
@@ -23,17 +24,22 @@ func New() (*App, error) {
 		return nil, fmt.Errorf("can't get new config: %v", err)
 	}
 
-	g, err := gui.New(cfg)
+	model, err := ui.NewModel(cfg)
 	if err != nil {
-		return nil, fmt.Errorf("can't get new gui: %v", err)
+		return nil, err
 	}
+	p := tea.NewProgram(
+		model,
+		tea.WithAltScreen(),
+		tea.WithMouseCellMotion(),
+	)
 
 	return &App{
-		gui: g,
+		gui: p,
 	}, nil
 }
 
 // Run setup and run gui handlers.
 func (a *App) Run() error {
-	return a.gui.Run()
+	return a.gui.Start()
 }

@@ -1,7 +1,11 @@
 package shared
 
+// TabItem is kind of identifier for tabs.
+// It differs from `elements/tab` which is responsible for look and style, and which data agnostic.
+// TabItem, on the contrary, represents a concrete tab with a concrete title and related with a specific content.
 type TabItem int
 
+// TabItem tabs.
 const (
 	SnapshotsTab TabItem = iota
 	ScheduleTab
@@ -15,6 +19,7 @@ const (
 	settingsTabTitle  = "Settings"
 )
 
+// String is a string representation of TabItems.
 func (t TabItem) String() string {
 	switch t {
 	case SnapshotsTab:
