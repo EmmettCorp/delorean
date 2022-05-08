@@ -21,19 +21,13 @@ import (
 
 type (
 	Config struct {
-		BtrfsSupported bool            `json:"btrfs_supported"`
+		RootDevice     string          `json:"root_device"`
 		Path           string          `json:"path"` // needs to save config file from app.
+		ToRemove       []string        `json:"to_remove"`
+		BtrfsSupported bool            `json:"btrfs_supported"`
 		Schedule       domain.Schedule `json:"schedule"`
 		Volumes        []domain.Volume `json:"volumes"`
-		RootDevice     string          `json:"root_device"`
 		FileMode       os.FileMode     `json:"file_mode"`
-		ToRemove       []string        `json:"to_remove"`
-		Colors         colors          `json:"colors"`
-	}
-
-	colors struct {
-		Foreground string `json:"foreground"`
-		Highlight  string `json:"highlight"`
 	}
 )
 
