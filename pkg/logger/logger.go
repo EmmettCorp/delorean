@@ -86,6 +86,7 @@ func checkDir(ph string, fileMode fs.FileMode) error {
 	return err
 }
 
+// InitDummyLogs needs to tests.
 func InitDummyLogs() {
 	once.Do(
 		func() {

@@ -1,12 +1,15 @@
 package domain
 
 import (
+	"fmt"
 	"strings"
 	"time"
 )
 
+// SnapshotFormat is a format of snapshots names.
 const SnapshotFormat = "2006-01-02_15:04:05"
 
+// Snapshot represents snapshot object, keeps all needed data.
 type Snapshot struct {
 	Path        string
 	Label       string
@@ -16,28 +19,30 @@ type Snapshot struct {
 	Timestamp   int64
 }
 
-func (s *Snapshot) SetLabel() {
-	ss := strings.Split(s.Path, "/")
-	if len(ss) == 0 {
-		return
+// NewSnapshot creates a new snapshot object by path to snapshot, volume label and volume id.
+// It is supposed that path to snapshots looks like `**/<volume>/<snapshot_type>/<snapshot_id>`.
+// Example:
+// 			/run/delorean/.snapshots/@/manual/2022-02-16_16:17:45
+//
+func NewSnapshot(ph, vLabel, vID string) (Snapshot, error) {
+	sn := Snapshot{
+		Path:        ph,
+		VolumeLabel: vLabel,
+		VolumeID:    vID,
 	}
 
-	s.Label = ss[len(ss)-1]
-}
-
-func (s *Snapshot) SetType() {
-	ss := strings.Split(s.Path, "/")
-	if len(ss) < 2 { // nolint:gomnd // it's pretty clear why 2 here
-		return
+	ss := strings.Split(ph, "/")
+	if len(ss) < 2 { // nolint:gomnd // in path MUST be snapshots `type` and `id`
+		return Snapshot{}, fmt.Errorf("path is too short `%s`", ph)
 	}
+	sn.Label = ss[len(ss)-1]
+	sn.Type = ss[len(ss)-2]
 
-	s.Type = ss[len(ss)-2]
-}
-
-func (s *Snapshot) SetTimestamp() {
-	t, err := time.Parse(SnapshotFormat, s.Label)
+	t, err := time.Parse(SnapshotFormat, sn.Label)
 	if err != nil {
-		return
+		return Snapshot{}, fmt.Errorf("can't parse label with snapshot format: %v", err)
 	}
-	s.Timestamp = t.Unix()
+	sn.Timestamp = t.Unix()
+
+	return sn, nil
 }

@@ -64,6 +64,7 @@ func GetVolumes() ([]domain.Volume, error) {
 	return vv, nil
 }
 
+// IsDeviceMount check if `device` is mounted.
 func IsDeviceMount(device, mountPoint string) bool {
 	cmd := exec.Command("findmnt", "-t", "btrfs", "-J", "-l", "-o", findmntOptions, device, mountPoint)
 	var cmdErr bytes.Buffer

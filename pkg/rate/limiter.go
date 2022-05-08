@@ -11,6 +11,7 @@ type Limiter struct {
 	dur     time.Duration
 }
 
+// NewLimiter creates a new limiter with passed duration.
 func NewLimiter(d time.Duration) *Limiter {
 	return &Limiter{
 		expired: true,

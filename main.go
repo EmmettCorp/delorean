@@ -4,6 +4,7 @@ import (
 	"log"
 
 	"github.com/EmmettCorp/delorean/pkg/app"
+	"github.com/EmmettCorp/delorean/pkg/logger"
 )
 
 func main() {
@@ -19,5 +20,18 @@ func run() error {
 		return err
 	}
 
-	return a.Run()
+	closeLogger, err := logger.Init()
+	if err != nil {
+		return err
+	}
+	defer func() {
+		logErr := closeLogger()
+		if err == nil && logErr != nil {
+			err = logErr
+		}
+	}()
+
+	err = a.Run()
+
+	return err
 }
