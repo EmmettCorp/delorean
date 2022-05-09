@@ -12,14 +12,14 @@ type State struct {
 	ScreenHeight      int
 	ScreenWidth       int
 	CurrentTab        TabItem
-	ClickableElements map[TabItem][]Clickable
+	ClickableElements map[ClickableComponent][]Clickable
 	Config            *config.Config
 	Areas             *uiAreas
 }
 
 func NewState(cfg *config.Config) *State {
 	st := State{
-		ClickableElements: make(map[TabItem][]Clickable),
+		ClickableElements: make(map[ClickableComponent][]Clickable),
 		Config:            cfg,
 		Areas:             initAreas(),
 	}
@@ -32,29 +32,27 @@ func (s *State) Update(ti TabItem) {
 	s.CurrentTab = ti
 }
 
-func (s *State) CleanClickable(ti TabItem) {
-	s.ClickableElements[ti] = []Clickable{}
+func (s *State) CleanClickable(comp ClickableComponent) {
+	s.ClickableElements[comp] = []Clickable{}
 }
 
-func (s *State) AppendClickable(ti TabItem, cc ...Clickable) error {
+func (s *State) AppendClickable(comp ClickableComponent, cc ...Clickable) error {
 	for i := range cc {
 		if err := validateClickable(cc[i]); err != nil {
 			return err
 		}
 	}
-	s.ClickableElements[ti] = append(s.ClickableElements[ti], cc...)
+	s.ClickableElements[comp] = append(s.ClickableElements[comp], cc...)
 
 	return nil
 }
 
 func (s *State) FindClickable(x, y int) Clickable {
 	var nearestClickable Clickable
+
+	elements := s.getAvailableClickable()
+
 	nearestCoords := Coords{}
-
-	elements := make([]Clickable, 0, len(s.ClickableElements[AnyTab])+len(s.ClickableElements[s.CurrentTab]))
-	elements = append(elements, s.ClickableElements[AnyTab]...)
-	elements = append(elements, s.ClickableElements[s.CurrentTab]...)
-
 	for i := range elements {
 		coords := elements[i].GetCoords()
 		if x >= coords.X1 && x <= coords.X2 && y >= coords.Y1 && y <= coords.Y2 {
@@ -73,4 +71,18 @@ func (s *State) FindClickable(x, y int) Clickable {
 
 func (s *State) ResizeAreas() {
 	s.Areas.MainContent.Height = s.ScreenHeight - (s.Areas.TabBar.Height + s.Areas.HelpBar.Height)
+}
+
+func (s *State) getAvailableClickable() []Clickable {
+	elements := []Clickable{}
+	elements = append(elements, s.ClickableElements[TabHeader]...)
+	if s.CurrentTab == SnapshotsTab {
+		elements = append(elements, s.ClickableElements[SnapshotsButtonsBar]...)
+		elements = append(elements, s.ClickableElements[SnapshotsList]...)
+	} else if s.CurrentTab == SettingsTab {
+		elements = append(elements, s.ClickableElements[VolumesBar]...)
+		elements = append(elements, s.ClickableElements[ScheduleBar]...)
+	}
+
+	return elements
 }

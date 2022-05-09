@@ -23,6 +23,9 @@ const (
 	typeTitle       = "Type"
 	infoColumnWidth = 30
 	idColumnWidth   = 6
+
+	minColumnGap    = "  "
+	minColumnGapLen = len(minColumnGap)
 )
 
 type buttonModel interface {
@@ -77,7 +80,7 @@ func NewModel(st *shared.State) (*Model, error) {
 	}, m.UpdateList)
 	m.createBtn = createBtn
 
-	err := st.AppendClickable(shared.SnapshotsTab, createBtn)
+	err := st.AppendClickable(shared.SnapshotsButtonsBar, createBtn)
 	if err != nil {
 		return nil, err
 	}
@@ -94,7 +97,7 @@ func (m *Model) View() string {
 	s.WriteString(button.New(m.createBtn.GetTitle()))
 	s.WriteString("\n")
 	header := fmt.Sprintf("%s%s%s%s%s%s%s",
-		"  ", infoTitle, strings.Repeat(" ", infoColumnWidth-len(infoTitle)-minGap),
+		minColumnGap, infoTitle, strings.Repeat(" ", infoColumnWidth-len(infoTitle)-minColumnGapLen),
 		idTitle, strings.Repeat(" ", idColumnWidth-len(idTitle)),
 		typeTitle, strings.Repeat(" ", idColumnWidth-len(idTitle)),
 	)

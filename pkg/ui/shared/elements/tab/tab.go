@@ -29,7 +29,7 @@ func New(state *shared.State, id shared.TabItem, coords shared.Coords) (*Tab, er
 		id:    id,
 	}
 	t.SetCoords(coords)
-	err := t.state.AppendClickable(shared.AnyTab, &t)
+	err := t.state.AppendClickable(shared.TabHeader, &t)
 	if err != nil {
 		return nil, err
 	}

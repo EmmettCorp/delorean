@@ -6,19 +6,19 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 )
 
+// Clickable is a ui component that can be clicked.
+type Clickable interface {
+	GetCoords() Coords
+	SetCoords(c Coords)
+	OnClick(event tea.MouseMsg) error
+}
+
 // Coords are coordinates of a clickable ui component.
 type Coords struct {
 	X1 int
 	Y1 int
 	X2 int
 	Y2 int
-}
-
-// Clickable is a ui component that can be clicked.
-type Clickable interface {
-	GetCoords() Coords
-	SetCoords(c Coords)
-	OnClick(event tea.MouseMsg) error
 }
 
 func validateClickable(c Clickable) error {
@@ -32,4 +32,28 @@ func validateClickable(c Clickable) error {
 	}
 
 	return nil
+}
+
+// ClickableComponent represents a logical component that help to identify on which component area clicked.
+type ClickableComponent int
+
+// Available components.
+const (
+	TabHeader ClickableComponent = iota
+	SnapshotsButtonsBar
+	SnapshotsList
+	VolumesBar
+	ScheduleBar
+	HelpFooter
+)
+
+func getAllClickableComponents() []ClickableComponent {
+	return []ClickableComponent{
+		TabHeader,
+		SnapshotsButtonsBar,
+		SnapshotsList,
+		VolumesBar,
+		ScheduleBar,
+		HelpFooter,
+	}
 }

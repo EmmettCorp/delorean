@@ -33,8 +33,8 @@ func Test_NewState(t *testing.T) {
 
 		rq.NotNil(st.ClickableElements)
 
-		for _, ti := range GetTabItems() {
-			_, ok := st.ClickableElements[ti]
+		for _, cm := range getAllClickableComponents() {
+			_, ok := st.ClickableElements[cm]
 			rq.False(ok)
 		}
 
@@ -82,7 +82,7 @@ func Test_State_AppendClickable(t *testing.T) {
 			ToRemove:       []string{testPathToRemove},
 		})
 
-		rq.Empty(st.ClickableElements[SnapshotsTab])
+		rq.Empty(st.ClickableElements[SnapshotsButtonsBar])
 
 		cl := clickableMock{}
 		cl.SetCoords(Coords{
@@ -92,7 +92,7 @@ func Test_State_AppendClickable(t *testing.T) {
 			Y2: 2,
 		})
 
-		err := st.AppendClickable(SnapshotsTab, &cl)
+		err := st.AppendClickable(SnapshotsButtonsBar, &cl)
 		rq.NoError(err)
 	})
 
@@ -107,7 +107,7 @@ func Test_State_AppendClickable(t *testing.T) {
 			ToRemove:       []string{testPathToRemove},
 		})
 
-		rq.Empty(st.ClickableElements[SnapshotsTab])
+		rq.Empty(st.ClickableElements[SnapshotsButtonsBar])
 
 		cl := clickableMock{}
 		cl.SetCoords(Coords{
@@ -117,7 +117,7 @@ func Test_State_AppendClickable(t *testing.T) {
 			Y2: 2,
 		})
 
-		err := st.AppendClickable(SnapshotsTab, &cl)
+		err := st.AppendClickable(SnapshotsButtonsBar, &cl)
 		rq.Error(err)
 	})
 }
@@ -136,7 +136,7 @@ func Test_State_CleanClickable(t *testing.T) {
 			ToRemove:       []string{testPathToRemove},
 		})
 
-		rq.Empty(st.ClickableElements[SnapshotsTab])
+		rq.Empty(st.ClickableElements[SnapshotsButtonsBar])
 
 		cl := clickableMock{}
 		cl.SetCoords(Coords{
@@ -146,16 +146,16 @@ func Test_State_CleanClickable(t *testing.T) {
 			Y2: 2,
 		})
 
-		err := st.AppendClickable(SnapshotsTab, &cl)
+		err := st.AppendClickable(SnapshotsButtonsBar, &cl)
 		rq.NoError(err)
 
-		tags, ok := st.ClickableElements[SnapshotsTab]
+		tags, ok := st.ClickableElements[SnapshotsButtonsBar]
 		rq.True(ok)
 		rq.Len(tags, 1)
 
-		st.CleanClickable(SnapshotsTab)
+		st.CleanClickable(SnapshotsButtonsBar)
 
-		tags, ok = st.ClickableElements[SnapshotsTab]
+		tags, ok = st.ClickableElements[SnapshotsButtonsBar]
 		rq.True(ok)
 		rq.Len(tags, 0)
 	})
@@ -175,7 +175,7 @@ func Test_State_FindClickable(t *testing.T) {
 			ToRemove:       []string{testPathToRemove},
 		})
 
-		rq.Empty(st.ClickableElements[SnapshotsTab])
+		rq.Empty(st.ClickableElements[SnapshotsList])
 
 		line1 := clickableMock{}
 		line1.SetCoords(Coords{
@@ -207,16 +207,16 @@ func Test_State_FindClickable(t *testing.T) {
 			Y2: 8,
 		})
 
-		err := st.AppendClickable(SnapshotsTab, &line1)
+		err := st.AppendClickable(SnapshotsList, &line1)
 		rq.NoError(err)
-		err = st.AppendClickable(SnapshotsTab, &button1)
+		err = st.AppendClickable(SnapshotsList, &button1)
 		rq.NoError(err)
-		err = st.AppendClickable(SnapshotsTab, &line2)
+		err = st.AppendClickable(SnapshotsList, &line2)
 		rq.NoError(err)
-		err = st.AppendClickable(SnapshotsTab, &button2)
+		err = st.AppendClickable(SnapshotsList, &button2)
 		rq.NoError(err)
 
-		tags, ok := st.ClickableElements[SnapshotsTab]
+		tags, ok := st.ClickableElements[SnapshotsList]
 		rq.True(ok)
 		rq.Len(tags, 4)
 
