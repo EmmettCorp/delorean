@@ -32,11 +32,14 @@ func (d itemDelegate) Render(w io.Writer, m list.Model, index int, listItem list
 		return
 	}
 
-	row := fmt.Sprintf("%s%s%s%s%s",
-		s.Label, strings.Repeat(" ", infoColumnWidth-len(s.Label)-minColumnGapLen),
-		s.VolumeID, strings.Repeat(" ", idColumnWidth-len(s.VolumeID)),
-		s.Type,
-	)
+	var rowBuilder strings.Builder
+	rowBuilder.WriteString(s.Label)
+	rowBuilder.WriteString(strings.Repeat(" ", infoColumnWidth-len(s.Label)-minColumnGapLen))
+	rowBuilder.WriteString(s.VolumeID)
+	rowBuilder.WriteString(strings.Repeat(" ", idColumnWidth-len(s.VolumeID)))
+	rowBuilder.WriteString(s.Type)
+	row := rowBuilder.String()
+
 	rowIcons := fmt.Sprintf("%s%s%s", restoreIcon, strings.Repeat(" ", iconsGap), deleteIcon)
 
 	gap := strings.Repeat(" ", shared.Max(minColumnGapLen, d.state.ScreenWidth-lipgloss.Width(row)-len(rowIcons)))
