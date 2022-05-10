@@ -32,7 +32,7 @@ func NewSnapshot(ph, vLabel, vID string) (Snapshot, error) {
 	}
 
 	ss := strings.Split(ph, "/")
-	if len(ss) < 2 { // nolint:gomnd // in path MUST be snapshots `type` and `id`
+	if len(ss) < 2 { // nolint:gomnd // there MUST be snapshots `type` and `id` in path
 		return Snapshot{}, fmt.Errorf("path is too short `%s`", ph)
 	}
 	sn.Label = ss[len(ss)-1]

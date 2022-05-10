@@ -4,7 +4,6 @@ Package snapshots keeps all the logic for snapshots component.
 package snapshots
 
 import (
-	"fmt"
 	"strings"
 
 	"github.com/EmmettCorp/delorean/pkg/commands/btrfs"
@@ -23,6 +22,9 @@ const (
 	typeTitle       = "Type"
 	infoColumnWidth = 30
 	idColumnWidth   = 6
+
+	minColumnGap    = "  "
+	minColumnGapLen = len(minColumnGap)
 )
 
 type buttonModel interface {
@@ -77,7 +79,7 @@ func NewModel(st *shared.State) (*Model, error) {
 	}, m.UpdateList)
 	m.createBtn = createBtn
 
-	err := st.AppendClickable(shared.SnapshotsTab, createBtn)
+	err := st.AppendClickable(shared.SnapshotsButtonsBar, createBtn)
 	if err != nil {
 		return nil, err
 	}
@@ -90,15 +92,10 @@ func (m *Model) Init() tea.Cmd {
 }
 
 func (m *Model) View() string {
-	s := strings.Builder{}
+	var s strings.Builder
 	s.WriteString(button.New(m.createBtn.GetTitle()))
 	s.WriteString("\n")
-	header := fmt.Sprintf("%s%s%s%s%s%s%s",
-		"  ", infoTitle, strings.Repeat(" ", infoColumnWidth-len(infoTitle)-minGap),
-		idTitle, strings.Repeat(" ", idColumnWidth-len(idTitle)),
-		typeTitle, strings.Repeat(" ", idColumnWidth-len(idTitle)),
-	)
-	s.WriteString(lipgloss.NewStyle().SetString(header).
+	s.WriteString(lipgloss.NewStyle().SetString(getSnapshotsHeader()).
 		Foreground(styles.DefaultTheme.InactiveText).String())
 	s.WriteString("\n")
 	s.WriteString(divider.HorizontalLine(m.state.ScreenWidth, styles.DefaultTheme.InactiveText))
@@ -150,4 +147,16 @@ func (m *Model) getHeight() int {
 	return m.state.Areas.MainContent.Height - (CreateButtonHeight +
 		2 + // divider height with padding
 		2) // nolint:gomnd // list header
+}
+
+func getSnapshotsHeader() string {
+	var header strings.Builder
+	header.WriteString(minColumnGap)
+	header.WriteString(infoTitle)
+	header.WriteString(strings.Repeat(" ", infoColumnWidth-len(infoTitle)-minColumnGapLen))
+	header.WriteString(idTitle)
+	header.WriteString(strings.Repeat(" ", idColumnWidth-len(idTitle)))
+	header.WriteString(typeTitle)
+
+	return header.String()
 }

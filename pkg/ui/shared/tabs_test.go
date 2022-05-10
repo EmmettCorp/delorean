@@ -16,7 +16,6 @@ func Test_TabItem_String(t *testing.T) {
 
 		rq.Equal(snapshotsTabTitle, SnapshotsTab.String())
 		rq.Equal(settingsTabTitle, SettingsTab.String())
-		rq.Equal(scheduleTabTitle, ScheduleTab.String())
 		rq.Equal("", AnyTab.String())
 	})
 }
