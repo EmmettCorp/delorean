@@ -56,12 +56,12 @@ func NewModel(st *shared.State) (*Model, error) {
 		state: st,
 	}
 
-	itemsModel := list.New([]list.Item{},
-		itemDelegate{
-			state:  st,
-			styles: list.NewDefaultItemStyles(),
-		},
-		0, 0)
+	idel := itemDelegate{
+		state:  st,
+		styles: list.NewDefaultItemStyles(),
+	}
+
+	itemsModel := list.New([]list.Item{}, &idel, 0, 0)
 	itemsModel.SetFilteringEnabled(false)
 	itemsModel.SetShowFilter(false)
 	itemsModel.SetShowTitle(false)
@@ -69,6 +69,8 @@ func NewModel(st *shared.State) (*Model, error) {
 	itemsModel.SetShowHelp(false)
 	m.list = itemsModel
 	m.UpdateList()
+
+	idel.listModel = &itemsModel
 
 	btnTitle := "Create"
 	createButtongY1 := st.Areas.TabBar.Height + 1
