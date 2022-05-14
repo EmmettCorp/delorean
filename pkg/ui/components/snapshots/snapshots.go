@@ -17,11 +17,12 @@ import (
 )
 
 const (
-	infoTitle       = "Info"
-	idTitle         = "ID"
-	typeTitle       = "Type"
-	infoColumnWidth = 30
-	idColumnWidth   = 6
+	infoTitle            = "Info"
+	idTitle              = "ID"
+	typeTitle            = "Type"
+	infoColumnWidth      = 30
+	idColumnWidth        = 6
+	tabLineDeviderHeight = 4
 
 	minColumnGap    = "  "
 	minColumnGapLen = len(minColumnGap)
@@ -41,27 +42,29 @@ type snapshot struct {
 	Kernel      string
 }
 
-func (s snapshot) FilterValue() string { return s.Label }
+func (s *snapshot) FilterValue() string { return s.Label }
 
 type Model struct {
-	state     *shared.State
-	createBtn buttonModel
-	list      list.Model
-	height    int
-	err       error
+	state       *shared.State
+	createBtn   buttonModel
+	list        list.Model
+	height      int
+	currentPage int
+	itemsCount  int
+	err         error
 }
 
 func NewModel(st *shared.State) (*Model, error) {
 	m := Model{
-		state: st,
+		state:       st,
+		currentPage: -1,
+		itemsCount:  -1,
 	}
 
-	itemsModel := list.New([]list.Item{},
-		itemDelegate{
-			state:  st,
-			styles: list.NewDefaultItemStyles(),
-		},
-		0, 0)
+	itemsModel := list.New([]list.Item{}, itemDelegate{
+		state:  st,
+		styles: list.NewDefaultItemStyles(),
+	}, 0, 0)
 	itemsModel.SetFilteringEnabled(false)
 	itemsModel.SetShowFilter(false)
 	itemsModel.SetShowTitle(false)
@@ -111,13 +114,26 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.height = m.getHeight()
 		h, v := docStyle.GetFrameSize()
 		m.list.SetSize(msg.Width-h, msg.Height-v)
+		m.list.Paginator.Page = 0 // dirty hack for correct clickable item work
 	}
 
-	if len(m.list.Items()) == 0 {
+	// do not make btrfs commands for just ui update
+	if len(m.list.Items()) == m.itemsCount {
 		m.UpdateList()
+		m.itemsCount = len(m.list.Items())
 	}
 	var cmd tea.Cmd
 	m.list, cmd = m.list.Update(msg)
+
+	if m.currentPage != m.list.Paginator.Page {
+		m.currentPage = m.list.Paginator.Page
+		err := updateClickable(m)
+		if err != nil {
+			m.err = err
+
+			return m, cmd
+		}
+	}
 
 	return m, cmd
 }
@@ -130,23 +146,22 @@ func (m *Model) UpdateList() {
 		return
 	}
 
-	items := []list.Item{}
+	items := make([]list.Item, len(snaps))
 	for i := range snaps {
-		items = append(items, snapshot{
+		sn := snapshot{
 			Label:       snaps[i].Label,
 			VolumeLabel: snaps[i].VolumeLabel,
 			Type:        snaps[i].Type,
 			VolumeID:    snaps[i].VolumeID,
-		})
+		}
+		items[i] = &sn
 	}
 
 	m.list.SetItems(items)
 }
 
 func (m *Model) getHeight() int {
-	return m.state.Areas.MainContent.Height - (CreateButtonHeight +
-		2 + // divider height with padding
-		2) // nolint:gomnd // list header
+	return m.state.Areas.MainContent.Height - (CreateButtonHeight + tabLineDeviderHeight)
 }
 
 func getSnapshotsHeader() string {
