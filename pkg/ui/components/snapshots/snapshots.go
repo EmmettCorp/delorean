@@ -110,7 +110,6 @@ func (m *Model) View() string {
 }
 
 func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-
 	if msg, ok := msg.(tea.WindowSizeMsg); ok {
 		m.height = m.getHeight()
 		h, v := docStyle.GetFrameSize()
@@ -128,7 +127,12 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	if m.currentPage != m.list.Paginator.Page {
 		m.currentPage = m.list.Paginator.Page
-		updateClickable(m)
+		err := updateClickable(m)
+		if err != nil {
+			m.err = err
+
+			return m, cmd
+		}
 	}
 
 	return m, cmd
