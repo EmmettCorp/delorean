@@ -26,11 +26,11 @@ func (ci *clickableItem) SetCoords(coords shared.Coords) {
 }
 
 func updateClickable(m *Model) {
-	h := m.state.Areas.TabBar.Height + CreateButtonHeight + 4
+	h := m.state.Areas.TabBar.Height + CreateButtonHeight + tabLineDeviderHeight
 	m.state.CleanClickable(shared.SnapshotsList)
 	rowHeight := 1
 	gap := 2
-	start := h
+	itemY := h
 
 	items := m.list.Items()
 	first := m.list.Paginator.PerPage * m.list.Paginator.Page
@@ -40,13 +40,13 @@ func updateClickable(m *Model) {
 			index: i,
 			coords: shared.Coords{
 				X1: 1,
-				Y1: start,
+				Y1: itemY,
 				X2: m.state.ScreenWidth,
-				Y2: start + rowHeight,
+				Y2: itemY + rowHeight,
 			},
 			list: &m.list,
 		}
-		start = start + rowHeight + gap
+		itemY = itemY + rowHeight + gap
 
 		m.state.AppendClickable(shared.SnapshotsList, &sn)
 	}

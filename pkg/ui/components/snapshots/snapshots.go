@@ -17,11 +17,12 @@ import (
 )
 
 const (
-	infoTitle       = "Info"
-	idTitle         = "ID"
-	typeTitle       = "Type"
-	infoColumnWidth = 30
-	idColumnWidth   = 6
+	infoTitle            = "Info"
+	idTitle              = "ID"
+	typeTitle            = "Type"
+	infoColumnWidth      = 30
+	idColumnWidth        = 6
+	tabLineDeviderHeight = 4
 
 	minColumnGap    = "  "
 	minColumnGapLen = len(minColumnGap)
@@ -109,20 +110,21 @@ func (m *Model) View() string {
 }
 
 func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	var cmd tea.Cmd
-	m.list, cmd = m.list.Update(msg)
 
 	if msg, ok := msg.(tea.WindowSizeMsg); ok {
 		m.height = m.getHeight()
 		h, v := docStyle.GetFrameSize()
 		m.list.SetSize(msg.Width-h, msg.Height-v)
-		updateClickable(m)
+		m.list.Paginator.Page = 0 // dirty hack for correct clickable item work
 	}
 
+	// do not make btrfs commands for just ui update
 	if len(m.list.Items()) == m.itemsCount {
 		m.UpdateList()
 		m.itemsCount = len(m.list.Items())
 	}
+	var cmd tea.Cmd
+	m.list, cmd = m.list.Update(msg)
 
 	if m.currentPage != m.list.Paginator.Page {
 		m.currentPage = m.list.Paginator.Page
@@ -155,9 +157,7 @@ func (m *Model) UpdateList() {
 }
 
 func (m *Model) getHeight() int {
-	return m.state.Areas.MainContent.Height - (CreateButtonHeight +
-		2 + // divider height with padding
-		2) // nolint:gomnd // list header
+	return m.state.Areas.MainContent.Height - (CreateButtonHeight + tabLineDeviderHeight)
 }
 
 func getSnapshotsHeader() string {
