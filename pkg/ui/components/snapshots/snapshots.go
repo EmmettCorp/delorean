@@ -41,27 +41,29 @@ type snapshot struct {
 	Kernel      string
 }
 
-func (s snapshot) FilterValue() string { return s.Label }
+func (s *snapshot) FilterValue() string { return s.Label }
 
 type Model struct {
-	state     *shared.State
-	createBtn buttonModel
-	list      list.Model
-	height    int
-	err       error
+	state       *shared.State
+	createBtn   buttonModel
+	list        list.Model
+	height      int
+	currentPage int
+	itemsCount  int
+	err         error
 }
 
 func NewModel(st *shared.State) (*Model, error) {
 	m := Model{
-		state: st,
+		state:       st,
+		currentPage: -1,
+		itemsCount:  -1,
 	}
 
-	idel := itemDelegate{
+	itemsModel := list.New([]list.Item{}, itemDelegate{
 		state:  st,
 		styles: list.NewDefaultItemStyles(),
-	}
-
-	itemsModel := list.New([]list.Item{}, &idel, 0, 0)
+	}, 0, 0)
 	itemsModel.SetFilteringEnabled(false)
 	itemsModel.SetShowFilter(false)
 	itemsModel.SetShowTitle(false)
@@ -69,8 +71,6 @@ func NewModel(st *shared.State) (*Model, error) {
 	itemsModel.SetShowHelp(false)
 	m.list = itemsModel
 	m.UpdateList()
-
-	idel.listModel = &itemsModel
 
 	btnTitle := "Create"
 	createButtongY1 := st.Areas.TabBar.Height + 1
@@ -109,17 +109,25 @@ func (m *Model) View() string {
 }
 
 func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	var cmd tea.Cmd
+	m.list, cmd = m.list.Update(msg)
+
 	if msg, ok := msg.(tea.WindowSizeMsg); ok {
 		m.height = m.getHeight()
 		h, v := docStyle.GetFrameSize()
 		m.list.SetSize(msg.Width-h, msg.Height-v)
+		updateClickable(m)
 	}
 
-	if len(m.list.Items()) == 0 {
+	if len(m.list.Items()) == m.itemsCount {
 		m.UpdateList()
+		m.itemsCount = len(m.list.Items())
 	}
-	var cmd tea.Cmd
-	m.list, cmd = m.list.Update(msg)
+
+	if m.currentPage != m.list.Paginator.Page {
+		m.currentPage = m.list.Paginator.Page
+		updateClickable(m)
+	}
 
 	return m, cmd
 }
@@ -132,14 +140,15 @@ func (m *Model) UpdateList() {
 		return
 	}
 
-	items := []list.Item{}
+	items := make([]list.Item, len(snaps))
 	for i := range snaps {
-		items = append(items, snapshot{
+		sn := snapshot{
 			Label:       snaps[i].Label,
 			VolumeLabel: snaps[i].VolumeLabel,
 			Type:        snaps[i].Type,
 			VolumeID:    snaps[i].VolumeID,
-		})
+		}
+		items[i] = &sn
 	}
 
 	m.list.SetItems(items)

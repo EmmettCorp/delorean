@@ -19,18 +19,15 @@ const (
 )
 
 type itemDelegate struct {
-	state     *shared.State // state here is needed to track screenWidth
-	listModel *list.Model   // list.Model is needed to handle click event
-	styles    list.DefaultItemStyles
-	index     int
-	coords    shared.Coords
+	state  *shared.State // state here is needed to track screenWidth
+	styles list.DefaultItemStyles
 }
 
-func (d *itemDelegate) Height() int                               { return itemDelegateHeight }
-func (d *itemDelegate) Spacing() int                              { return 1 }
-func (d *itemDelegate) Update(msg tea.Msg, m *list.Model) tea.Cmd { return nil }
-func (d *itemDelegate) Render(w io.Writer, m list.Model, index int, listItem list.Item) {
-	s, ok := listItem.(snapshot)
+func (d itemDelegate) Height() int                               { return itemDelegateHeight }
+func (d itemDelegate) Spacing() int                              { return 1 }
+func (d itemDelegate) Update(msg tea.Msg, m *list.Model) tea.Cmd { return nil }
+func (d itemDelegate) Render(w io.Writer, m list.Model, index int, listItem list.Item) {
+	s, ok := listItem.(*snapshot)
 	if !ok {
 		return
 	}
@@ -63,21 +60,6 @@ func (d *itemDelegate) Render(w io.Writer, m list.Model, index int, listItem lis
 		title = d.styles.NormalTitle.Render(title)
 		description = d.styles.NormalDesc.Render(description)
 	}
-	d.index = index
 
 	fmt.Fprintf(w, "%s\n%s", title, description)
-}
-
-func (d *itemDelegate) OnClick() error {
-	d.listModel.Select(d.index)
-
-	return nil
-}
-
-func (d *itemDelegate) GetCoords() shared.Coords {
-	return d.coords
-}
-
-func (d *itemDelegate) SetCoords(coords shared.Coords) {
-	d.coords = coords
 }

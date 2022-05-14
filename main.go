@@ -15,11 +15,6 @@ func main() {
 }
 
 func run() error {
-	a, err := app.New()
-	if err != nil {
-		return err
-	}
-
 	closeLogger, err := logger.Init()
 	if err != nil {
 		return err
@@ -30,6 +25,11 @@ func run() error {
 			err = logErr
 		}
 	}()
+
+	a, err := app.New()
+	if err != nil {
+		return err
+	}
 
 	err = a.Run()
 
