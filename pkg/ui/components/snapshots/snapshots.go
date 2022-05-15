@@ -110,29 +110,29 @@ func (m *Model) View() string {
 }
 
 func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	if msg, ok := msg.(tea.WindowSizeMsg); ok {
+	var needUpdateClickable bool
+
+	if _, ok := msg.(tea.WindowSizeMsg); ok {
 		m.height = m.getHeight()
-		h, v := docStyle.GetFrameSize()
-		m.list.SetSize(msg.Width-h, msg.Height-v)
-		m.list.Paginator.Page = 0 // dirty hack for correct clickable item work
+		m.list.SetSize(m.state.ScreenWidth, m.height)
+		needUpdateClickable = true
 	}
 
-	// do not make btrfs commands for just ui update
-	if len(m.list.Items()) == m.itemsCount {
+	var cmd tea.Cmd
+	// do not make btrfs commands call for just ui update
+	if len(m.list.Items()) != m.itemsCount {
 		m.UpdateList()
 		m.itemsCount = len(m.list.Items())
 	}
-	var cmd tea.Cmd
 	m.list, cmd = m.list.Update(msg)
 
 	if m.currentPage != m.list.Paginator.Page {
 		m.currentPage = m.list.Paginator.Page
-		err := updateClickable(m)
-		if err != nil {
-			m.err = err
+		needUpdateClickable = true
+	}
 
-			return m, cmd
-		}
+	if needUpdateClickable {
+		updateClickable(m)
 	}
 
 	return m, cmd

@@ -26,7 +26,7 @@ func (ci *clickableItem) SetCoords(coords shared.Coords) {
 	ci.coords = coords
 }
 
-func updateClickable(m *Model) error {
+func updateClickable(m *Model) {
 	h := m.state.Areas.TabBar.Height + CreateButtonHeight + tabLineDeviderHeight
 	m.state.CleanClickable(shared.SnapshotsList)
 	rowHeight := 1
@@ -51,9 +51,7 @@ func updateClickable(m *Model) error {
 
 		err := m.state.AppendClickable(shared.SnapshotsList, &sn)
 		if err != nil {
-			return err
+			m.err = err
 		}
 	}
-
-	return nil
 }
