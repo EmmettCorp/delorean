@@ -6,6 +6,11 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 )
 
+const (
+	clickableGap                   = 1
+	clickableExtendedInfoRowHeight = 1
+)
+
 type clickableItem struct {
 	index  int
 	coords shared.Coords
@@ -29,8 +34,6 @@ func (ci *clickableItem) SetCoords(coords shared.Coords) {
 func updateClickable(m *Model) {
 	h := m.state.Areas.TabBar.Height + CreateButtonHeight + tabLineDeviderHeight
 	m.state.CleanClickable(shared.SnapshotsList)
-	rowHeight := 1
-	gap := 2
 	itemY := h
 
 	items := m.list.Items()
@@ -43,11 +46,11 @@ func updateClickable(m *Model) {
 				X1: 1,
 				Y1: itemY,
 				X2: m.state.ScreenWidth,
-				Y2: itemY + rowHeight,
+				Y2: itemY + clickableExtendedInfoRowHeight,
 			},
 			list: &m.list,
 		}
-		itemY = itemY + rowHeight + gap
+		itemY = itemY + clickableExtendedInfoRowHeight + clickableGap + 1
 
 		err := m.state.AppendClickable(shared.SnapshotsList, &sn)
 		if err != nil {
