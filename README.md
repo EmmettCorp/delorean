@@ -46,3 +46,9 @@ Each of them (delorean as well) has it's own restrictions and advantages. Choose
 [Timeshift](https://github.com/teejee2008/timeshift)
 
 [snapper](https://github.com/openSUSE/snapper) 
+
+***
+
+Powered by [Charm](https://charm.sh).
+
+<a href="https://charm.sh/"><img alt="The Charm logo" src="https://stuff.charm.sh/charm-badge.jpg" width="200"></a>

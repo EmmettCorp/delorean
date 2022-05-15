@@ -119,7 +119,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	}
 
 	var cmd tea.Cmd
-	// do not make btrfs commands call for just ui update
+	// do not call btrfs commands for just ui update
 	if len(m.list.Items()) != m.itemsCount {
 		m.UpdateList()
 		m.itemsCount = len(m.list.Items())
