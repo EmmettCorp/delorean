@@ -77,7 +77,7 @@ func NewModel(st *shared.State) (*Model, error) {
 	createButtongY1 := st.Areas.TabBar.Height + 1
 	createBtn := newCreateButton(st, btnTitle, shared.Coords{
 		Y1: createButtongY1,
-		X2: len(btnTitle) + 3, // nolint:gomnd // left and right borders + 1
+		X2: lipgloss.Width(btnTitle) + 3, // nolint:gomnd // left and right borders + 1
 		Y2: createButtongY1 + CreateButtonHeight,
 	}, m.UpdateList)
 	m.createBtn = createBtn
@@ -168,9 +168,9 @@ func getSnapshotsHeader() string {
 	var header strings.Builder
 	header.WriteString(minColumnGap)
 	header.WriteString(infoTitle)
-	header.WriteString(strings.Repeat(" ", infoColumnWidth-len(infoTitle)-minColumnGapLen))
+	header.WriteString(strings.Repeat(" ", infoColumnWidth-lipgloss.Width(infoTitle)-minColumnGapLen))
 	header.WriteString(idTitle)
-	header.WriteString(strings.Repeat(" ", idColumnWidth-len(idTitle)))
+	header.WriteString(strings.Repeat(" ", idColumnWidth-lipgloss.Width(idTitle)))
 	header.WriteString(typeTitle)
 
 	return header.String()
