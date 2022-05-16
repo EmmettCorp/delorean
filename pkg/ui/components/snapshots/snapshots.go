@@ -112,10 +112,17 @@ func (m *Model) View() string {
 func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var needUpdateClickable bool
 
-	if _, ok := msg.(tea.WindowSizeMsg); ok {
+	switch msg := msg.(type) {
+	case tea.WindowSizeMsg:
 		m.height = m.getHeight()
 		m.list.SetSize(m.state.ScreenWidth, m.height)
 		needUpdateClickable = true
+	case tea.MouseMsg:
+		if msg.Type == tea.MouseWheelDown {
+			m.list.Paginator.NextPage()
+		} else if msg.Type == tea.MouseWheelUp {
+			m.list.Paginator.PrevPage()
+		}
 	}
 
 	var cmd tea.Cmd
