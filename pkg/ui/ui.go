@@ -86,6 +86,8 @@ func (a *App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.MouseMsg:
 		if msg.Type == tea.MouseLeft {
 			a.OnClick(msg)
+		} else {
+			a.components.snapshots.Update(msg)
 		}
 	case tea.WindowSizeMsg:
 		a.onWindowSizeChanged(msg)
