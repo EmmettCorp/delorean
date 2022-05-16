@@ -18,7 +18,7 @@ const (
 	itemDelegateHeight = 2
 )
 
-// itemDelegate is responsible for item rendering
+// itemDelegate is responsible for item rendering.
 type itemDelegate struct {
 	state  *shared.State // state here is needed to track screenWidth
 	styles list.DefaultItemStyles
@@ -43,7 +43,8 @@ func (d itemDelegate) Render(w io.Writer, m list.Model, index int, listItem list
 
 	rowIcons := fmt.Sprintf("%s%s%s", restoreIcon, strings.Repeat(" ", iconsGap), deleteIcon)
 
-	gap := strings.Repeat(" ", shared.Max(minColumnGapLen, d.state.ScreenWidth-lipgloss.Width(row)-lipgloss.Width(rowIcons)-iconsGap))
+	gap := strings.Repeat(" ", shared.Max(minColumnGapLen,
+		d.state.ScreenWidth-lipgloss.Width(row)-lipgloss.Width(rowIcons)-iconsGap))
 
 	title := lipgloss.JoinHorizontal(lipgloss.Left, row, gap, rowIcons)
 
