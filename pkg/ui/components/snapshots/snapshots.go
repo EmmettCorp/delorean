@@ -104,7 +104,7 @@ func (m *Model) View() string {
 	s.WriteString(divider.HorizontalLine(m.state.ScreenWidth, styles.DefaultTheme.InactiveText))
 	s.WriteString("\n")
 	m.list.SetSize(m.state.ScreenWidth, m.height)
-	s.WriteString(docStyle.Render(m.list.View()))
+	s.WriteString(styles.MainDocStyle.Render(m.list.View()))
 
 	return s.String()
 }

@@ -5,6 +5,7 @@ package settings
 
 import (
 	"github.com/EmmettCorp/delorean/pkg/ui/shared"
+	"github.com/EmmettCorp/delorean/pkg/ui/shared/styles"
 	tea "github.com/charmbracelet/bubbletea"
 )
 
@@ -38,7 +39,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 func (m *Model) View() string {
 	content := " settings" // Just dummy "settings" string for now.
 
-	res := docStyle.Height(m.height).Render(content)
+	res := styles.MainDocStyle.Height(m.height).Render(content)
 
 	return res[:len(res)-len(content)] // will be changes in future
 }
