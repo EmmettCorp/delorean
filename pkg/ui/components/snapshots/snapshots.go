@@ -139,6 +139,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	if len(m.list.Items()) != m.itemsCount {
 		m.UpdateList()
 		m.itemsCount = len(m.list.Items())
+		needUpdateClickable = true
 	}
 	m.list, cmd = m.list.Update(msg)
 
