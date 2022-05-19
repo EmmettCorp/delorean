@@ -45,12 +45,14 @@ type snapshot struct {
 	Path        string
 }
 
-func (s *snapshot) FilterValue() string { return s.Path }
+func (s *snapshot) FilterValue() string { return s.Label }
+func (s *snapshot) GetPath() string     { return s.Path }
 
 type Model struct {
 	state       *shared.State
 	createBtn   buttonModel
 	list        list.Model
+	snapshots   []snapshot
 	keys        keyMap
 	height      int
 	currentPage int
@@ -79,11 +81,11 @@ func NewModel(st *shared.State) (*Model, error) {
 	m.UpdateList()
 
 	btnTitle := "Create"
-	createButtongY1 := st.Areas.TabBar.Height + 1
+	createButtonY1 := st.Areas.TabBar.Height + 1
 	createBtn := newCreateButton(st, btnTitle, shared.Coords{
-		Y1: createButtongY1,
+		Y1: createButtonY1,
 		X2: lipgloss.Width(btnTitle) + 3, // nolint:gomnd // left and right borders + 1
-		Y2: createButtongY1 + CreateButtonHeight,
+		Y2: createButtonY1 + CreateButtonHeight,
 	}, m.UpdateList)
 	m.createBtn = createBtn
 
@@ -163,18 +165,25 @@ func (m *Model) UpdateList() {
 		return
 	}
 
-	items := make([]list.Item, len(snaps))
+	m.snapshots = make([]snapshot, len(snaps))
 	for i := range snaps {
-		sn := snapshot{
+		m.snapshots[i] = snapshot{
 			Label:       snaps[i].Label,
 			VolumeLabel: snaps[i].VolumeLabel,
 			Type:        snaps[i].Type,
 			VolumeID:    snaps[i].VolumeID,
 			Path:        snaps[i].Path,
 		}
-		items[i] = &sn
 	}
 
+	m.setItems()
+}
+
+func (m *Model) setItems() {
+	items := make([]list.Item, len(m.snapshots))
+	for i := range m.snapshots {
+		items[i] = &m.snapshots[i]
+	}
 	m.list.SetItems(items)
 }
 
@@ -187,12 +196,11 @@ func (m *Model) deleteSelectedKey() error {
 }
 
 func (m *Model) deleteByIndex(idx int) error {
-	items := m.list.Items()
-	if idx > len(items) {
+	if idx > len(m.snapshots) {
 		return errors.New("index is out of range")
 	}
-	item := items[idx]
-	err := btrfs.DeleteSnapshot(item.FilterValue())
+	item := m.snapshots[idx]
+	err := btrfs.DeleteSnapshot(item.GetPath())
 	if err != nil {
 		return err
 	}
