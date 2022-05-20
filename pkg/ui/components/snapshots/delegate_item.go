@@ -5,6 +5,7 @@ import (
 	"io"
 	"strings"
 
+	"github.com/EmmettCorp/delorean/pkg/logger"
 	"github.com/EmmettCorp/delorean/pkg/ui/shared"
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
@@ -16,6 +17,7 @@ const (
 	deleteIcon         = "✖"
 	iconsGap           = 4
 	itemDelegateHeight = 2
+	spacing            = 1
 )
 
 // itemDelegate is responsible for item rendering.
@@ -25,7 +27,7 @@ type itemDelegate struct {
 }
 
 func (d itemDelegate) Height() int                               { return itemDelegateHeight }
-func (d itemDelegate) Spacing() int                              { return 1 }
+func (d itemDelegate) Spacing() int                              { return spacing }
 func (d itemDelegate) Update(msg tea.Msg, m *list.Model) tea.Cmd { return nil }
 func (d itemDelegate) Render(w io.Writer, m list.Model, index int, listItem list.Item) {
 	s, ok := listItem.(*snapshot)
@@ -44,7 +46,10 @@ func (d itemDelegate) Render(w io.Writer, m list.Model, index int, listItem list
 	rowIcons := fmt.Sprintf("%s%s%s", restoreIcon, strings.Repeat(" ", iconsGap), deleteIcon)
 
 	gap := strings.Repeat(" ", shared.Max(minColumnGapLen,
-		d.state.ScreenWidth-lipgloss.Width(row)-lipgloss.Width(rowIcons)-iconsGap))
+		d.state.ScreenWidth-lipgloss.Width(row)-(lipgloss.Width(rowIcons)+iconsGap-spacing)))
+
+	logger.Client.InfoLog.Println("delegate", shared.Max(minColumnGapLen,
+		d.state.ScreenWidth-lipgloss.Width(row)-(lipgloss.Width(rowIcons)+iconsGap-spacing)))
 
 	title := lipgloss.JoinHorizontal(lipgloss.Left, row, gap, rowIcons)
 

@@ -4,6 +4,7 @@ Package snapshots keeps all the logic for snapshots component.
 package snapshots
 
 import (
+	"errors"
 	"strings"
 
 	"github.com/EmmettCorp/delorean/pkg/commands/btrfs"
@@ -11,6 +12,7 @@ import (
 	"github.com/EmmettCorp/delorean/pkg/ui/shared/elements/button"
 	"github.com/EmmettCorp/delorean/pkg/ui/shared/elements/divider"
 	"github.com/EmmettCorp/delorean/pkg/ui/shared/styles"
+	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
@@ -22,7 +24,7 @@ const (
 	typeTitle            = "Type"
 	infoColumnWidth      = 30
 	idColumnWidth        = 6
-	tabLineDeviderHeight = 4
+	tabLineDividerHeight = 4
 
 	minColumnGap    = "  "
 	minColumnGapLen = len(minColumnGap)
@@ -40,14 +42,18 @@ type snapshot struct {
 	Type        string
 	VolumeID    string
 	Kernel      string
+	Path        string
 }
 
 func (s *snapshot) FilterValue() string { return s.Label }
+func (s *snapshot) GetPath() string     { return s.Path }
 
 type Model struct {
 	state       *shared.State
 	createBtn   buttonModel
 	list        list.Model
+	snapshots   []snapshot
+	keys        keyMap
 	height      int
 	currentPage int
 	itemsCount  int
@@ -59,6 +65,7 @@ func NewModel(st *shared.State) (*Model, error) {
 		state:       st,
 		currentPage: -1,
 		itemsCount:  -1,
+		keys:        getKeyMaps(),
 	}
 
 	itemsModel := list.New([]list.Item{}, itemDelegate{
@@ -74,11 +81,11 @@ func NewModel(st *shared.State) (*Model, error) {
 	m.UpdateList()
 
 	btnTitle := "Create"
-	createButtongY1 := st.Areas.TabBar.Height + 1
+	createButtonY1 := st.Areas.TabBar.Height + 1
 	createBtn := newCreateButton(st, btnTitle, shared.Coords{
-		Y1: createButtongY1,
+		Y1: createButtonY1,
 		X2: lipgloss.Width(btnTitle) + 3, // nolint:gomnd // left and right borders + 1
-		Y2: createButtongY1 + CreateButtonHeight,
+		Y2: createButtonY1 + createButtonHeight,
 	}, m.UpdateList)
 	m.createBtn = createBtn
 
@@ -123,6 +130,10 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		} else if msg.Type == tea.MouseWheelUp {
 			m.list.Paginator.PrevPage()
 		}
+	case tea.KeyMsg:
+		if key.Matches(msg, m.keys.Delete) {
+			m.err = m.deleteSelectedKey()
+		}
 	}
 
 	var cmd tea.Cmd
@@ -130,6 +141,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	if len(m.list.Items()) != m.itemsCount {
 		m.UpdateList()
 		m.itemsCount = len(m.list.Items())
+		needUpdateClickable = true
 	}
 	m.list, cmd = m.list.Update(msg)
 
@@ -153,22 +165,49 @@ func (m *Model) UpdateList() {
 		return
 	}
 
-	items := make([]list.Item, len(snaps))
+	m.snapshots = make([]snapshot, len(snaps))
 	for i := range snaps {
-		sn := snapshot{
+		m.snapshots[i] = snapshot{
 			Label:       snaps[i].Label,
 			VolumeLabel: snaps[i].VolumeLabel,
 			Type:        snaps[i].Type,
 			VolumeID:    snaps[i].VolumeID,
+			Path:        snaps[i].Path,
 		}
-		items[i] = &sn
 	}
 
+	m.setItems()
+}
+
+func (m *Model) setItems() {
+	items := make([]list.Item, len(m.snapshots))
+	for i := range m.snapshots {
+		items[i] = &m.snapshots[i]
+	}
 	m.list.SetItems(items)
 }
 
 func (m *Model) getHeight() int {
-	return m.state.Areas.MainContent.Height - (CreateButtonHeight + tabLineDeviderHeight)
+	return m.state.Areas.MainContent.Height - (createButtonHeight + tabLineDividerHeight)
+}
+
+func (m *Model) deleteSelectedKey() error {
+	return m.deleteByIndex(m.list.Index())
+}
+
+func (m *Model) deleteByIndex(idx int) error {
+	if idx > len(m.snapshots) {
+		return errors.New("index is out of range")
+	}
+	item := m.snapshots[idx]
+	err := btrfs.DeleteSnapshot(item.GetPath())
+	if err != nil {
+		return err
+	}
+
+	m.list.RemoveItem(idx)
+
+	return nil
 }
 
 func getSnapshotsHeader() string {
