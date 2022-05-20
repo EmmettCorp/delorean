@@ -52,7 +52,7 @@ func (db *deleteItemButton) SetCoords(coords shared.Coords) {
 }
 
 func updateClickable(m *Model) {
-	h := m.state.Areas.TabBar.Height + CreateButtonHeight + tabLineDividerHeight
+	h := m.state.Areas.TabBar.Height + createButtonHeight + tabLineDividerHeight
 	m.state.CleanClickable(shared.SnapshotsList)
 	itemY := h
 

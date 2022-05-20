@@ -85,7 +85,7 @@ func NewModel(st *shared.State) (*Model, error) {
 	createBtn := newCreateButton(st, btnTitle, shared.Coords{
 		Y1: createButtonY1,
 		X2: lipgloss.Width(btnTitle) + 3, // nolint:gomnd // left and right borders + 1
-		Y2: createButtonY1 + CreateButtonHeight,
+		Y2: createButtonY1 + createButtonHeight,
 	}, m.UpdateList)
 	m.createBtn = createBtn
 
@@ -188,7 +188,7 @@ func (m *Model) setItems() {
 }
 
 func (m *Model) getHeight() int {
-	return m.state.Areas.MainContent.Height - (CreateButtonHeight + tabLineDividerHeight)
+	return m.state.Areas.MainContent.Height - (createButtonHeight + tabLineDividerHeight)
 }
 
 func (m *Model) deleteSelectedKey() error {
