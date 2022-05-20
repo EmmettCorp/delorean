@@ -132,7 +132,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 	case tea.KeyMsg:
 		if key.Matches(msg, m.keys.Delete) {
-			m.deleteSelectedKey()
+			m.err = m.deleteSelectedKey()
 		}
 	}
 

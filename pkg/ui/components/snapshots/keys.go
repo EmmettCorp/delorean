@@ -11,7 +11,6 @@ type keyMap struct {
 
 func getKeyMaps() keyMap {
 	return keyMap{
-
 		Delete: key.NewBinding(
 			key.WithKeys(tea.KeyDelete.String(), "d"),
 			key.WithHelp("Delete", "delete snapshot"),

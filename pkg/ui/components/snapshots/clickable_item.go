@@ -76,7 +76,8 @@ func updateClickable(m *Model) {
 		if err != nil {
 			m.err = err
 		}
-		logger.Client.InfoLog.Println("clickable", shared.Max(m.state.ScreenWidth-(infoColumnWidth+idColumnWidth+tabLineDividerHeight+minColumnGapLen),
+		logger.Client.InfoLog.Println("clickable", shared.Max(m.state.ScreenWidth-
+			(infoColumnWidth+idColumnWidth+tabLineDividerHeight+minColumnGapLen),
 			m.state.ScreenWidth-clickableGap-lipgloss.Width(deleteIcon)))
 		db := deleteItemButton{
 			coords: shared.Coords{
