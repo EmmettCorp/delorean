@@ -5,6 +5,7 @@ package snapshots
 
 import (
 	"errors"
+	"fmt"
 	"strings"
 
 	"github.com/EmmettCorp/delorean/pkg/commands/btrfs"
@@ -24,10 +25,12 @@ const (
 	typeTitle            = "Type"
 	infoColumnWidth      = 30
 	idColumnWidth        = 6
+	typeColumnWidth      = 10
 	tabLineDividerHeight = 4
 
-	minColumnGap    = "  "
-	minColumnGapLen = len(minColumnGap)
+	minColumnGap     = "  "
+	minColumnGapLen  = len(minColumnGap)
+	infoColumnsWidth = infoColumnWidth + idColumnWidth + typeColumnWidth + minColumnGapLen
 )
 
 type buttonModel interface {
@@ -49,15 +52,16 @@ func (s *snapshot) FilterValue() string { return s.Label }
 func (s *snapshot) GetPath() string     { return s.Path }
 
 type Model struct {
-	state       *shared.State
-	createBtn   buttonModel
-	list        list.Model
-	snapshots   []snapshot
-	keys        keyMap
-	height      int
-	currentPage int
-	itemsCount  int
-	err         error
+	state           *shared.State
+	createBtn       buttonModel
+	list            list.Model
+	keys            keyMap
+	styles          list.DefaultItemStyles
+	height          int
+	currentPage     int
+	itemsCount      int
+	updateClickable bool
+	err             error
 }
 
 func NewModel(st *shared.State) (*Model, error) {
@@ -65,12 +69,12 @@ func NewModel(st *shared.State) (*Model, error) {
 		state:       st,
 		currentPage: -1,
 		itemsCount:  -1,
+		styles:      list.NewDefaultItemStyles(),
 		keys:        getKeyMaps(),
 	}
 
-	itemsModel := list.New([]list.Item{}, itemDelegate{
-		state:  st,
-		styles: list.NewDefaultItemStyles(),
+	itemsModel := list.New([]list.Item{}, &itemDelegate{
+		model: &m,
 	}, 0, 0)
 	itemsModel.SetFilteringEnabled(false)
 	itemsModel.SetShowFilter(false)
@@ -112,18 +116,19 @@ func (m *Model) View() string {
 	s.WriteString("\n")
 	m.list.SetSize(m.state.ScreenWidth, m.height)
 	s.WriteString(styles.MainDocStyle.Render(m.list.View()))
+	// set updateClickable = false after list page rendering only
+	// otherwise there can be not set clickable elements
+	m.updateClickable = false
 
 	return s.String()
 }
 
 func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	var needUpdateClickable bool
-
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
 		m.height = m.getHeight()
 		m.list.SetSize(m.state.ScreenWidth, m.height)
-		needUpdateClickable = true
+		m.updateClickable = true
 	case tea.MouseMsg:
 		if msg.Type == tea.MouseWheelDown {
 			m.list.Paginator.NextPage()
@@ -141,18 +146,17 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	if len(m.list.Items()) != m.itemsCount {
 		m.UpdateList()
 		m.itemsCount = len(m.list.Items())
-		needUpdateClickable = true
+		m.updateClickable = true
 	}
-	m.list, cmd = m.list.Update(msg)
-
 	if m.currentPage != m.list.Paginator.Page {
 		m.currentPage = m.list.Paginator.Page
-		needUpdateClickable = true
+		m.updateClickable = true
 	}
 
-	if needUpdateClickable {
-		updateClickable(m)
+	if m.updateClickable {
+		m.state.CleanClickable(shared.SnapshotsList)
 	}
+	m.list, cmd = m.list.Update(msg)
 
 	return m, cmd
 }
@@ -165,9 +169,9 @@ func (m *Model) UpdateList() {
 		return
 	}
 
-	m.snapshots = make([]snapshot, len(snaps))
+	items := make([]list.Item, len(snaps))
 	for i := range snaps {
-		m.snapshots[i] = snapshot{
+		items[i] = &snapshot{
 			Label:       snaps[i].Label,
 			VolumeLabel: snaps[i].VolumeLabel,
 			Type:        snaps[i].Type,
@@ -176,14 +180,6 @@ func (m *Model) UpdateList() {
 		}
 	}
 
-	m.setItems()
-}
-
-func (m *Model) setItems() {
-	items := make([]list.Item, len(m.snapshots))
-	for i := range m.snapshots {
-		items[i] = &m.snapshots[i]
-	}
 	m.list.SetItems(items)
 }
 
@@ -196,11 +192,17 @@ func (m *Model) deleteSelectedKey() error {
 }
 
 func (m *Model) deleteByIndex(idx int) error {
-	if idx > len(m.snapshots) {
-		return errors.New("index is out of range")
+	items := m.list.Items()
+	if idx >= len(items) {
+		return fmt.Errorf("index `%d` is out of range", idx)
 	}
-	item := m.snapshots[idx]
-	err := btrfs.DeleteSnapshot(item.GetPath())
+
+	sn, ok := items[idx].(*snapshot)
+	if !ok {
+		return errors.New("can't assert item to snapshot type")
+	}
+
+	err := btrfs.DeleteSnapshot(sn.GetPath())
 	if err != nil {
 		return err
 	}
