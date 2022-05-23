@@ -92,7 +92,6 @@ func NewModel(st *shared.State) (*Model, error) {
 		Y2: createButtonY1 + createButtonHeight,
 	}, m.UpdateList)
 	m.createBtn = createBtn
-
 	err := st.AppendClickable(shared.SnapshotsButtonsBar, createBtn)
 	if err != nil {
 		return nil, err

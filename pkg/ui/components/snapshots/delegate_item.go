@@ -53,10 +53,7 @@ func (d *itemDelegate) Render(w io.Writer, m list.Model, index int, listItem lis
 	}
 
 	if d.model.updateClickable {
-		err := d.setRowClickable(index, m.Paginator.PerPage)
-		if err != nil {
-			logger.Client.ErrLog.Printf("can't prepare visible row with index `%d`: %v", index, err)
-		}
+		d.setRowClickable(index, m.Paginator.PerPage)
 	}
 
 	var rowBuilder strings.Builder
@@ -66,6 +63,7 @@ func (d *itemDelegate) Render(w io.Writer, m list.Model, index int, listItem lis
 	rowBuilder.WriteString(strings.Repeat(" ", idColumnWidth-lipgloss.Width(s.VolumeID)))
 	rowBuilder.WriteString(s.Type)
 	row := rowBuilder.String()
+	// restoreItem is left most button in row
 	// minus 1 here because getRowButtonX1 for restore button returns it's x1 value, we need get -1 of it
 	gap := strings.Repeat(" ", shared.Max(minColumnGapLen,
 		d.getRowButtonX1(restoreItem)-1-lipgloss.Width(row)-spacing))
@@ -93,31 +91,35 @@ func (d *itemDelegate) getFirstItemY() int {
 	return d.model.state.Areas.TabBar.Height + createButtonHeight + tabLineDividerHeight
 }
 
-func (d itemDelegate) setRowClickable(index, perPage int) error {
+func (d itemDelegate) setRowClickable(index, perPage int) {
 	d.index = index
 	itemY := d.getFirstItemY() + (spacing+itemDelegateHeight)*(index%perPage)
+
 	d.coords = shared.Coords{
-		X1: 1,
+		X1: spacing,
 		Y1: itemY,
 		X2: d.model.state.ScreenWidth,
 		Y2: itemY + spacing,
 	}
 	err := d.model.state.AppendClickable(shared.SnapshotsList, &d)
 	if err != nil {
-		return fmt.Errorf("can't set row as clickable: %v", err)
+		logger.Client.ErrLog.Printf("append clickable row `%d`: %v", index, err)
 	}
 
+	deleteX1 := d.getRowButtonX1(deleteItem)
 	deleteItem := rowButton{
 		coords: shared.Coords{
-			X1: d.getRowButtonX1(deleteItem),
+			X1: deleteX1,
 			Y1: itemY,
-			X2: d.getRowButtonX1(deleteItem) + lipgloss.Width(deleteIcon),
+			X2: deleteX1 + lipgloss.Width(deleteIcon),
 			Y2: itemY + spacing,
 		},
 		row: &d,
 	}
-
-	return d.model.state.AppendClickable(shared.SnapshotsList, &deleteItem)
+	err = d.model.state.AppendClickable(shared.SnapshotsList, &deleteItem)
+	if err != nil {
+		logger.Client.ErrLog.Printf("append clickable delete button `%d`: %v", index, err)
+	}
 }
 
 func (d *itemDelegate) getRowButtonX1(action rowAction) int {
