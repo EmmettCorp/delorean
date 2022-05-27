@@ -11,6 +11,7 @@ import (
 	"github.com/EmmettCorp/delorean/pkg/commands/btrfs"
 	"github.com/EmmettCorp/delorean/pkg/ui/shared"
 	"github.com/EmmettCorp/delorean/pkg/ui/shared/elements/button"
+	"github.com/EmmettCorp/delorean/pkg/ui/shared/elements/dialog"
 	"github.com/EmmettCorp/delorean/pkg/ui/shared/elements/divider"
 	"github.com/EmmettCorp/delorean/pkg/ui/shared/styles"
 	"github.com/charmbracelet/bubbles/key"
@@ -62,6 +63,7 @@ type Model struct {
 	itemsCount      int
 	updateClickable bool
 	err             error
+	dialog          tea.Model
 }
 
 func NewModel(st *shared.State) (*Model, error) {
@@ -106,23 +108,32 @@ func (m *Model) Init() tea.Cmd {
 
 func (m *Model) View() string {
 	var s strings.Builder
-	s.WriteString(button.New(m.createBtn.GetTitle()))
-	s.WriteString("\n")
-	s.WriteString(lipgloss.NewStyle().SetString(getSnapshotsHeader()).
-		Foreground(styles.DefaultTheme.InactiveText).String())
-	s.WriteString("\n")
-	s.WriteString(divider.HorizontalLine(m.state.ScreenWidth, styles.DefaultTheme.InactiveText))
-	s.WriteString("\n")
-	m.list.SetSize(m.state.ScreenWidth, m.height)
-	s.WriteString(styles.MainDocStyle.Render(m.list.View()))
-	// set updateClickable = false after list page rendering only
-	// otherwise there can be not set clickable elements
-	m.updateClickable = false
+
+	if m.dialog != nil {
+		s.WriteString(m.dialog.View())
+	} else {
+		s.WriteString(button.New(m.createBtn.GetTitle()))
+		s.WriteString("\n")
+		s.WriteString(lipgloss.NewStyle().SetString(getSnapshotsHeader()).
+			Foreground(styles.DefaultTheme.InactiveText).String())
+		s.WriteString("\n")
+		s.WriteString(divider.HorizontalLine(m.state.ScreenWidth, styles.DefaultTheme.InactiveText))
+		s.WriteString("\n")
+		m.list.SetSize(m.state.ScreenWidth, m.height)
+		s.WriteString(styles.MainDocStyle.Render(m.list.View()))
+		// set updateClickable = false after list page rendering only
+		// otherwise there can be not set clickable elements
+		m.updateClickable = false
+	}
 
 	return s.String()
 }
 
 func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	if m.dialog != nil {
+		return m.updateDialog(msg)
+	}
+
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
 		m.height = m.getHeight()
@@ -160,6 +171,12 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, cmd
 }
 
+func (m *Model) updateDialog(msg tea.Msg) (tea.Model, tea.Cmd) {
+	mod, cmd := m.dialog.Update(msg)
+
+	return mod, cmd
+}
+
 func (m *Model) UpdateList() {
 	snaps, err := btrfs.SnapshotsList(m.state.Config.Volumes)
 	if err != nil {
@@ -187,7 +204,27 @@ func (m *Model) getHeight() int {
 }
 
 func (m *Model) deleteSelectedKey() error {
-	return m.deleteByIndex(m.list.Index())
+	return m.deleteWithDialog(m.list.Index())
+}
+
+func (m *Model) deleteWithDialog(idx int) error {
+	items := m.list.Items()
+	if idx >= len(items) {
+		return fmt.Errorf("index `%d` is out of range", idx)
+	}
+
+	sn, ok := items[idx].(*snapshot)
+	if !ok {
+		return errors.New("can't assert item to snapshot type")
+	}
+	m.dialog = dialog.New(fmt.Sprintf("Remove snapshot %s?", sn.Label), "Ok", "Cancel", m.state.ScreenWidth, m.height, func() {
+		m.deleteByIndex(idx)
+		m.dialog = nil
+	}, func() {
+		m.dialog = nil
+	})
+
+	return nil
 }
 
 func (m *Model) deleteByIndex(idx int) error {

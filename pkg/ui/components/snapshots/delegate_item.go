@@ -169,5 +169,5 @@ func (re *rowButton) SetCoords(coords shared.Coords) {
 }
 
 func (re *rowButton) deleteItem() error {
-	return re.row.model.deleteByIndex(re.row.index)
+	return re.row.model.deleteWithDialog(re.row.index)
 }
