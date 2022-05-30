@@ -208,19 +208,16 @@ func (m *Model) deleteSelectedKey() error {
 }
 
 func (m *Model) deleteWithDialog(idx int) error {
-	items := m.list.Items()
-	if idx >= len(items) {
-		return fmt.Errorf("index `%d` is out of range", idx)
+	sn, err := m.getSnapshotByIndex(idx)
+	if err != nil {
+		return fmt.Errorf("can't get snapshot by index `%d`: %v", idx, err)
 	}
 
-	sn, ok := items[idx].(*snapshot)
-	if !ok {
-		return errors.New("can't assert item to snapshot type")
-	}
 	m.dialog = dialog.New(fmt.Sprintf("Remove snapshot %s?", sn.Label), "Ok", "Cancel", m.state.ScreenWidth, m.height, func() {
 		m.deleteByIndex(idx)
 		m.dialog = nil
 	}, func() {
+		m.list.Select(idx)
 		m.dialog = nil
 	})
 
@@ -228,17 +225,12 @@ func (m *Model) deleteWithDialog(idx int) error {
 }
 
 func (m *Model) deleteByIndex(idx int) error {
-	items := m.list.Items()
-	if idx >= len(items) {
-		return fmt.Errorf("index `%d` is out of range", idx)
+	sn, err := m.getSnapshotByIndex(idx)
+	if err != nil {
+		return fmt.Errorf("can't get snapshot by index `%d`: %v", idx, err)
 	}
 
-	sn, ok := items[idx].(*snapshot)
-	if !ok {
-		return errors.New("can't assert item to snapshot type")
-	}
-
-	err := btrfs.DeleteSnapshot(sn.GetPath())
+	err = btrfs.DeleteSnapshot(sn.GetPath())
 	if err != nil {
 		return err
 	}
@@ -246,6 +238,20 @@ func (m *Model) deleteByIndex(idx int) error {
 	m.list.RemoveItem(idx)
 
 	return nil
+}
+
+func (m *Model) getSnapshotByIndex(idx int) (*snapshot, error) {
+	items := m.list.Items()
+	if idx >= len(items) {
+		return nil, fmt.Errorf("index `%d` is out of range", idx)
+	}
+
+	sn, ok := items[idx].(*snapshot)
+	if !ok {
+		return nil, errors.New("can't assert item to snapshot type")
+	}
+
+	return sn, nil
 }
 
 func getSnapshotsHeader() string {
