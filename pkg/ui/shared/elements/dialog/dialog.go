@@ -1,6 +1,7 @@
 package dialog
 
 import (
+	"github.com/EmmettCorp/delorean/pkg/logger"
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
@@ -21,6 +22,7 @@ type Model struct {
 	w          int
 	h          int
 	keys       keyMap
+	// coords     shared.Coords
 }
 
 func New(text, okText, cancelText string, w, h int, okFunc, cancelFunc func()) *Model {
@@ -30,7 +32,7 @@ func New(text, okText, cancelText string, w, h int, okFunc, cancelFunc func()) *
 		OkText:     okText,
 		CancelText: cancelText,
 		w:          w,
-		h:          h,
+		h:          h + dHeight,
 		OkFunc:     okFunc,
 		CancelFunc: cancelFunc,
 		keys:       getKeyMaps(),
@@ -44,9 +46,9 @@ func (m *Model) Init() tea.Cmd {
 func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
-		// m.height = m.getHeight()
-		// m.list.SetSize(m.state.ScreenWidth, m.height)
-		// m.updateClickable = true
+		m.h = msg.Height + dHeight
+		m.w = msg.Width
+		logger.Client.InfoLog.Printf("resize height: %d", msg.Height)
 	// case tea.MouseMsg:
 	// 	if msg.Type == tea.MouseWheelDown {
 	// 		m.list.Paginator.NextPage()
@@ -80,7 +82,7 @@ func (m *Model) View() string {
 	buttons := lipgloss.JoinHorizontal(lipgloss.Top, okButton, cancelButton)
 	ui := lipgloss.JoinVertical(lipgloss.Center, question, buttons)
 
-	return lipgloss.Place(m.w, m.h+dHeight,
+	return lipgloss.Place(m.w, m.h,
 		lipgloss.Center, lipgloss.Center,
 		dialogBoxStyle.Render(ui),
 		lipgloss.WithWhitespaceChars(" "),

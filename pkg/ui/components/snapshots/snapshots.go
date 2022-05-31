@@ -21,13 +21,15 @@ import (
 )
 
 const (
-	infoTitle            = "Info"
-	idTitle              = "ID"
-	typeTitle            = "Type"
-	infoColumnWidth      = 30
-	idColumnWidth        = 6
-	typeColumnWidth      = 10
-	tabLineDividerHeight = 4
+	infoTitle       = "Info"
+	idTitle         = "ID"
+	typeTitle       = "Type"
+	infoColumnWidth = 30
+	idColumnWidth   = 6
+	typeColumnWidth = 10
+
+	listHeaderHeight    = 2
+	pageIndicatorHeight = 1
 
 	minColumnGap     = "  "
 	minColumnGapLen  = len(minColumnGap)
@@ -90,8 +92,8 @@ func NewModel(st *shared.State) (*Model, error) {
 	createButtonY1 := st.Areas.TabBar.Height + 1
 	createBtn := newCreateButton(st, btnTitle, shared.Coords{
 		Y1: createButtonY1,
-		X2: lipgloss.Width(btnTitle) + 3, // nolint:gomnd // left and right borders + 1
-		Y2: createButtonY1 + createButtonHeight,
+		X2: lipgloss.Width(btnTitle) + 3,            // nolint:gomnd // left and right borders + 1
+		Y2: createButtonY1 + createButtonHeight - 1, // we don't need make bottom border line clickable
 	}, m.UpdateList)
 	m.createBtn = createBtn
 	err := st.AppendClickable(shared.SnapshotsButtonsBar, createBtn)
@@ -107,24 +109,23 @@ func (m *Model) Init() tea.Cmd {
 }
 
 func (m *Model) View() string {
-	var s strings.Builder
-
 	if m.dialog != nil {
-		s.WriteString(m.dialog.View())
-	} else {
-		s.WriteString(button.New(m.createBtn.GetTitle()))
-		s.WriteString("\n")
-		s.WriteString(lipgloss.NewStyle().SetString(getSnapshotsHeader()).
-			Foreground(styles.DefaultTheme.InactiveText).String())
-		s.WriteString("\n")
-		s.WriteString(divider.HorizontalLine(m.state.ScreenWidth, styles.DefaultTheme.InactiveText))
-		s.WriteString("\n")
-		m.list.SetSize(m.state.ScreenWidth, m.height)
-		s.WriteString(styles.MainDocStyle.Render(m.list.View()))
-		// set updateClickable = false after list page rendering only
-		// otherwise there can be not set clickable elements
-		m.updateClickable = false
+		return m.dialog.View()
 	}
+
+	var s strings.Builder
+	s.WriteString(button.New(m.createBtn.GetTitle()))
+	s.WriteString("\n")
+	s.WriteString(lipgloss.NewStyle().SetString(getSnapshotsHeader()).
+		Foreground(styles.DefaultTheme.InactiveText).String())
+	s.WriteString("\n")
+	s.WriteString(divider.HorizontalLine(m.state.ScreenWidth, styles.DefaultTheme.InactiveText))
+	s.WriteString("\n")
+	m.list.SetSize(m.state.ScreenWidth, m.height)
+	s.WriteString(styles.MainDocStyle.Render(m.list.View()))
+	// set updateClickable = false after list page rendering only
+	// otherwise there can be not set clickable elements
+	m.updateClickable = false
 
 	return s.String()
 }
@@ -172,6 +173,18 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m *Model) updateDialog(msg tea.Msg) (tea.Model, tea.Cmd) {
+	switch msg.(type) {
+	case tea.WindowSizeMsg:
+		m.height = m.getHeight()
+		m.updateClickable = true
+		m, cmd := m.dialog.Update(tea.WindowSizeMsg{
+			Width:  m.state.ScreenWidth,
+			Height: m.height,
+		})
+
+		return m, cmd
+	}
+
 	mod, cmd := m.dialog.Update(msg)
 
 	return mod, cmd
@@ -200,7 +213,7 @@ func (m *Model) UpdateList() {
 }
 
 func (m *Model) getHeight() int {
-	return m.state.Areas.MainContent.Height - (createButtonHeight + tabLineDividerHeight)
+	return m.state.Areas.MainContent.Height - createButtonHeight - listHeaderHeight - pageIndicatorHeight
 }
 
 func (m *Model) deleteSelectedKey() error {
@@ -213,13 +226,14 @@ func (m *Model) deleteWithDialog(idx int) error {
 		return fmt.Errorf("can't get snapshot by index `%d`: %v", idx, err)
 	}
 
-	m.dialog = dialog.New(fmt.Sprintf("Remove snapshot %s?", sn.Label), "Ok", "Cancel", m.state.ScreenWidth, m.height, func() {
-		m.deleteByIndex(idx)
-		m.dialog = nil
-	}, func() {
-		m.list.Select(idx)
-		m.dialog = nil
-	})
+	m.dialog = dialog.New(fmt.Sprintf("Remove snapshot %s?", sn.Label), "Ok", "Cancel", m.state.ScreenWidth, m.height,
+		func() {
+			m.deleteByIndex(idx)
+			m.dialog = nil
+		}, func() {
+			m.list.Select(idx)
+			m.dialog = nil
+		})
 
 	return nil
 }
