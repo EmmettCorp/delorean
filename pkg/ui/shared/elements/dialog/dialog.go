@@ -2,6 +2,7 @@ package dialog
 
 import (
 	"github.com/EmmettCorp/delorean/pkg/logger"
+	"github.com/EmmettCorp/delorean/pkg/ui/shared"
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
@@ -12,30 +13,38 @@ const (
 	dWidth  = 50
 )
 
-type Model struct {
-	Ok         bool
-	Text       string
-	OkText     string
-	CancelText string
-	OkFunc     func()
-	CancelFunc func()
-	w          int
-	h          int
-	keys       keyMap
-	// coords     shared.Coords
+type Button struct {
+	Text     string
+	Callback func()
+	active   bool
+	coords   shared.Coords
 }
 
-func New(text, okText, cancelText string, w, h int, okFunc, cancelFunc func()) *Model {
+type Model struct {
+	Title        string
+	OkButton     Button
+	CancelButton Button
+	w            int
+	h            int
+	keys         keyMap
+}
+
+func New(title, okText, cancelText string, w, h int, okFunc, cancelFunc func()) *Model {
 	return &Model{
-		Ok:         true,
-		Text:       text,
-		OkText:     okText,
-		CancelText: cancelText,
-		w:          w,
-		h:          h + dHeight,
-		OkFunc:     okFunc,
-		CancelFunc: cancelFunc,
-		keys:       getKeyMaps(),
+		Title: title,
+		OkButton: Button{
+			Text:     okText,
+			Callback: okFunc,
+			active:   true,
+		},
+		CancelButton: Button{
+			Text:     cancelText,
+			Callback: cancelFunc,
+			active:   false,
+		},
+		w:    w,
+		h:    h + dHeight,
+		keys: getKeyMaps(),
 	}
 }
 
@@ -57,11 +66,11 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	// 	}
 	case tea.KeyMsg:
 		if key.Matches(msg, m.keys.Left) {
-			m.Ok = true
+			m.Ok(true)
 		} else if key.Matches(msg, m.keys.Right) {
-			m.Ok = false
+			m.Ok(false)
 		} else if key.Matches(msg, m.keys.Enter) {
-			m.callback()
+			m.getActiveButton().Callback()
 		}
 	}
 
@@ -71,14 +80,10 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m *Model) View() string {
-	okButton := activeButtonStyle.Render(m.OkText)
-	cancelButton := buttonStyle.Render(m.CancelText)
-	if !m.Ok {
-		okButton = buttonStyle.Render(m.OkText)
-		cancelButton = activeButtonStyle.Render(m.CancelText)
-	}
+	okButton := m.OkButton.Render()
+	cancelButton := m.CancelButton.Render()
 
-	question := lipgloss.NewStyle().Width(dWidth).Align(lipgloss.Center).Render(m.Text)
+	question := lipgloss.NewStyle().Width(dWidth).Align(lipgloss.Center).Render(m.Title)
 	buttons := lipgloss.JoinHorizontal(lipgloss.Top, okButton, cancelButton)
 	ui := lipgloss.JoinVertical(lipgloss.Center, question, buttons)
 
@@ -90,11 +95,27 @@ func (m *Model) View() string {
 	)
 }
 
-func (m *Model) callback() {
-	if m.Ok {
-		m.OkFunc()
-		return
+func (m *Model) Ok(ok bool) {
+	m.OkButton.active = ok
+	m.CancelButton.active = !ok
+}
+
+func (m *Model) getActiveButton() Button {
+	if m.OkButton.active {
+		return m.OkButton
 	}
 
-	m.CancelFunc()
+	return m.CancelButton
+}
+
+func (b *Button) Render() string {
+	var style lipgloss.Style
+
+	if b.active {
+		style = activeButtonStyle
+	} else {
+		style = buttonStyle
+	}
+
+	return style.Render(b.Text)
 }
