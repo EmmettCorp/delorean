@@ -80,11 +80,8 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m *Model) View() string {
-	okButton := m.OkButton.Render()
-	cancelButton := m.CancelButton.Render()
-
 	question := lipgloss.NewStyle().Width(dWidth).Align(lipgloss.Center).Render(m.Title)
-	buttons := lipgloss.JoinHorizontal(lipgloss.Top, okButton, cancelButton)
+	buttons := lipgloss.JoinHorizontal(lipgloss.Top, m.OkButton.Render(), m.CancelButton.Render())
 	ui := lipgloss.JoinVertical(lipgloss.Center, question, buttons)
 
 	return lipgloss.Place(m.w, m.h,
@@ -109,13 +106,9 @@ func (m *Model) getActiveButton() Button {
 }
 
 func (b *Button) Render() string {
-	var style lipgloss.Style
-
 	if b.active {
-		style = activeButtonStyle
-	} else {
-		style = buttonStyle
+		return activeButtonStyle.Render(b.Text)
 	}
 
-	return style.Render(b.Text)
+	return buttonStyle.Render(b.Text)
 }
