@@ -65,7 +65,7 @@ type Model struct {
 	itemsCount      int
 	updateClickable bool
 	err             error
-	dialog          tea.Model
+	dialog          *dialog.Model
 }
 
 func NewModel(st *shared.State) (*Model, error) {
@@ -230,10 +230,15 @@ func (m *Model) deleteWithDialog(idx int) error {
 		func() {
 			m.deleteByIndex(idx)
 			m.dialog = nil
+			m.updateClickable = true
 		}, func() {
 			m.list.Select(idx)
 			m.dialog = nil
+			m.updateClickable = true
 		})
+
+	m.state.CleanClickable(shared.SnapshotsList)
+	m.state.AppendClickable(shared.SnapshotsList, m.dialog.OkButton, m.dialog.CancelButton)
 
 	return nil
 }

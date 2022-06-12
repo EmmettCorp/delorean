@@ -1,7 +1,6 @@
 package dialog
 
 import (
-	"github.com/EmmettCorp/delorean/pkg/logger"
 	"github.com/EmmettCorp/delorean/pkg/ui/shared"
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
@@ -13,31 +12,26 @@ const (
 	dWidth  = 50
 )
 
-type Button struct {
-	Text     string
-	Callback func()
-	active   bool
-	coords   shared.Coords
-}
-
+// Model is a dialog model.
 type Model struct {
 	Title        string
-	OkButton     Button
-	CancelButton Button
+	OkButton     *Button
+	CancelButton *Button
 	w            int
 	h            int
 	keys         keyMap
 }
 
+// New creates and returns a new dialog model.
 func New(title, okText, cancelText string, w, h int, okFunc, cancelFunc func()) *Model {
-	return &Model{
+	m := Model{
 		Title: title,
-		OkButton: Button{
+		OkButton: &Button{
 			Text:     okText,
 			Callback: okFunc,
 			active:   true,
 		},
-		CancelButton: Button{
+		CancelButton: &Button{
 			Text:     cancelText,
 			Callback: cancelFunc,
 			active:   false,
@@ -46,6 +40,9 @@ func New(title, okText, cancelText string, w, h int, okFunc, cancelFunc func()) 
 		h:    h + dHeight,
 		keys: getKeyMaps(),
 	}
+	m.setButtonsCoords()
+
+	return &m
 }
 
 func (m *Model) Init() tea.Cmd {
@@ -57,18 +54,12 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.WindowSizeMsg:
 		m.h = msg.Height + dHeight
 		m.w = msg.Width
-		logger.Client.InfoLog.Printf("resize height: %d", msg.Height)
-	// case tea.MouseMsg:
-	// 	if msg.Type == tea.MouseWheelDown {
-	// 		m.list.Paginator.NextPage()
-	// 	} else if msg.Type == tea.MouseWheelUp {
-	// 		m.list.Paginator.PrevPage()
-	// 	}
+		m.setButtonsCoords()
 	case tea.KeyMsg:
 		if key.Matches(msg, m.keys.Left) {
-			m.Ok(true)
+			m.confirm(true)
 		} else if key.Matches(msg, m.keys.Right) {
-			m.Ok(false)
+			m.confirm(false)
 		} else if key.Matches(msg, m.keys.Enter) {
 			m.getActiveButton().Callback()
 		}
@@ -92,12 +83,12 @@ func (m *Model) View() string {
 	)
 }
 
-func (m *Model) Ok(ok bool) {
+func (m *Model) confirm(ok bool) {
 	m.OkButton.active = ok
 	m.CancelButton.active = !ok
 }
 
-func (m *Model) getActiveButton() Button {
+func (m *Model) getActiveButton() *Button {
 	if m.OkButton.active {
 		return m.OkButton
 	}
@@ -105,10 +96,20 @@ func (m *Model) getActiveButton() Button {
 	return m.CancelButton
 }
 
-func (b *Button) Render() string {
-	if b.active {
-		return activeButtonStyle.Render(b.Text)
-	}
+func (m *Model) setButtonsCoords() {
+	center := (m.w / 2) - 1
+	y1 := m.h/2 + dHeight - 1
 
-	return buttonStyle.Render(b.Text)
+	m.OkButton.SetCoords(shared.Coords{
+		X1: center - 10,
+		Y1: y1,
+		X2: center - 3,
+		Y2: y1 + 1,
+	})
+	m.CancelButton.SetCoords(shared.Coords{
+		X1: center,
+		Y1: y1,
+		X2: center + 11,
+		Y2: y1 + 1,
+	})
 }
