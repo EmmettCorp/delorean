@@ -9,6 +9,7 @@ const (
 	buttonMargin  = 1
 )
 
+// nolint:gochecknoglobals // this is used only in tabs package
 var (
 	buttonStyle = lipgloss.NewStyle().
 			Foreground(lipgloss.Color("#FFF7DB")).

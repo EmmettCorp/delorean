@@ -100,6 +100,9 @@ func (m *Model) getActiveButton() *Button {
 	return m.CancelButton
 }
 
+// nolint:gomnd // we divide all `w` and `h` to 2 in order to get center.
+// minus - 1 every time to include first row position of element
+// plus  + 1 every time to set button height.
 func (m *Model) setButtonsCoords() {
 	center := (m.w / 2) - 1
 	y1 := (m.h + dHeight) / 2
@@ -110,7 +113,7 @@ func (m *Model) setButtonsCoords() {
 	okCoords := shared.Coords{
 		X1: center - okLen - buttonMargin*2,
 		Y1: y1,
-		Y2: y1 + 1,
+		Y2: y1 + lipgloss.Height(m.OkButton.Text),
 	}
 	okCoords.X2 = okCoords.X1 + okLen - 1
 	m.OkButton.SetCoords(okCoords)
@@ -118,7 +121,7 @@ func (m *Model) setButtonsCoords() {
 	cancelCoords := shared.Coords{
 		X1: center,
 		Y1: y1,
-		Y2: y1 + 1,
+		Y2: y1 + lipgloss.Height(m.OkButton.Text),
 	}
 	cancelCoords.X2 = cancelCoords.X1 + cancelLen - 1
 	m.CancelButton.SetCoords(cancelCoords)

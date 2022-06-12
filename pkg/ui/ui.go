@@ -8,7 +8,6 @@ import (
 	"strings"
 
 	"github.com/EmmettCorp/delorean/pkg/config"
-	"github.com/EmmettCorp/delorean/pkg/logger"
 	"github.com/EmmettCorp/delorean/pkg/ui/components/help"
 	"github.com/EmmettCorp/delorean/pkg/ui/components/settings"
 	"github.com/EmmettCorp/delorean/pkg/ui/components/snapshots"
@@ -145,7 +144,6 @@ func (a *App) componentsKeyEventHandle(msg tea.KeyMsg) tea.Cmd {
 }
 
 func (a *App) OnClick(msg tea.MouseMsg) {
-	logger.Client.InfoLog.Print(msg.X, msg.Y)
 	clickable := a.state.FindClickable(msg.X, msg.Y)
 	if clickable != nil {
 		// nolint:errcheck,gosec // TODO: handle error. Add to log + consider to write short message to status bar

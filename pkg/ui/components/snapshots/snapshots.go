@@ -174,8 +174,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m *Model) updateDialog(msg tea.Msg) (tea.Model, tea.Cmd) {
-	switch msg.(type) {
-	case tea.WindowSizeMsg:
+	if _, ok := msg.(tea.WindowSizeMsg); ok {
 		m.height = m.getHeight()
 		m.updateClickable = true
 		m, cmd := m.dialog.Update(tea.WindowSizeMsg{

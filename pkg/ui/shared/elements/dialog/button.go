@@ -1,7 +1,6 @@
 package dialog
 
 import (
-	"github.com/EmmettCorp/delorean/pkg/logger"
 	"github.com/EmmettCorp/delorean/pkg/ui/shared"
 	tea "github.com/charmbracelet/bubbletea"
 )
@@ -14,7 +13,6 @@ type Button struct {
 }
 
 func (b *Button) SetCoords(coords shared.Coords) {
-	logger.Client.InfoLog.Printf("button `%s`, coords %d %d %d %d", b.Text, coords.X1, coords.Y1, coords.X2, coords.Y2)
 	b.coords = coords
 }
 
