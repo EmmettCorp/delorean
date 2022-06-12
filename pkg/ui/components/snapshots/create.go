@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	createButtonHeight = 2
+	createButtonHeight = 3 // top border + title + bottom border
 	createLimitInSec   = 2
 )
 

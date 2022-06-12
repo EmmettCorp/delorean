@@ -88,7 +88,7 @@ func (d *itemDelegate) Render(w io.Writer, m list.Model, index int, listItem lis
 }
 
 func (d *itemDelegate) getFirstItemY() int {
-	return d.model.state.Areas.TabBar.Height + createButtonHeight + tabLineDividerHeight
+	return d.model.state.Areas.TabBar.Height + createButtonHeight + listHeaderHeight
 }
 
 func (d itemDelegate) setRowClickable(index, perPage int) {
@@ -112,7 +112,7 @@ func (d itemDelegate) setRowClickable(index, perPage int) {
 			X1: deleteX1,
 			Y1: itemY,
 			X2: deleteX1 + lipgloss.Width(deleteIcon),
-			Y2: itemY + spacing,
+			Y2: itemY + itemDelegateHeight,
 		},
 		row: &d,
 	}
@@ -169,5 +169,5 @@ func (re *rowButton) SetCoords(coords shared.Coords) {
 }
 
 func (re *rowButton) deleteItem() error {
-	return re.row.model.deleteByIndex(re.row.index)
+	return re.row.model.deleteWithDialog(re.row.index)
 }

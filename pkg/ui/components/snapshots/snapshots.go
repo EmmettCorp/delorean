@@ -9,8 +9,10 @@ import (
 	"strings"
 
 	"github.com/EmmettCorp/delorean/pkg/commands/btrfs"
+	"github.com/EmmettCorp/delorean/pkg/logger"
 	"github.com/EmmettCorp/delorean/pkg/ui/shared"
 	"github.com/EmmettCorp/delorean/pkg/ui/shared/elements/button"
+	"github.com/EmmettCorp/delorean/pkg/ui/shared/elements/dialog"
 	"github.com/EmmettCorp/delorean/pkg/ui/shared/elements/divider"
 	"github.com/EmmettCorp/delorean/pkg/ui/shared/styles"
 	"github.com/charmbracelet/bubbles/key"
@@ -20,13 +22,15 @@ import (
 )
 
 const (
-	infoTitle            = "Info"
-	idTitle              = "ID"
-	typeTitle            = "Type"
-	infoColumnWidth      = 30
-	idColumnWidth        = 6
-	typeColumnWidth      = 10
-	tabLineDividerHeight = 4
+	infoTitle       = "Info"
+	idTitle         = "ID"
+	typeTitle       = "Type"
+	infoColumnWidth = 30
+	idColumnWidth   = 6
+	typeColumnWidth = 10
+
+	listHeaderHeight    = 2
+	pageIndicatorHeight = 1
 
 	minColumnGap     = "  "
 	minColumnGapLen  = len(minColumnGap)
@@ -62,6 +66,7 @@ type Model struct {
 	itemsCount      int
 	updateClickable bool
 	err             error
+	dialog          *dialog.Model
 }
 
 func NewModel(st *shared.State) (*Model, error) {
@@ -88,8 +93,8 @@ func NewModel(st *shared.State) (*Model, error) {
 	createButtonY1 := st.Areas.TabBar.Height + 1
 	createBtn := newCreateButton(st, btnTitle, shared.Coords{
 		Y1: createButtonY1,
-		X2: lipgloss.Width(btnTitle) + 3, // nolint:gomnd // left and right borders + 1
-		Y2: createButtonY1 + createButtonHeight,
+		X2: lipgloss.Width(btnTitle) + 3,            // nolint:gomnd // left and right borders + 1
+		Y2: createButtonY1 + createButtonHeight - 1, // we don't need make bottom border line clickable
 	}, m.UpdateList)
 	m.createBtn = createBtn
 	err := st.AppendClickable(shared.SnapshotsButtonsBar, createBtn)
@@ -105,6 +110,10 @@ func (m *Model) Init() tea.Cmd {
 }
 
 func (m *Model) View() string {
+	if m.dialog != nil {
+		return m.dialog.View()
+	}
+
 	var s strings.Builder
 	s.WriteString(button.New(m.createBtn.GetTitle()))
 	s.WriteString("\n")
@@ -123,6 +132,10 @@ func (m *Model) View() string {
 }
 
 func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	if m.dialog != nil {
+		return m.updateDialog(msg)
+	}
+
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
 		m.height = m.getHeight()
@@ -160,6 +173,23 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, cmd
 }
 
+func (m *Model) updateDialog(msg tea.Msg) (tea.Model, tea.Cmd) {
+	if _, ok := msg.(tea.WindowSizeMsg); ok {
+		m.height = m.getHeight()
+		m.updateClickable = true
+		m, cmd := m.dialog.Update(tea.WindowSizeMsg{
+			Width:  m.state.ScreenWidth,
+			Height: m.state.ScreenHeight,
+		})
+
+		return m, cmd
+	}
+
+	mod, cmd := m.dialog.Update(msg)
+
+	return mod, cmd
+}
+
 func (m *Model) UpdateList() {
 	snaps, err := btrfs.SnapshotsList(m.state.Config.Volumes)
 	if err != nil {
@@ -183,25 +213,46 @@ func (m *Model) UpdateList() {
 }
 
 func (m *Model) getHeight() int {
-	return m.state.Areas.MainContent.Height - (createButtonHeight + tabLineDividerHeight)
+	return m.state.Areas.MainContent.Height - createButtonHeight - listHeaderHeight - pageIndicatorHeight
 }
 
 func (m *Model) deleteSelectedKey() error {
-	return m.deleteByIndex(m.list.Index())
+	return m.deleteWithDialog(m.list.Index())
+}
+
+func (m *Model) deleteWithDialog(idx int) error {
+	sn, err := m.getSnapshotByIndex(idx)
+	if err != nil {
+		return fmt.Errorf("can't get snapshot by index `%d`: %v", idx, err)
+	}
+
+	m.dialog = dialog.New(fmt.Sprintf("Remove snapshot %s?", sn.Label), "Ok", "Cancel", m.state.ScreenWidth,
+		m.state.ScreenHeight,
+		func() {
+			err := m.deleteByIndex(idx)
+			if err != nil {
+				logger.Client.ErrLog.Printf("can't delete by index `%d`: %v", idx, err)
+			}
+			m.dialog = nil
+			m.updateClickable = true
+		}, func() {
+			m.list.Select(idx)
+			m.dialog = nil
+			m.updateClickable = true
+		})
+
+	m.state.CleanClickable(shared.SnapshotsList)
+
+	return m.state.AppendClickable(shared.SnapshotsList, m.dialog.OkButton, m.dialog.CancelButton)
 }
 
 func (m *Model) deleteByIndex(idx int) error {
-	items := m.list.Items()
-	if idx >= len(items) {
-		return fmt.Errorf("index `%d` is out of range", idx)
+	sn, err := m.getSnapshotByIndex(idx)
+	if err != nil {
+		return fmt.Errorf("can't get snapshot by index `%d`: %v", idx, err)
 	}
 
-	sn, ok := items[idx].(*snapshot)
-	if !ok {
-		return errors.New("can't assert item to snapshot type")
-	}
-
-	err := btrfs.DeleteSnapshot(sn.GetPath())
+	err = btrfs.DeleteSnapshot(sn.GetPath())
 	if err != nil {
 		return err
 	}
@@ -209,6 +260,20 @@ func (m *Model) deleteByIndex(idx int) error {
 	m.list.RemoveItem(idx)
 
 	return nil
+}
+
+func (m *Model) getSnapshotByIndex(idx int) (*snapshot, error) {
+	items := m.list.Items()
+	if idx >= len(items) {
+		return nil, fmt.Errorf("index `%d` is out of range", idx)
+	}
+
+	sn, ok := items[idx].(*snapshot)
+	if !ok {
+		return nil, errors.New("can't assert item to snapshot type")
+	}
+
+	return sn, nil
 }
 
 func getSnapshotsHeader() string {
