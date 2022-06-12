@@ -1,3 +1,6 @@
+/*
+Package dialog keeps helpers to create a standard dialog window.
+*/
 package dialog
 
 import (
@@ -8,7 +11,7 @@ import (
 )
 
 const (
-	dHeight = 5
+	dHeight = 6
 	dWidth  = 50
 )
 
@@ -37,7 +40,7 @@ func New(title, okText, cancelText string, w, h int, okFunc, cancelFunc func()) 
 			active:   false,
 		},
 		w:    w,
-		h:    h + dHeight,
+		h:    h - dHeight,
 		keys: getKeyMaps(),
 	}
 	m.setButtonsCoords()
@@ -52,15 +55,16 @@ func (m *Model) Init() tea.Cmd {
 func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
-		m.h = msg.Height + dHeight
+		m.h = msg.Height - dHeight
 		m.w = msg.Width
 		m.setButtonsCoords()
 	case tea.KeyMsg:
-		if key.Matches(msg, m.keys.Left) {
+		switch {
+		case key.Matches(msg, m.keys.Left):
 			m.confirm(true)
-		} else if key.Matches(msg, m.keys.Right) {
+		case key.Matches(msg, m.keys.Right):
 			m.confirm(false)
-		} else if key.Matches(msg, m.keys.Enter) {
+		case key.Matches(msg, m.keys.Enter):
 			m.getActiveButton().Callback()
 		}
 	}
@@ -98,18 +102,24 @@ func (m *Model) getActiveButton() *Button {
 
 func (m *Model) setButtonsCoords() {
 	center := (m.w / 2) - 1
-	y1 := m.h/2 + dHeight - 1
+	y1 := (m.h + dHeight) / 2
 
-	m.OkButton.SetCoords(shared.Coords{
-		X1: center - 10,
+	okLen := lipgloss.Width(m.OkButton.Text) + buttonPadding*2
+	cancelLen := lipgloss.Width(m.CancelButton.Text) + buttonPadding*2
+
+	okCoords := shared.Coords{
+		X1: center - okLen - buttonMargin*2,
 		Y1: y1,
-		X2: center - 3,
 		Y2: y1 + 1,
-	})
-	m.CancelButton.SetCoords(shared.Coords{
+	}
+	okCoords.X2 = okCoords.X1 + okLen - 1
+	m.OkButton.SetCoords(okCoords)
+
+	cancelCoords := shared.Coords{
 		X1: center,
 		Y1: y1,
-		X2: center + 11,
 		Y2: y1 + 1,
-	})
+	}
+	cancelCoords.X2 = cancelCoords.X1 + cancelLen - 1
+	m.CancelButton.SetCoords(cancelCoords)
 }

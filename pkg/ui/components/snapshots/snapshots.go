@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/EmmettCorp/delorean/pkg/commands/btrfs"
+	"github.com/EmmettCorp/delorean/pkg/logger"
 	"github.com/EmmettCorp/delorean/pkg/ui/shared"
 	"github.com/EmmettCorp/delorean/pkg/ui/shared/elements/button"
 	"github.com/EmmettCorp/delorean/pkg/ui/shared/elements/dialog"
@@ -179,7 +180,7 @@ func (m *Model) updateDialog(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.updateClickable = true
 		m, cmd := m.dialog.Update(tea.WindowSizeMsg{
 			Width:  m.state.ScreenWidth,
-			Height: m.height,
+			Height: m.state.ScreenHeight,
 		})
 
 		return m, cmd
@@ -226,9 +227,13 @@ func (m *Model) deleteWithDialog(idx int) error {
 		return fmt.Errorf("can't get snapshot by index `%d`: %v", idx, err)
 	}
 
-	m.dialog = dialog.New(fmt.Sprintf("Remove snapshot %s?", sn.Label), "Ok", "Cancel", m.state.ScreenWidth, m.height,
+	m.dialog = dialog.New(fmt.Sprintf("Remove snapshot %s?", sn.Label), "Ok", "Cancel", m.state.ScreenWidth,
+		m.state.ScreenHeight,
 		func() {
-			m.deleteByIndex(idx)
+			err := m.deleteByIndex(idx)
+			if err != nil {
+				logger.Client.ErrLog.Printf("can't delete by index `%d`: %v", idx, err)
+			}
 			m.dialog = nil
 			m.updateClickable = true
 		}, func() {
@@ -238,9 +243,8 @@ func (m *Model) deleteWithDialog(idx int) error {
 		})
 
 	m.state.CleanClickable(shared.SnapshotsList)
-	m.state.AppendClickable(shared.SnapshotsList, m.dialog.OkButton, m.dialog.CancelButton)
 
-	return nil
+	return m.state.AppendClickable(shared.SnapshotsList, m.dialog.OkButton, m.dialog.CancelButton)
 }
 
 func (m *Model) deleteByIndex(idx int) error {

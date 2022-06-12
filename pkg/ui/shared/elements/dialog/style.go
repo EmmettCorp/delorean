@@ -4,12 +4,19 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
+const (
+	buttonPadding = 3
+	buttonMargin  = 1
+)
+
 var (
 	buttonStyle = lipgloss.NewStyle().
 			Foreground(lipgloss.Color("#FFF7DB")).
 			Background(lipgloss.Color("#888B7E")).
-			Padding(0, 3).
-			MarginTop(1).MarginLeft(1).MarginRight(1)
+			Padding(0, buttonPadding).
+			MarginTop(buttonMargin).
+			MarginLeft(buttonMargin).
+			MarginRight(buttonMargin)
 
 	activeButtonStyle = buttonStyle.Copy().
 				Foreground(lipgloss.Color("#FFF7DB")).
