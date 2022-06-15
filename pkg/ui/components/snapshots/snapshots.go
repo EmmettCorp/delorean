@@ -11,7 +11,6 @@ import (
 	"github.com/EmmettCorp/delorean/pkg/commands/btrfs"
 	"github.com/EmmettCorp/delorean/pkg/logger"
 	"github.com/EmmettCorp/delorean/pkg/ui/shared"
-	"github.com/EmmettCorp/delorean/pkg/ui/shared/elements/button"
 	"github.com/EmmettCorp/delorean/pkg/ui/shared/elements/dialog"
 	"github.com/EmmettCorp/delorean/pkg/ui/shared/elements/divider"
 	"github.com/EmmettCorp/delorean/pkg/ui/shared/styles"
@@ -40,7 +39,7 @@ const (
 type buttonModel interface {
 	shared.Clickable
 	SetTitle(title string)
-	GetTitle() string
+	Render() string
 }
 
 type snapshot struct {
@@ -115,7 +114,7 @@ func (m *Model) View() string {
 	}
 
 	var s strings.Builder
-	s.WriteString(button.New(m.createBtn.GetTitle()))
+	s.WriteString(m.createBtn.Render())
 	s.WriteString("\n")
 	s.WriteString(lipgloss.NewStyle().SetString(getSnapshotsHeader()).
 		Foreground(styles.DefaultTheme.InactiveText).String())

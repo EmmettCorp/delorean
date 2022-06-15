@@ -10,11 +10,13 @@ import (
 	"github.com/EmmettCorp/delorean/pkg/rate"
 	"github.com/EmmettCorp/delorean/pkg/ui/shared"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
 )
 
 const (
 	createButtonHeight = 3 // top border + title + bottom border
 	createLimitInSec   = 2
+	buttonBorderColor  = "#AD58B4"
 )
 
 type createButton struct {
@@ -45,10 +47,6 @@ func newCreateButton(st *shared.State, title string, coords shared.Coords, callb
 
 func (cb *createButton) SetTitle(title string) {
 	cb.title = title
-}
-
-func (cb *createButton) GetTitle() string {
-	return cb.title
 }
 
 func (cb *createButton) GetCoords() shared.Coords {
@@ -102,4 +100,12 @@ func (cb *createButton) OnClick(event tea.MouseMsg) error {
 	cb.updateCallback()
 
 	return nil
+}
+
+func (cb *createButton) Render() string {
+	return lipgloss.NewStyle().
+		Border(lipgloss.RoundedBorder(), true).
+		Padding(0, 1).
+		BorderForeground(lipgloss.AdaptiveColor{Dark: buttonBorderColor}).
+		Render(cb.title)
 }
