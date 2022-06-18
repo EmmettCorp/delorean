@@ -8,7 +8,6 @@ import (
 	"strings"
 
 	"github.com/EmmettCorp/delorean/pkg/config"
-	"github.com/EmmettCorp/delorean/pkg/ui/components/help"
 	"github.com/EmmettCorp/delorean/pkg/ui/components/settings"
 	"github.com/EmmettCorp/delorean/pkg/ui/components/snapshots"
 	"github.com/EmmettCorp/delorean/pkg/ui/components/tabs"
@@ -23,7 +22,7 @@ type components struct {
 	tabs      tea.Model
 	snapshots tea.Model
 	settings  tea.Model
-	help      tea.Model
+	// help      tea.Model
 }
 
 type App struct {
@@ -41,26 +40,26 @@ func NewModel(cfg *config.Config) (*App, error) {
 		return nil, err
 	}
 
-	tabsCmp, err := tabs.NewModel(st, shared.GetTabItems())
+	tabsCmp, err := tabs.New(st, shared.GetTabItems())
 	if err != nil {
 		return &App{}, err
 	}
-	snapshotsCmp, err := snapshots.NewModel(st)
+	snapshotsCmp, err := snapshots.New(st)
 	if err != nil {
 		return &App{}, err
 	}
-	settingsCmp, err := settings.NewModel(st)
+	settingsCmp, err := settings.New(st)
 	if err != nil {
 		return &App{}, err
 	}
-	helpCmp := help.NewModel(st)
+	// helpCmp := help.NewModel(st)
 
 	a := App{
 		components: components{
 			tabs:      tabsCmp,
 			snapshots: snapshotsCmp,
 			settings:  settingsCmp,
-			help:      helpCmp,
+			// help:      helpCmp,
 		},
 		keys:   shared.GetKeyMaps(),
 		config: cfg,
@@ -113,7 +112,7 @@ func (a *App) View() string {
 	} else if a.state.CurrentTab == shared.SettingsTab {
 		s.WriteString(a.components.settings.View())
 	}
-	s.WriteString(a.components.help.View())
+	// s.WriteString(a.components.help.View())
 
 	return s.String()
 }

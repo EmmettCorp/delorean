@@ -68,7 +68,7 @@ type Model struct {
 	dialog          *dialog.Model
 }
 
-func NewModel(st *shared.State) (*Model, error) {
+func New(st *shared.State) (*Model, error) {
 	m := Model{
 		state:       st,
 		currentPage: -1,
@@ -116,13 +116,14 @@ func (m *Model) View() string {
 	var s strings.Builder
 	s.WriteString(m.createBtn.Render())
 	s.WriteString("\n")
-	s.WriteString(lipgloss.NewStyle().SetString(getSnapshotsHeader()).
-		Foreground(styles.DefaultTheme.InactiveText).String())
+	s.WriteString(lipgloss.NewStyle().Foreground(styles.DefaultTheme.InactiveText).Render(getSnapshotsHeader()))
 	s.WriteString("\n")
 	s.WriteString(divider.HorizontalLine(m.state.ScreenWidth, styles.DefaultTheme.InactiveText))
 	s.WriteString("\n")
 	m.list.SetSize(m.state.ScreenWidth, m.height)
 	s.WriteString(styles.MainDocStyle.Render(m.list.View()))
+	s.WriteString("\n")
+	s.WriteString(divider.HorizontalLine(m.state.ScreenWidth, styles.DefaultTheme.InactiveText))
 	// set updateClickable = false after list page rendering only
 	// otherwise there can be not set clickable elements
 	m.updateClickable = false
