@@ -15,6 +15,7 @@ type State struct {
 	ClickableElements map[ClickableComponent][]Clickable
 	Config            *config.Config
 	Areas             *uiAreas
+	UpdateSnapshots   bool
 }
 
 func NewState(cfg *config.Config) *State {

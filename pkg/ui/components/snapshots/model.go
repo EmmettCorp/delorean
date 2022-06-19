@@ -153,12 +153,17 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 	}
 
+	if len(m.list.Items()) != m.itemsCount {
+		m.state.UpdateSnapshots = true
+	}
+
 	var cmd tea.Cmd
 	// do not call btrfs commands for just ui update
-	if len(m.list.Items()) != m.itemsCount {
+	if m.state.UpdateSnapshots {
 		m.UpdateList()
 		m.itemsCount = len(m.list.Items())
 		m.updateClickable = true
+		m.state.UpdateSnapshots = false
 	}
 	if m.currentPage != m.list.Paginator.Page {
 		m.currentPage = m.list.Paginator.Page

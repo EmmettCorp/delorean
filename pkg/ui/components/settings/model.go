@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/EmmettCorp/delorean/pkg/domain"
 	"github.com/EmmettCorp/delorean/pkg/ui/shared"
 	"github.com/EmmettCorp/delorean/pkg/ui/shared/elements/divider"
 	"github.com/EmmettCorp/delorean/pkg/ui/shared/styles"
@@ -99,7 +98,14 @@ func (m *Model) toggleActive() {
 	}
 
 	s.Active = !s.Active
-	// TODO: save to config
+
+	err := m.updateSubvolume(s.ID, s.Active)
+	if err != nil {
+		m.err = err
+		return
+	}
+
+	m.state.UpdateSnapshots = true
 }
 
 func (m *Model) renderMetadata() string {
@@ -128,12 +134,7 @@ func (m *Model) renderMetadata() string {
 
 func (m *Model) UpdateList() {
 	m.longestLabel = 0
-	vols, err := m.getVolumes()
-	if err != nil {
-		m.err = err
-
-		return
-	}
+	vols := m.state.Config.Volumes
 
 	items := make([]list.Item, len(vols))
 	for i := range vols {
@@ -155,38 +156,6 @@ func (m *Model) UpdateList() {
 	m.list.SetItems(items)
 }
 
-func (m *Model) getVolumes() ([]domain.Volume, error) {
-	// get volumes from database
-	vv := []domain.Volume{ // dummy data
-		{
-			ID:            "540",
-			Subvol:        "@",
-			Label:         "Root",
-			SnapshotsPath: "/run/delorean/.snapshots/@",
-			Active:        true,
-			Device: domain.Device{
-				UUID:       "e81c9e92-2bba-4fa1-9a30-7f950532b051",
-				Path:       "/dev/nvme0n1p2",
-				MountPoint: "/",
-			},
-		},
-		{
-			ID:            "541",
-			Subvol:        "@/home",
-			Label:         "Home",
-			SnapshotsPath: "/run/delorean/.snapshots/@home",
-			Active:        false,
-			Device: domain.Device{
-				UUID:       "t29384d-2bba-as0d9f-08sf-134j434j324",
-				Path:       "/dev/nvme0n1p3",
-				MountPoint: "/home",
-			},
-		},
-	}
-
-	return vv, nil
-}
-
 func (m *Model) getHeader() string {
 	var header strings.Builder
 	header.WriteString(minColumnGap)
@@ -195,4 +164,16 @@ func (m *Model) getHeader() string {
 	header.WriteString(volumeInfoColumn)
 
 	return header.String()
+}
+
+func (m *Model) updateSubvolume(subID string, active bool) error {
+	for i := range m.state.Config.Volumes {
+		if subID == m.state.Config.Volumes[i].ID {
+			m.state.Config.Volumes[i].Active = active
+
+			return m.state.Config.Save()
+		}
+	}
+
+	return nil
 }

@@ -95,6 +95,10 @@ func (a *App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	}
 	cmds = append(cmds, cmd)
 
+	if a.state.UpdateSnapshots {
+		a.components.snapshots.Update(msg)
+	}
+
 	return a, tea.Batch(cmds...)
 }
 
