@@ -87,6 +87,7 @@ func (m *Model) View() string {
 	)
 	s.WriteString("\n")
 	s.WriteString(divider.HorizontalLine(m.state.ScreenWidth, styles.DefaultTheme.InactiveText))
+
 	return s.String()
 }
 
@@ -102,6 +103,7 @@ func (m *Model) toggleActive() {
 	err := m.updateSubvolume(s.ID, s.Active)
 	if err != nil {
 		m.err = err
+
 		return
 	}
 
@@ -115,9 +117,9 @@ func (m *Model) renderMetadata() string {
 		return ""
 	}
 
-	status := "not active: snapshots for this subvolume are hidden"
+	status := "not active: snapshots are hidden"
 	if s.Active {
-		status = "active: snapshots for this subvolume are shown"
+		status = "active: snapshots are shown"
 	}
 
 	return lipgloss.JoinVertical(lipgloss.Left,

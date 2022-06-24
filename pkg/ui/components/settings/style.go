@@ -4,6 +4,7 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
+// nolint:gochecknoglobals // used only in this package
 var (
 	subtle            = lipgloss.AdaptiveColor{Light: "#D9DCCF", Dark: "#383838"}
 	signActiveStyle   = lipgloss.NewStyle().Foreground(lipgloss.Color("#6aa84f"))
@@ -12,9 +13,6 @@ var (
 				Border(lipgloss.NormalBorder(), false, true, false, false).
 				BorderForeground(subtle).
 				MarginRight(2).PaddingRight(2)
-
-	volumesContainerStyle = lipgloss.NewStyle().MarginTop(1).MarginBottom(1)
-	violet                = lipgloss.Color(lipgloss.Color("#5A56E0"))
 
 	normalItem = lipgloss.NewStyle().
 			Foreground(lipgloss.AdaptiveColor{Light: "#1a1a1a", Dark: "#dddddd"}).PaddingLeft(2)

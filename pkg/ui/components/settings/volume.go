@@ -5,7 +5,6 @@ import (
 	"io"
 	"strings"
 
-	"github.com/EmmettCorp/delorean/pkg/domain"
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
 )
@@ -17,8 +16,6 @@ const (
 	volumeInfoColumn = "Info"
 	minColumnGap     = "  "
 )
-
-var defStyles = list.NewDefaultItemStyles()
 
 type (
 	volume struct {
@@ -35,9 +32,9 @@ type (
 
 // FilterValue is used to set filter item and required for `list.Model` interface.
 func (v *volume) FilterValue() string { return v.Label }
-func (d *volume) Height() int         { return 1 }
-func (d *volume) Spacing() int        { return 1 }
-func (d *volume) Update(msg tea.Msg, m *list.Model) tea.Cmd {
+func (v *volume) Height() int         { return 1 }
+func (v *volume) Spacing() int        { return 1 }
+func (v *volume) Update(msg tea.Msg, m *list.Model) tea.Cmd {
 	return nil
 }
 
@@ -58,18 +55,5 @@ func (v *volume) Render(w io.Writer, m list.Model, index int, listItem list.Item
 		row.WriteString(fmt.Sprintf("%s %s", normalItem.Render(s.Label), sign))
 	}
 
-	fmt.Fprintf(w, row.String())
-}
-
-func domainVolumeToVolume(dv domain.Volume) volume {
-	return volume{
-		ID:               dv.ID,
-		Subvol:           dv.Subvol,
-		Label:            dv.Label,
-		SnapshotsPath:    dv.SnapshotsPath,
-		Active:           dv.Active,
-		DeviceUUID:       dv.Device.UUID,
-		DevicePath:       dv.Device.Path,
-		DeviceMountPoint: dv.Device.MountPoint,
-	}
+	fmt.Fprint(w, row.String())
 }
