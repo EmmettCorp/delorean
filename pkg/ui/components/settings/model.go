@@ -16,6 +16,11 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
+const (
+	listWidth         = 10
+	topContentPadding = 4
+)
+
 type Model struct {
 	state        *shared.State
 	list         list.Model
@@ -54,8 +59,7 @@ func (m *Model) Init() tea.Cmd {
 }
 
 func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	switch msg := msg.(type) {
-	case tea.KeyMsg:
+	if msg, ok := msg.(tea.KeyMsg); ok {
 		if key.Matches(msg, m.keys.Enter) {
 			m.toggleActive()
 		}
@@ -74,7 +78,7 @@ func (m *Model) View() string {
 	s.WriteString("\n")
 	s.WriteString(divider.HorizontalLine(m.state.ScreenWidth, styles.DefaultTheme.InactiveText))
 	s.WriteString("\n")
-	m.list.SetSize(10, m.state.Areas.MainContent.Height-4)
+	m.list.SetSize(listWidth, m.state.Areas.MainContent.Height-topContentPadding)
 
 	s.WriteString(
 		styles.MainDocStyle.Render(

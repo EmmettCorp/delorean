@@ -52,14 +52,12 @@ func NewModel(cfg *config.Config) (*App, error) {
 	if err != nil {
 		return &App{}, err
 	}
-	// helpCmp := help.NewModel(st)
 
 	a := App{
 		components: components{
 			tabs:      tabsCmp,
 			snapshots: snapshotsCmp,
 			settings:  settingsCmp,
-			// help:      helpCmp,
 		},
 		keys:   shared.GetKeyMaps(),
 		config: cfg,
@@ -116,7 +114,6 @@ func (a *App) View() string {
 	} else if a.state.CurrentTab == shared.SettingsTab {
 		s.WriteString(a.components.settings.View())
 	}
-	// s.WriteString(a.components.help.View())
 
 	return s.String()
 }
