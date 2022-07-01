@@ -15,6 +15,7 @@ type State struct {
 	ClickableElements map[ClickableComponent][]Clickable
 	Config            *config.Config
 	Areas             *uiAreas
+	UpdateSnapshots   bool
 }
 
 func NewState(cfg *config.Config) *State {
@@ -71,6 +72,9 @@ func (s *State) FindClickable(x, y int) Clickable {
 
 func (s *State) ResizeAreas() {
 	s.Areas.MainContent.Height = s.ScreenHeight - (s.Areas.TabBar.Height + s.Areas.HelpBar.Height)
+	s.Areas.MainContent.Width = s.ScreenWidth
+	s.Areas.TabBar.Width = s.ScreenWidth
+	s.Areas.HelpBar.Width = s.ScreenWidth
 }
 
 func (s *State) getAvailableClickable() []Clickable {
