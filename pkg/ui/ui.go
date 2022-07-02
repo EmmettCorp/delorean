@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/EmmettCorp/delorean/pkg/config"
+	"github.com/EmmettCorp/delorean/pkg/ui/components/help"
 	"github.com/EmmettCorp/delorean/pkg/ui/components/settings"
 	"github.com/EmmettCorp/delorean/pkg/ui/components/snapshots"
 	"github.com/EmmettCorp/delorean/pkg/ui/components/tabs"
@@ -22,7 +23,7 @@ type components struct {
 	tabs      tea.Model
 	snapshots tea.Model
 	settings  tea.Model
-	// help      tea.Model
+	help      tea.Model
 }
 
 type App struct {
@@ -52,12 +53,14 @@ func NewModel(cfg *config.Config) (*App, error) {
 	if err != nil {
 		return &App{}, err
 	}
+	helpCmp := help.New(st)
 
 	a := App{
 		components: components{
 			tabs:      tabsCmp,
 			snapshots: snapshotsCmp,
 			settings:  settingsCmp,
+			help:      helpCmp,
 		},
 		keys:   shared.GetKeyMaps(),
 		config: cfg,
@@ -113,7 +116,11 @@ func (a *App) View() string {
 		s.WriteString("\n")
 	} else if a.state.CurrentTab == shared.SettingsTab {
 		s.WriteString(a.components.settings.View())
+		s.WriteString("\n")
 	}
+
+	// help
+	s.WriteString(a.components.help.View())
 
 	return s.String()
 }
@@ -122,6 +129,10 @@ func (a *App) keyEventHandle(msg tea.KeyMsg) tea.Cmd {
 	switch {
 	case key.Matches(msg, a.keys.Quit):
 		return tea.Quit
+	case key.Matches(msg, a.keys.Help):
+		a.components.help.Update(msg)
+
+		return nil
 	case key.Matches(msg, a.keys.Tab, a.keys.ShiftTab):
 		a.components.tabs.Update(msg)
 
