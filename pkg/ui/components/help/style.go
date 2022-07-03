@@ -14,7 +14,5 @@ var (
 	helpTextStyle = lipgloss.NewStyle().Foreground(styles.DefaultTheme.InactiveText)
 	helpStyle     = lipgloss.NewStyle().
 			Height(shared.HelpBarHeight).
-			BorderTop(true).
-			BorderStyle(lipgloss.NormalBorder()).
 			BorderForeground(styles.DefaultTheme.InactiveText)
 )

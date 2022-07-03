@@ -7,13 +7,15 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 )
 
+const fullHelpHeigh = 3
+
 type Model struct {
 	state *shared.State
 	help  bbHelp.Model
 	keys  shared.KeyMap
 }
 
-func NewModel(state *shared.State) *Model {
+func New(state *shared.State) *Model {
 	help := bbHelp.NewModel()
 	help.Styles = bbHelp.Styles{
 		ShortDesc:      helpTextStyle.Copy(),
@@ -40,6 +42,12 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	if msg, ok := msg.(tea.KeyMsg); ok {
 		if key.Matches(msg, m.keys.Help) {
 			m.help.ShowAll = !m.help.ShowAll
+			if m.help.ShowAll {
+				m.state.Areas.HelpBar.Height += fullHelpHeigh
+			} else {
+				m.state.Areas.HelpBar.Height -= fullHelpHeigh
+			}
+			m.state.ResizeAreas()
 		}
 	}
 
@@ -47,9 +55,22 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m *Model) View() string {
+	if !m.help.ShowAll {
+		return helpStyle.Copy().
+			Render(m.help.ShortHelpView(m.keys.ShortHelp()))
+	}
+
+	var kb [][]key.Binding
+	if m.state.CurrentTab == shared.SnapshotsTab {
+		kb = m.keys.SnapshotsHelp()
+	} else if m.state.CurrentTab == shared.SettingsTab {
+		kb = m.keys.SettingsHelp()
+	}
+
+	m.SetWidth(m.state.ScreenWidth)
+
 	return helpStyle.Copy().
-		Width(m.state.ScreenWidth).
-		Render(m.help.View(m.keys))
+		Render(m.help.FullHelpView(kb))
 }
 
 func (m *Model) SetWidth(width int) {

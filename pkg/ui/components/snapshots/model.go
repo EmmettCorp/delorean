@@ -120,7 +120,7 @@ func (m *Model) View() string {
 	s.WriteString("\n")
 	s.WriteString(divider.HorizontalLine(m.state.ScreenWidth, styles.DefaultTheme.InactiveText))
 	s.WriteString("\n")
-	m.list.SetSize(m.state.ScreenWidth, m.height)
+	m.list.SetSize(m.state.ScreenWidth, m.getHeight())
 	s.WriteString(styles.MainDocStyle.Render(m.list.View()))
 	s.WriteString("\n")
 	s.WriteString(divider.HorizontalLine(m.state.ScreenWidth, styles.DefaultTheme.InactiveText))
@@ -218,7 +218,7 @@ func (m *Model) UpdateList() {
 }
 
 func (m *Model) getHeight() int {
-	return m.state.Areas.MainContent.Height - createButtonHeight - listHeaderHeight - pageIndicatorHeight
+	return m.state.Areas.MainContent.Height - listHeaderHeight - createButtonHeight - pageIndicatorHeight
 }
 
 func (m *Model) deleteSelectedKey() error {
