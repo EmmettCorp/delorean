@@ -1,12 +1,13 @@
 package help
 
 import (
-	"github.com/EmmettCorp/delorean/pkg/logger"
 	"github.com/EmmettCorp/delorean/pkg/ui/shared"
 	bbHelp "github.com/charmbracelet/bubbles/help"
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
 )
+
+const fullHelpHeigh = 3
 
 type Model struct {
 	state *shared.State
@@ -42,9 +43,9 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if key.Matches(msg, m.keys.Help) {
 			m.help.ShowAll = !m.help.ShowAll
 			if m.help.ShowAll {
-				m.state.Areas.HelpBar.Height += 4
+				m.state.Areas.HelpBar.Height += fullHelpHeigh
 			} else {
-				m.state.Areas.HelpBar.Height -= 4
+				m.state.Areas.HelpBar.Height -= fullHelpHeigh
 			}
 			m.state.ResizeAreas()
 		}
@@ -66,7 +67,7 @@ func (m *Model) View() string {
 		kb = m.keys.SettingsHelp()
 	}
 
-	logger.Client.InfoLog.Printf("%d %v", len(kb), kb)
+	m.SetWidth(m.state.ScreenWidth)
 
 	return helpStyle.Copy().
 		Render(m.help.FullHelpView(kb))

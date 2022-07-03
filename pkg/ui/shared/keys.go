@@ -12,7 +12,9 @@ type KeyMap struct {
 	Down     key.Binding
 	PrevPage key.Binding
 	NextPage key.Binding
+	Create   key.Binding
 	Restore  key.Binding
+	Delete   key.Binding
 	Volume   key.Binding
 	Help     key.Binding
 	Quit     key.Binding
@@ -40,7 +42,7 @@ func (k KeyMap) SnapshotsHelp() [][]key.Binding {
 	return [][]key.Binding{
 		k.shortHelp(),
 		k.navigation(),
-		{k.Restore},
+		{k.Create, k.Restore, k.Delete},
 	}
 }
 
@@ -60,7 +62,7 @@ func GetKeyMaps() KeyMap {
 	return KeyMap{
 		Tab: key.NewBinding(
 			key.WithKeys("tab"),
-			key.WithHelp("tab -", "next tab"),
+			key.WithHelp("tab", "next tab"),
 		),
 		ShiftTab: key.NewBinding(
 			key.WithKeys("shift+tab"),
@@ -68,35 +70,43 @@ func GetKeyMaps() KeyMap {
 		),
 		Up: key.NewBinding(
 			key.WithKeys("up", "k"),
-			key.WithHelp("↑/k -", "move up"),
+			key.WithHelp("↑/k", "move up"),
 		),
 		Down: key.NewBinding(
 			key.WithKeys("down", "j"),
-			key.WithHelp("↓/j -", "move down"),
+			key.WithHelp("↓/j", "move down"),
 		),
 		PrevPage: key.NewBinding(
 			key.WithKeys("left", "h"),
-			key.WithHelp("←/h -", "prev page"),
+			key.WithHelp("←/h", "prev page"),
 		),
 		NextPage: key.NewBinding(
 			key.WithKeys("right", "l"),
-			key.WithHelp("→/l -", "next page"),
+			key.WithHelp("→/l", "next page"),
+		),
+		Create: key.NewBinding(
+			key.WithKeys(tea.KeyCtrlCaret.String()),
+			key.WithHelp("Ctrl+Enter", "create"),
 		),
 		Restore: key.NewBinding(
 			key.WithKeys(tea.KeyEnter.String()),
-			key.WithHelp("Enter -", "restore"),
+			key.WithHelp("Enter/r", "restore"),
+		),
+		Delete: key.NewBinding(
+			key.WithKeys(tea.KeyDelete.String(), "d"),
+			key.WithHelp("Delete/d", "delete snapshot"),
 		),
 		Volume: key.NewBinding(
 			key.WithKeys(tea.KeyEnter.String()),
-			key.WithHelp("Enter -", "toggle activate subvolume"),
+			key.WithHelp("Enter", "toggle activate subvolume"),
 		),
 		Help: key.NewBinding(
 			key.WithKeys("?"),
-			key.WithHelp("? -", "toggle help"),
+			key.WithHelp("?", "toggle help"),
 		),
 		Quit: key.NewBinding(
 			key.WithKeys("q", "esc", "ctrl+c"),
-			key.WithHelp("q -", "quit"),
+			key.WithHelp("q", "quit"),
 		),
 	}
 }
