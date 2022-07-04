@@ -118,6 +118,7 @@ func (a *App) View() string {
 
 	if a.windowTooSmall() {
 		a.components.alert.SetTitle("Window is too small.")
+
 		return a.components.alert.View(a.state.ScreenWidth, a.state.ScreenHeight)
 	}
 	// tabs

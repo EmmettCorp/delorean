@@ -1,5 +1,5 @@
 /*
-Package dialog keeps helpers to create a standard dialog window.
+Package alert keeps helpers to create a standard alert window.
 */
 package alert
 
@@ -14,8 +14,6 @@ const (
 // Model is a dialog model.
 type Model struct {
 	title string
-	w     int
-	h     int
 }
 
 // New creates and returns a new dialog model.
