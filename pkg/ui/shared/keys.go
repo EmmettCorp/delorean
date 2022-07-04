@@ -6,22 +6,23 @@ import (
 )
 
 type KeyMap struct {
-	Tab      key.Binding
-	ShiftTab key.Binding
-	Up       key.Binding
-	Down     key.Binding
-	PrevPage key.Binding
-	NextPage key.Binding
-	Create   key.Binding
-	Restore  key.Binding
-	Delete   key.Binding
-	Volume   key.Binding
-	Help     key.Binding
-	Quit     key.Binding
+	Tab       key.Binding
+	ShiftTab  key.Binding
+	Up        key.Binding
+	Down      key.Binding
+	PrevPage  key.Binding
+	NextPage  key.Binding
+	Create    key.Binding
+	Restore   key.Binding
+	Delete    key.Binding
+	Volume    key.Binding
+	Help      key.Binding
+	HelpShort key.Binding
+	Quit      key.Binding
 }
 
-func (k KeyMap) shortHelp() []key.Binding {
-	return []key.Binding{k.Help, k.Quit, k.Tab}
+func (k KeyMap) helpShort() []key.Binding {
+	return []key.Binding{k.HelpShort, k.Quit, k.Tab}
 }
 
 func (k KeyMap) navigation() []key.Binding {
@@ -32,7 +33,7 @@ func (k KeyMap) navigation() []key.Binding {
 
 func (k KeyMap) SettingsHelp() [][]key.Binding {
 	return [][]key.Binding{
-		k.shortHelp(),
+		k.helpShort(),
 		k.navigation(),
 		{k.Volume},
 	}
@@ -40,7 +41,7 @@ func (k KeyMap) SettingsHelp() [][]key.Binding {
 
 func (k KeyMap) SnapshotsHelp() [][]key.Binding {
 	return [][]key.Binding{
-		k.shortHelp(),
+		k.helpShort(),
 		k.navigation(),
 		{k.Create, k.Restore, k.Delete},
 	}
@@ -102,7 +103,11 @@ func GetKeyMaps() KeyMap {
 		),
 		Help: key.NewBinding(
 			key.WithKeys("?"),
-			key.WithHelp("?", "toggle help"),
+			key.WithHelp("?", "full help"),
+		),
+		HelpShort: key.NewBinding(
+			key.WithKeys("?"),
+			key.WithHelp("?", "short help"),
 		),
 		Quit: key.NewBinding(
 			key.WithKeys("q", "esc", "ctrl+c"),

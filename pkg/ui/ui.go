@@ -8,15 +8,22 @@ import (
 	"strings"
 
 	"github.com/EmmettCorp/delorean/pkg/config"
+	"github.com/EmmettCorp/delorean/pkg/logger"
 	"github.com/EmmettCorp/delorean/pkg/ui/components/help"
 	"github.com/EmmettCorp/delorean/pkg/ui/components/settings"
 	"github.com/EmmettCorp/delorean/pkg/ui/components/snapshots"
 	"github.com/EmmettCorp/delorean/pkg/ui/components/tabs"
 	"github.com/EmmettCorp/delorean/pkg/ui/shared"
+	"github.com/EmmettCorp/delorean/pkg/ui/shared/elements/alert"
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"golang.org/x/term"
+)
+
+const (
+	minWidth = 81
+	minHeigh = 28
 )
 
 type components struct {
@@ -24,6 +31,7 @@ type components struct {
 	snapshots tea.Model
 	settings  tea.Model
 	help      tea.Model
+	alert     *alert.Model
 }
 
 type App struct {
@@ -54,6 +62,7 @@ func NewModel(cfg *config.Config) (*App, error) {
 		return &App{}, err
 	}
 	helpCmp := help.New(st)
+	alertCmp := alert.New()
 
 	a := App{
 		components: components{
@@ -61,6 +70,7 @@ func NewModel(cfg *config.Config) (*App, error) {
 			snapshots: snapshotsCmp,
 			settings:  settingsCmp,
 			help:      helpCmp,
+			alert:     alertCmp,
 		},
 		keys:   shared.GetKeyMaps(),
 		config: cfg,
@@ -105,6 +115,12 @@ func (a *App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (a *App) View() string {
 	s := strings.Builder{}
+
+	if a.windowTooSmall() {
+		a.components.alert.SetTitle("Window is too small.")
+
+		return a.components.alert.View(a.state.ScreenWidth, a.state.ScreenHeight)
+	}
 	// tabs
 	s.WriteString(a.components.tabs.View())
 	s.WriteString("\n")
@@ -166,4 +182,13 @@ func (a *App) onWindowSizeChanged(msg tea.WindowSizeMsg) {
 	a.state.ScreenWidth = msg.Width
 	a.state.ScreenHeight = msg.Height
 	a.state.ResizeAreas()
+	logger.Client.InfoLog.Println(a.state.ScreenWidth, a.state.ScreenHeight)
+}
+
+func (a *App) windowTooSmall() bool {
+	if a.state.ScreenWidth < minWidth || a.state.ScreenHeight < minHeigh {
+		return true
+	}
+
+	return false
 }
