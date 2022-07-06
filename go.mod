@@ -7,6 +7,7 @@ require (
 	github.com/charmbracelet/bubbletea v0.20.0
 	github.com/charmbracelet/lipgloss v0.5.0
 	github.com/stretchr/testify v1.7.0
+	go.etcd.io/bbolt v1.3.6
 	golang.org/x/term v0.0.0-20210927222741-03fcf44c2211
 )
 
