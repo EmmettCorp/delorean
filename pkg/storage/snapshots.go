@@ -6,12 +6,14 @@ import (
 )
 
 type SnapshotRepo struct {
-	db *bolt.DB
+	db     *bolt.DB
+	bucket []byte
 }
 
 func NewSnapshotRepo(db *bolt.DB) *SnapshotRepo {
 	return &SnapshotRepo{
-		db: db,
+		db:     db,
+		bucket: []byte("snapshots"),
 	}
 }
 
