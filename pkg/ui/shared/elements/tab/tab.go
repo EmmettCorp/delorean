@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	"github.com/EmmettCorp/delorean/pkg/ui/shared"
-	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 )
 
@@ -16,10 +15,11 @@ const (
 )
 
 type Tab struct {
-	id     shared.TabItem
-	state  *shared.State
-	coords shared.Coords
-	title  string
+	id       shared.TabItem
+	state    *shared.State
+	coords   shared.Coords
+	title    string
+	callback func() error
 }
 
 func New(state *shared.State, id shared.TabItem, coords shared.Coords) (*Tab, error) {
@@ -49,7 +49,11 @@ func (t *Tab) SetCoords(c shared.Coords) {
 	t.coords = c
 }
 
-func (t *Tab) OnClick(event tea.MouseMsg) error {
+func (t *Tab) SetCallback(callback func() error) {
+	t.callback = callback
+}
+
+func (t *Tab) OnClick() error {
 	t.state.Update(t.id)
 
 	return nil

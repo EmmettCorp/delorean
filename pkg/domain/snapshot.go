@@ -11,12 +11,13 @@ const SnapshotFormat = "2006-01-02_15:04:05"
 
 // Snapshot represents snapshot object, keeps all needed data.
 type Snapshot struct {
-	Path        string
-	Label       string
-	Type        string // manual, weekly, daily, etc.
-	VolumeLabel string
-	VolumeID    string
-	Timestamp   int64
+	ID          string `json:"id"`
+	Path        string `json:"path"`
+	Label       string `json:"label"`
+	Type        string `json:"type"` // manual, weekly, daily, etc.
+	VolumeLabel string `json:"volume_label"`
+	VolumeID    string `json:"volume_id"`
+	Timestamp   int64  `json:"timestamp"`
 }
 
 // NewSnapshot creates a new snapshot object by path to snapshot, volume label and volume id.
@@ -32,7 +33,7 @@ func NewSnapshot(ph, vLabel, vID string) (Snapshot, error) {
 	}
 
 	ss := strings.Split(ph, "/")
-	if len(ss) < 2 { // nolint:gomnd // there MUST be snapshots `type` and `id` in path
+	if len(ss) < 4 { // nolint:gomnd // there MUST be snapshots `type` and `id` in path
 		return Snapshot{}, fmt.Errorf("path is too short `%s`", ph)
 	}
 	sn.Label = ss[len(ss)-1]

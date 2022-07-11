@@ -6,9 +6,11 @@ package snapshots
 import (
 	"errors"
 	"fmt"
+	"path"
 	"strings"
 
 	"github.com/EmmettCorp/delorean/pkg/commands/btrfs"
+	"github.com/EmmettCorp/delorean/pkg/domain"
 	"github.com/EmmettCorp/delorean/pkg/logger"
 	"github.com/EmmettCorp/delorean/pkg/ui/shared"
 	"github.com/EmmettCorp/delorean/pkg/ui/shared/elements/dialog"
@@ -51,6 +53,10 @@ type snapshot struct {
 	Path        string
 }
 
+type snapshotRepo interface {
+	Put(sn domain.Snapshot) error
+}
+
 func (s *snapshot) FilterValue() string { return s.Label }
 func (s *snapshot) GetPath() string     { return s.Path }
 
@@ -66,15 +72,17 @@ type Model struct {
 	updateClickable bool
 	err             error
 	dialog          *dialog.Model
+	snapshotRepo    snapshotRepo
 }
 
-func New(st *shared.State) (*Model, error) {
+func New(st *shared.State, sr snapshotRepo) (*Model, error) {
 	m := Model{
-		state:       st,
-		currentPage: -1,
-		itemsCount:  -1,
-		styles:      list.NewDefaultItemStyles(),
-		keys:        getKeyMaps(),
+		state:        st,
+		currentPage:  -1,
+		itemsCount:   -1,
+		styles:       list.NewDefaultItemStyles(),
+		keys:         getKeyMaps(),
+		snapshotRepo: sr,
 	}
 
 	itemsModel := list.New([]list.Item{}, &itemDelegate{
@@ -94,8 +102,9 @@ func New(st *shared.State) (*Model, error) {
 		Y1: createButtonY1,
 		X2: lipgloss.Width(btnTitle) + 3,            // nolint:gomnd // left and right borders + 1
 		Y2: createButtonY1 + createButtonHeight - 1, // we don't need make bottom border line clickable
-	}, m.UpdateList)
+	})
 	m.createBtn = createBtn
+	m.createBtn.SetCallback(m.createSnapshot)
 	err := st.AppendClickable(shared.SnapshotsButtonsBar, createBtn)
 	if err != nil {
 		return nil, err
@@ -279,6 +288,40 @@ func (m *Model) getSnapshotByIndex(idx int) (*snapshot, error) {
 	}
 
 	return sn, nil
+}
+
+func (m *Model) createSnapshot() error {
+	var activeVolumeFound bool
+
+	for _, vol := range m.state.Config.Volumes {
+		if !vol.Active {
+			continue
+		}
+
+		activeVolumeFound = true
+
+		sn, err := btrfs.CreateSnapshot(vol.Device.MountPoint,
+			path.Join(vol.SnapshotsPath, domain.Manual))
+		if err != nil {
+			return fmt.Errorf("can't create snapshot for %s: %v", vol.Device.MountPoint, err)
+		}
+
+		err = m.snapshotRepo.Put(sn)
+		if err != nil {
+			return err
+		}
+	}
+
+	if !activeVolumeFound {
+		// TODO: after creation write message to the status bar
+		// put the message to a status bar errors.New("there are no active volumes")
+
+		return nil
+	}
+
+	m.UpdateList()
+
+	return nil
 }
 
 func getSnapshotsHeader() string {

@@ -2,7 +2,6 @@ package dialog
 
 import (
 	"github.com/EmmettCorp/delorean/pkg/ui/shared"
-	tea "github.com/charmbracelet/bubbletea"
 )
 
 type Button struct {
@@ -20,7 +19,7 @@ func (b *Button) GetCoords() shared.Coords {
 	return b.coords
 }
 
-func (b *Button) OnClick(event tea.MouseMsg) error {
+func (b *Button) OnClick(callback func() error) error {
 	b.Callback()
 
 	return nil

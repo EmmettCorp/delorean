@@ -135,7 +135,7 @@ func (d *itemDelegate) getRowButtonX1(action rowAction) int {
 	}
 }
 
-func (d *itemDelegate) OnClick(event tea.MouseMsg) error {
+func (d *itemDelegate) OnClick(callback func() error) error {
 	d.model.list.Select(d.index)
 
 	return nil
@@ -149,7 +149,7 @@ func (d *itemDelegate) SetCoords(coords shared.Coords) {
 	d.coords = coords
 }
 
-func (re *rowButton) OnClick(event tea.MouseMsg) error {
+func (re *rowButton) OnClick(callback func() error) error {
 	switch re.action {
 	case deleteItem:
 		return re.deleteItem()

@@ -174,7 +174,7 @@ func (a *App) OnClick(msg tea.MouseMsg) {
 	clickable := a.state.FindClickable(msg.X, msg.Y)
 	if clickable != nil {
 		// nolint:errcheck,gosec // TODO: handle error. Add to log + consider to write short message to status bar
-		clickable.OnClick(msg)
+		clickable.OnClick(nil)
 	}
 }
 

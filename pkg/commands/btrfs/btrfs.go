@@ -25,7 +25,7 @@ func (ss sortableSnapshots) Swap(i, j int)      { ss[i], ss[j] = ss[j], ss[i] }
 func (ss sortableSnapshots) Less(i, j int) bool { return ss[i].Timestamp > ss[j].Timestamp }
 
 // CreateSnapshot creates a new snapshot.
-func CreateSnapshot(sv, ph string) error {
+func CreateSnapshot(sv, ph string) (domain.Snapshot, error) {
 	// nolint:gosec // we pass commands here from code only.
 	cmd := exec.Command("btrfs", "subvolume", "snapshot", "-r",
 		sv, path.Join(ph, time.Now().Format(domain.SnapshotFormat)))
@@ -33,10 +33,10 @@ func CreateSnapshot(sv, ph string) error {
 	cmd.Stderr = &cmdErr
 	err := cmd.Run()
 	if err != nil {
-		return fmt.Errorf("can't execute %s: %s", cmd.String(), cmdErr.String())
+		return domain.Snapshot{}, fmt.Errorf("can't execute %s: %s", cmd.String(), cmdErr.String())
 	}
 
-	return nil
+	return domain.Snapshot{}, nil
 }
 
 // Restore creates a new snapshot.
