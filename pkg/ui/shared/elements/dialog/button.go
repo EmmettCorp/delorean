@@ -6,7 +6,7 @@ import (
 
 type Button struct {
 	Text     string
-	Callback func()
+	callback func() error
 	active   bool
 	coords   shared.Coords
 }
@@ -19,10 +19,12 @@ func (b *Button) GetCoords() shared.Coords {
 	return b.coords
 }
 
-func (b *Button) OnClick(callback func() error) error {
-	b.Callback()
+func (b *Button) SetCallback(callback func() error) {
+	b.callback = callback
+}
 
-	return nil
+func (b *Button) OnClick() error {
+	return b.callback()
 }
 
 func (b *Button) Render() string {

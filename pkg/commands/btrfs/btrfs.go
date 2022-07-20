@@ -36,6 +36,9 @@ func CreateSnapshot(sv, ph string) (domain.Snapshot, error) {
 		return domain.Snapshot{}, fmt.Errorf("can't execute %s: %s", cmd.String(), cmdErr.String())
 	}
 
+	// call sudo btrfs sub show /run/delorean/.snapshots/@/manual/2022-06-12_18:30:50
+	// create domain.Snapshot and return it
+
 	return domain.Snapshot{}, nil
 }
 

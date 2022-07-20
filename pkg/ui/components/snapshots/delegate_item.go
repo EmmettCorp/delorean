@@ -28,16 +28,17 @@ const (
 )
 
 type rowButton struct {
-	action rowAction
-	row    *itemDelegate
-	coords shared.Coords
+	row      *itemDelegate
+	coords   shared.Coords
+	callback func() error
 }
 
 // itemDelegate is responsible for item rendering.
 type itemDelegate struct {
-	index  int
-	model  *Model
-	coords shared.Coords
+	index    int
+	model    *Model
+	coords   shared.Coords
+	callback func() error
 }
 
 func (d *itemDelegate) Height() int  { return itemDelegateHeight }
@@ -115,6 +116,11 @@ func (d itemDelegate) setRowClickable(index, perPage int) {
 			Y2: itemY + itemDelegateHeight,
 		},
 		row: &d,
+		callback: func() error {
+			d.model.deleteWithDialog(d.index)
+
+			return nil
+		},
 	}
 	err = d.model.state.AppendClickable(shared.SnapshotsList, &deleteItem)
 	if err != nil {
@@ -135,10 +141,12 @@ func (d *itemDelegate) getRowButtonX1(action rowAction) int {
 	}
 }
 
-func (d *itemDelegate) OnClick(callback func() error) error {
-	d.model.list.Select(d.index)
+func (d *itemDelegate) SetCallback(callback func() error) {
+	d.callback = callback
+}
 
-	return nil
+func (d *itemDelegate) OnClick() error {
+	return d.callback()
 }
 
 func (d *itemDelegate) GetCoords() shared.Coords {
@@ -149,25 +157,18 @@ func (d *itemDelegate) SetCoords(coords shared.Coords) {
 	d.coords = coords
 }
 
-func (re *rowButton) OnClick(callback func() error) error {
-	switch re.action {
-	case deleteItem:
-		return re.deleteItem()
-	case restoreItem:
-		return nil // not implemented yet
-	}
-
-	return nil
+func (rb *rowButton) SetCallback(callback func() error) {
+	rb.callback = callback
 }
 
-func (re *rowButton) GetCoords() shared.Coords {
-	return re.coords
+func (rb *rowButton) OnClick() error {
+	return rb.callback()
 }
 
-func (re *rowButton) SetCoords(coords shared.Coords) {
-	re.coords = coords
+func (rb *rowButton) GetCoords() shared.Coords {
+	return rb.coords
 }
 
-func (re *rowButton) deleteItem() error {
-	return re.row.model.deleteWithDialog(re.row.index)
+func (rb *rowButton) SetCoords(coords shared.Coords) {
+	rb.coords = coords
 }

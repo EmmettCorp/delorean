@@ -9,6 +9,7 @@ import (
 
 	"github.com/EmmettCorp/delorean/pkg/config"
 	"github.com/EmmettCorp/delorean/pkg/logger"
+	"github.com/EmmettCorp/delorean/pkg/storage"
 	"github.com/EmmettCorp/delorean/pkg/ui/components/help"
 	"github.com/EmmettCorp/delorean/pkg/ui/components/settings"
 	"github.com/EmmettCorp/delorean/pkg/ui/components/snapshots"
@@ -41,7 +42,7 @@ type App struct {
 	config     *config.Config
 }
 
-func NewModel(cfg *config.Config) (*App, error) {
+func NewModel(sr *storage.SnapshotRepo, cfg *config.Config) (*App, error) {
 	var err error
 	st := shared.NewState(cfg)
 	st.ScreenWidth, st.ScreenHeight, err = term.GetSize(int(os.Stdout.Fd()))
@@ -53,7 +54,7 @@ func NewModel(cfg *config.Config) (*App, error) {
 	if err != nil {
 		return &App{}, err
 	}
-	snapshotsCmp, err := snapshots.New(st)
+	snapshotsCmp, err := snapshots.New(st, sr)
 	if err != nil {
 		return &App{}, err
 	}
@@ -174,7 +175,7 @@ func (a *App) OnClick(msg tea.MouseMsg) {
 	clickable := a.state.FindClickable(msg.X, msg.Y)
 	if clickable != nil {
 		// nolint:errcheck,gosec // TODO: handle error. Add to log + consider to write short message to status bar
-		clickable.OnClick(nil)
+		clickable.OnClick()
 	}
 }
 

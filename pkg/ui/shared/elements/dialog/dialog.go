@@ -26,17 +26,17 @@ type Model struct {
 }
 
 // New creates and returns a new dialog model.
-func New(title, okText, cancelText string, w, h int, okFunc, cancelFunc func()) *Model {
+func New(title, okText, cancelText string, w, h int, okFunc, cancelFunc func() error) *Model {
 	m := Model{
 		Title: title,
 		OkButton: &Button{
 			Text:     okText,
-			Callback: okFunc,
+			callback: okFunc,
 			active:   true,
 		},
 		CancelButton: &Button{
 			Text:     cancelText,
-			Callback: cancelFunc,
+			callback: cancelFunc,
 			active:   false,
 		},
 		w:    w,
@@ -65,7 +65,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case key.Matches(msg, m.keys.Right):
 			m.confirm(false)
 		case key.Matches(msg, m.keys.Enter):
-			m.getActiveButton().Callback()
+			m.getActiveButton().callback()
 		}
 	}
 

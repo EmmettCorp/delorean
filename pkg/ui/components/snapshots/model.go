@@ -11,7 +11,6 @@ import (
 
 	"github.com/EmmettCorp/delorean/pkg/commands/btrfs"
 	"github.com/EmmettCorp/delorean/pkg/domain"
-	"github.com/EmmettCorp/delorean/pkg/logger"
 	"github.com/EmmettCorp/delorean/pkg/ui/shared"
 	"github.com/EmmettCorp/delorean/pkg/ui/shared/elements/dialog"
 	"github.com/EmmettCorp/delorean/pkg/ui/shared/elements/divider"
@@ -85,9 +84,13 @@ func New(st *shared.State, sr snapshotRepo) (*Model, error) {
 		snapshotRepo: sr,
 	}
 
-	itemsModel := list.New([]list.Item{}, &itemDelegate{
-		model: &m,
-	}, 0, 0)
+	itemD := itemDelegate{}
+	itemD.callback = func() error {
+		m.list.Select(itemD.index)
+		return nil
+	}
+
+	itemsModel := list.New([]list.Item{}, &itemD, 0, 0)
 	itemsModel.SetFilteringEnabled(false)
 	itemsModel.SetShowFilter(false)
 	itemsModel.SetShowTitle(false)
@@ -242,17 +245,21 @@ func (m *Model) deleteWithDialog(idx int) error {
 
 	m.dialog = dialog.New(fmt.Sprintf("Remove snapshot %s?", sn.Label), "Ok", "Cancel", m.state.ScreenWidth,
 		m.state.ScreenHeight,
-		func() {
+		func() error {
 			err := m.deleteByIndex(idx)
 			if err != nil {
-				logger.Client.ErrLog.Printf("can't delete by index `%d`: %v", idx, err)
+				return fmt.Errorf("can't delete by index `%d`: %v", idx, err)
 			}
 			m.dialog = nil
 			m.updateClickable = true
-		}, func() {
+
+			return nil
+		}, func() error {
 			m.list.Select(idx)
 			m.dialog = nil
 			m.updateClickable = true
+
+			return nil
 		})
 
 	m.state.CleanClickable(shared.SnapshotsList)
