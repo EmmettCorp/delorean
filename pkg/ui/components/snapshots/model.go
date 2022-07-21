@@ -84,11 +84,13 @@ func New(st *shared.State, sr snapshotRepo) (*Model, error) {
 		snapshotRepo: sr,
 	}
 
-	itemD := itemDelegate{}
-	itemD.callback = func() error {
-		m.list.Select(itemD.index)
-		return nil
+	itemD := itemDelegate{
+		model: &m,
 	}
+	itemD.SetCallback(func() error {
+		m.list.Select(itemD.getIndex())
+		return nil
+	})
 
 	itemsModel := list.New([]list.Item{}, &itemD, 0, 0)
 	itemsModel.SetFilteringEnabled(false)

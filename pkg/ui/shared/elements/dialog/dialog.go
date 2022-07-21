@@ -30,19 +30,19 @@ func New(title, okText, cancelText string, w, h int, okFunc, cancelFunc func() e
 	m := Model{
 		Title: title,
 		OkButton: &Button{
-			Text:     okText,
-			callback: okFunc,
-			active:   true,
+			Text:   okText,
+			active: true,
 		},
 		CancelButton: &Button{
-			Text:     cancelText,
-			callback: cancelFunc,
-			active:   false,
+			Text:   cancelText,
+			active: false,
 		},
 		w:    w,
 		h:    h - dHeight,
 		keys: getKeyMaps(),
 	}
+	m.OkButton.SetCallback(okFunc)
+	m.CancelButton.SetCallback(cancelFunc)
 	m.setButtonsCoords()
 
 	return &m
@@ -65,7 +65,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case key.Matches(msg, m.keys.Right):
 			m.confirm(false)
 		case key.Matches(msg, m.keys.Enter):
-			m.getActiveButton().callback()
+			m.getActiveButton().OnClick()
 		}
 	}
 

@@ -15,9 +15,9 @@ const (
 )
 
 type createButton struct {
-	title  string
-	coords shared.Coords
-	state  *shared.State
+	shared.ClickableItem
+	title string
+	state *shared.State
 	// Limiter for create button is needed to allow to finish create snapshot operation.
 	// There is no real point in real life doing snapshots every second.
 	// If allow user to call btrfs.CreateSnapshot several times a second it could cause a exec.Command call error.
@@ -39,18 +39,6 @@ func newCreateButton(st *shared.State, title string, coords shared.Coords) *crea
 
 func (cb *createButton) SetTitle(title string) {
 	cb.title = title
-}
-
-func (cb *createButton) GetCoords() shared.Coords {
-	return cb.coords
-}
-
-func (cb *createButton) SetCoords(c shared.Coords) {
-	cb.coords = c
-}
-
-func (cb *createButton) SetCallback(callback func() error) {
-	cb.callback = callback
 }
 
 func (cb *createButton) OnClick() error {

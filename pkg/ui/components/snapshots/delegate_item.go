@@ -28,17 +28,15 @@ const (
 )
 
 type rowButton struct {
-	row      *itemDelegate
-	coords   shared.Coords
-	callback func() error
+	shared.ClickableItem
+	row *itemDelegate
 }
 
 // itemDelegate is responsible for item rendering.
 type itemDelegate struct {
-	index    int
-	model    *Model
-	coords   shared.Coords
-	callback func() error
+	shared.ClickableItem
+	index int
+	model *Model
 }
 
 func (d *itemDelegate) Height() int  { return itemDelegateHeight }
@@ -96,12 +94,13 @@ func (d itemDelegate) setRowClickable(index, perPage int) {
 	d.index = index
 	itemY := d.getFirstItemY() + (spacing+itemDelegateHeight)*(index%perPage)
 
-	d.coords = shared.Coords{
+	d.SetCoords(shared.Coords{
 		X1: spacing,
 		Y1: itemY,
 		X2: d.model.state.ScreenWidth,
 		Y2: itemY + spacing,
-	}
+	})
+
 	err := d.model.state.AppendClickable(shared.SnapshotsList, &d)
 	if err != nil {
 		logger.Client.ErrLog.Printf("append clickable row `%d`: %v", index, err)
@@ -109,19 +108,20 @@ func (d itemDelegate) setRowClickable(index, perPage int) {
 
 	deleteX1 := d.getRowButtonX1(deleteItem)
 	deleteItem := rowButton{
-		coords: shared.Coords{
-			X1: deleteX1,
-			Y1: itemY,
-			X2: deleteX1 + lipgloss.Width(deleteIcon),
-			Y2: itemY + itemDelegateHeight,
-		},
 		row: &d,
-		callback: func() error {
-			d.model.deleteWithDialog(d.index)
-
-			return nil
-		},
 	}
+	deleteItem.SetCoords(shared.Coords{
+		X1: deleteX1,
+		Y1: itemY,
+		X2: deleteX1 + lipgloss.Width(deleteIcon),
+		Y2: itemY + itemDelegateHeight,
+	})
+
+	deleteItem.SetCallback(func() error {
+		d.model.deleteWithDialog(d.index)
+
+		return nil
+	})
 	err = d.model.state.AppendClickable(shared.SnapshotsList, &deleteItem)
 	if err != nil {
 		logger.Client.ErrLog.Printf("append clickable delete button `%d`: %v", index, err)
@@ -141,34 +141,6 @@ func (d *itemDelegate) getRowButtonX1(action rowAction) int {
 	}
 }
 
-func (d *itemDelegate) SetCallback(callback func() error) {
-	d.callback = callback
-}
-
-func (d *itemDelegate) OnClick() error {
-	return d.callback()
-}
-
-func (d *itemDelegate) GetCoords() shared.Coords {
-	return d.coords
-}
-
-func (d *itemDelegate) SetCoords(coords shared.Coords) {
-	d.coords = coords
-}
-
-func (rb *rowButton) SetCallback(callback func() error) {
-	rb.callback = callback
-}
-
-func (rb *rowButton) OnClick() error {
-	return rb.callback()
-}
-
-func (rb *rowButton) GetCoords() shared.Coords {
-	return rb.coords
-}
-
-func (rb *rowButton) SetCoords(coords shared.Coords) {
-	rb.coords = coords
+func (d *itemDelegate) getIndex() int {
+	return d.index
 }

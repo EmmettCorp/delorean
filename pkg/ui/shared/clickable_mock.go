@@ -11,6 +11,9 @@ func (cm *clickableMock) SetCoords(coords Coords) {
 	cm.coords = coords
 }
 
-func (cm *clickableMock) OnClick(callback func() error) error {
+func (cm *clickableMock) SetCallback(callback func() error) {
+}
+
+func (cm *clickableMock) OnClick() error {
 	return nil
 }
