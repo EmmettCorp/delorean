@@ -2,6 +2,7 @@ package domain
 
 import (
 	"fmt"
+	"path"
 	"strings"
 	"time"
 )
@@ -11,13 +12,13 @@ const SnapshotFormat = "2006-01-02_15:04:05"
 
 // Snapshot represents snapshot object, keeps all needed data.
 type Snapshot struct {
-	ID          string `json:"id"`
 	Path        string `json:"path"`
 	Label       string `json:"label"`
 	Type        string `json:"type"` // manual, weekly, daily, etc.
 	VolumeLabel string `json:"volume_label"`
 	VolumeID    string `json:"volume_id"`
 	Timestamp   int64  `json:"timestamp"`
+	Kernel      string `json:"kernel"`
 }
 
 // NewSnapshot creates a new snapshot object by path to snapshot, volume label and volume id.
@@ -25,7 +26,29 @@ type Snapshot struct {
 // Example:
 // 			/run/delorean/.snapshots/@/manual/2022-02-16_16:17:45
 //
-func NewSnapshot(ph, vLabel, vID string) (Snapshot, error) {
+func NewSnapshot(phToSnapshots, sType, vLabel, vID, kernel string) Snapshot {
+	ts := time.Now()
+	label := ts.Format(SnapshotFormat)
+	ph := path.Join(phToSnapshots, sType, label)
+	sn := Snapshot{
+		Path:        ph,
+		VolumeLabel: vLabel,
+		Label:       label,
+		VolumeID:    vID,
+		Type:        sType,
+		Timestamp:   ts.Unix(),
+		Kernel:      kernel,
+	}
+
+	return sn
+}
+
+// NewSnapshot creates a new snapshot object by path to snapshot, volume label and volume id.
+// It is supposed that path to snapshots looks like `**/<volume>/<snapshot_type>/<snapshot_id>`.
+// Example:
+// 			/run/delorean/.snapshots/@/manual/2022-02-16_16:17:45
+//
+func SnapshotByPath(ph, vLabel, vID string) (Snapshot, error) {
 	sn := Snapshot{
 		Path:        ph,
 		VolumeLabel: vLabel,

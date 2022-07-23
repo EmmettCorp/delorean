@@ -41,15 +41,8 @@ func (cb *createButton) SetTitle(title string) {
 	cb.title = title
 }
 
-func (cb *createButton) OnClick() error {
-	if !cb.limiter.Allow() {
-		// TODO: consider to return errors.New("too many create calls per second")
-		// and write it to to status bar
-
-		return nil
-	}
-
-	return cb.callback()
+func (cb *createButton) Available() bool {
+	return cb.limiter.Allow()
 }
 
 func (cb *createButton) Render() string {

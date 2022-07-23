@@ -12,7 +12,6 @@ import (
 	"path"
 	"sort"
 	"strings"
-	"time"
 
 	"github.com/EmmettCorp/delorean/pkg/domain"
 	"github.com/EmmettCorp/delorean/pkg/logger"
@@ -25,21 +24,17 @@ func (ss sortableSnapshots) Swap(i, j int)      { ss[i], ss[j] = ss[j], ss[i] }
 func (ss sortableSnapshots) Less(i, j int) bool { return ss[i].Timestamp > ss[j].Timestamp }
 
 // CreateSnapshot creates a new snapshot.
-func CreateSnapshot(sv, ph string) (domain.Snapshot, error) {
+func CreateSnapshot(subvolume string, snap domain.Snapshot) error {
 	// nolint:gosec // we pass commands here from code only.
-	cmd := exec.Command("btrfs", "subvolume", "snapshot", "-r",
-		sv, path.Join(ph, time.Now().Format(domain.SnapshotFormat)))
+	cmd := exec.Command("btrfs", "subvolume", "snapshot", "-r", subvolume, snap.Path)
 	var cmdErr bytes.Buffer
 	cmd.Stderr = &cmdErr
 	err := cmd.Run()
 	if err != nil {
-		return domain.Snapshot{}, fmt.Errorf("can't execute %s: %s", cmd.String(), cmdErr.String())
+		return fmt.Errorf("can't execute %s: %s", cmd.String(), cmdErr.String())
 	}
 
-	// call sudo btrfs sub show /run/delorean/.snapshots/@/manual/2022-06-12_18:30:50
-	// create domain.Snapshot and return it
-
-	return domain.Snapshot{}, nil
+	return nil
 }
 
 // Restore creates a new snapshot.
@@ -95,7 +90,7 @@ func snapshotsListByVolume(volume domain.Volume) ([]domain.Snapshot, error) {
 	}
 
 	for i := range sn {
-		sn, err := domain.NewSnapshot(sn[i], volume.Label, volume.ID)
+		sn, err := domain.SnapshotByPath(sn[i], volume.Label, volume.ID)
 		if err != nil {
 			return nil, err
 		}

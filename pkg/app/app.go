@@ -25,11 +25,14 @@ func New() (*App, error) {
 		return nil, fmt.Errorf("can't get new config: %v", err)
 	}
 
-	db, err := storage.New("path")
+	db, err := storage.New(cfg.DBPath)
 	if err != nil {
 		return nil, fmt.Errorf("can't init storage: %v", err)
 	}
-	sr := storage.NewSnapshotRepo(db)
+	sr, err := storage.NewSnapshotRepo(db)
+	if err != nil {
+		return nil, fmt.Errorf("can't init bucket: %v", err)
+	}
 
 	model, err := ui.NewModel(sr, cfg)
 	if err != nil {

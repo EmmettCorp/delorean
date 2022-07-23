@@ -21,18 +21,12 @@ type Tab struct {
 	title string
 }
 
-func New(state *shared.State, id shared.TabItem) (*Tab, error) {
-	t := Tab{
+func New(state *shared.State, id shared.TabItem) *Tab {
+	return &Tab{
 		title: id.String(),
 		state: state,
 		id:    id,
 	}
-	err := t.state.AppendClickable(shared.TabHeader, &t)
-	if err != nil {
-		return nil, err
-	}
-
-	return &t, nil
 }
 
 func (t *Tab) GetID() shared.TabItem {

@@ -6,11 +6,11 @@ package snapshots
 import (
 	"errors"
 	"fmt"
-	"path"
 	"strings"
 
 	"github.com/EmmettCorp/delorean/pkg/commands/btrfs"
 	"github.com/EmmettCorp/delorean/pkg/domain"
+	"github.com/EmmettCorp/delorean/pkg/logger"
 	"github.com/EmmettCorp/delorean/pkg/ui/shared"
 	"github.com/EmmettCorp/delorean/pkg/ui/shared/elements/dialog"
 	"github.com/EmmettCorp/delorean/pkg/ui/shared/elements/divider"
@@ -37,12 +37,6 @@ const (
 	infoColumnsWidth = infoColumnWidth + idColumnWidth + typeColumnWidth + minColumnGapLen
 )
 
-type buttonModel interface {
-	shared.Clickable
-	SetTitle(title string)
-	Render() string
-}
-
 type snapshot struct {
 	Label       string
 	VolumeLabel string
@@ -54,6 +48,8 @@ type snapshot struct {
 
 type snapshotRepo interface {
 	Put(sn domain.Snapshot) error
+	List() ([]domain.Snapshot, error)
+	Delete(path string) error
 }
 
 func (s *snapshot) FilterValue() string { return s.Label }
@@ -61,7 +57,7 @@ func (s *snapshot) GetPath() string     { return s.Path }
 
 type Model struct {
 	state           *shared.State
-	createBtn       buttonModel
+	createBtn       *createButton
 	list            list.Model
 	keys            keyMap
 	styles          list.DefaultItemStyles
@@ -210,7 +206,7 @@ func (m *Model) updateDialog(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m *Model) UpdateList() {
-	snaps, err := btrfs.SnapshotsList(m.state.Config.Volumes)
+	snaps, err := m.snapshotRepo.List()
 	if err != nil {
 		m.err = err
 
@@ -225,6 +221,7 @@ func (m *Model) UpdateList() {
 			Type:        snaps[i].Type,
 			VolumeID:    snaps[i].VolumeID,
 			Path:        snaps[i].Path,
+			Kernel:      snaps[i].Kernel,
 		}
 	}
 
@@ -266,7 +263,12 @@ func (m *Model) deleteWithDialog(idx int) error {
 
 	m.state.CleanClickable(shared.SnapshotsList)
 
-	return m.state.AppendClickable(shared.SnapshotsList, m.dialog.OkButton, m.dialog.CancelButton)
+	err = m.state.AppendClickable(shared.SnapshotsList, m.dialog.OkButton, m.dialog.CancelButton)
+	if err != nil {
+		return fmt.Errorf("can't append delete with dialog: %v", err)
+	}
+
+	return nil
 }
 
 func (m *Model) deleteByIndex(idx int) error {
@@ -275,9 +277,15 @@ func (m *Model) deleteByIndex(idx int) error {
 		return fmt.Errorf("can't get snapshot by index `%d`: %v", idx, err)
 	}
 
-	err = btrfs.DeleteSnapshot(sn.GetPath())
+	ph := sn.GetPath()
+	err = btrfs.DeleteSnapshot(ph)
 	if err != nil {
-		return err
+		return fmt.Errorf("can't delete from btrfs: %v", err)
+	}
+
+	err = m.snapshotRepo.Delete(ph)
+	if err != nil {
+		return fmt.Errorf("can't delete info from storage: %v", err)
 	}
 
 	m.list.RemoveItem(idx)
@@ -300,6 +308,12 @@ func (m *Model) getSnapshotByIndex(idx int) (*snapshot, error) {
 }
 
 func (m *Model) createSnapshot() error {
+	if !m.createBtn.Available() {
+		// TODO: consider to return errors.New("too many create calls per second")
+		// and write it to to status bar
+		return nil
+	}
+
 	var activeVolumeFound bool
 
 	for _, vol := range m.state.Config.Volumes {
@@ -309,14 +323,17 @@ func (m *Model) createSnapshot() error {
 
 		activeVolumeFound = true
 
-		sn, err := btrfs.CreateSnapshot(vol.Device.MountPoint,
-			path.Join(vol.SnapshotsPath, domain.Manual))
+		snap := domain.NewSnapshot(vol.SnapshotsPath, domain.Manual, vol.Label, vol.ID, m.state.Config.KernelVersion)
+
+		err := btrfs.CreateSnapshot(vol.Device.MountPoint, snap)
 		if err != nil {
-			return fmt.Errorf("can't create snapshot for %s: %v", vol.Device.MountPoint, err)
+			logger.Client.ErrLog.Printf("can't create snapshot for %s: %v", vol.Device.MountPoint, err)
+			return fmt.Errorf("can't create snapshot for %s: %v", snap.Path, err)
 		}
 
-		err = m.snapshotRepo.Put(sn)
+		err = m.snapshotRepo.Put(snap)
 		if err != nil {
+			logger.Client.ErrLog.Printf("can't put snapshot %s: %v", snap.Path, err)
 			return err
 		}
 	}

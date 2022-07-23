@@ -70,7 +70,11 @@ func (d *itemDelegate) Render(w io.Writer, m list.Model, index int, listItem lis
 
 	var description string
 	if s.VolumeLabel == "Root" {
-		description = fmt.Sprintf("volume: %s | kernel: %s ", s.VolumeLabel, s.Kernel)
+		krn := s.Kernel
+		if krn == d.model.state.Config.KernelVersion {
+			krn = "current"
+		}
+		description = fmt.Sprintf("volume: %s | kernel: %s ", s.VolumeLabel, krn)
 	} else {
 		description = fmt.Sprintf("volume: %s", s.VolumeLabel)
 	}
