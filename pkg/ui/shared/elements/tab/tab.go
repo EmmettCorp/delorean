@@ -15,20 +15,18 @@ const (
 )
 
 type Tab struct {
-	id       shared.TabItem
-	state    *shared.State
-	coords   shared.Coords
-	title    string
-	callback func() error
+	shared.ClickableItem
+	id    shared.TabItem
+	state *shared.State
+	title string
 }
 
-func New(state *shared.State, id shared.TabItem, coords shared.Coords) (*Tab, error) {
+func New(state *shared.State, id shared.TabItem) (*Tab, error) {
 	t := Tab{
 		title: id.String(),
 		state: state,
 		id:    id,
 	}
-	t.SetCoords(coords)
 	err := t.state.AppendClickable(shared.TabHeader, &t)
 	if err != nil {
 		return nil, err
@@ -39,24 +37,6 @@ func New(state *shared.State, id shared.TabItem, coords shared.Coords) (*Tab, er
 
 func (t *Tab) GetID() shared.TabItem {
 	return t.id
-}
-
-func (t *Tab) GetCoords() shared.Coords {
-	return t.coords
-}
-
-func (t *Tab) SetCoords(c shared.Coords) {
-	t.coords = c
-}
-
-func (t *Tab) SetCallback(callback func() error) {
-	t.callback = callback
-}
-
-func (t *Tab) OnClick() error {
-	t.state.Update(t.id)
-
-	return nil
 }
 
 func (t *Tab) Render() string {

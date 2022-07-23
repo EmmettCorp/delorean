@@ -13,15 +13,9 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
-type clickableTab interface {
-	shared.Clickable
-	GetID() shared.TabItem
-	Render() string
-}
-
 type Model struct {
 	state  *shared.State
-	Tabs   []clickableTab
+	Tabs   []*tab.Tab
 	keys   shared.KeyMap
 	coords shared.Coords
 }
@@ -47,14 +41,20 @@ func New(state *shared.State, tabItems []shared.TabItem) (*Model, error) {
 	for i := range tabItems {
 		title := tabItems[i].String()
 		x2 := x1 + lipgloss.Width(title) + 3 // nolint:gomnd // 3 = 2 vertical bars + 1 space
-		nt, err := tab.New(state, tabItems[i], shared.Coords{
+		nt, err := tab.New(state, tabItems[i])
+		if err != nil {
+			return nil, err
+		}
+		nt.SetCoords(shared.Coords{
 			X1: x1,
 			X2: x2,
 			Y2: state.Areas.TabBar.Height,
 		})
-		if err != nil {
-			return nil, err
-		}
+		nt.SetCallback(func() error {
+			m.state.Update(tabItems[i])
+
+			return nil
+		})
 		m.Tabs = append(m.Tabs, nt)
 		x1 = x2 + 1
 	}
