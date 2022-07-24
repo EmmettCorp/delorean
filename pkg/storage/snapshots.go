@@ -45,12 +45,7 @@ func (r *SnapshotRepo) Put(sn domain.Snapshot) error {
 	})
 }
 
-func (r *SnapshotRepo) Get(path string) (domain.Snapshot, error) {
-	v := domain.Snapshot{}
-	return v, nil
-}
-
-func (r *SnapshotRepo) List() ([]domain.Snapshot, error) {
+func (r *SnapshotRepo) List(vIDs []string) ([]domain.Snapshot, error) {
 	snaps := []domain.Snapshot{}
 	err := r.db.View(func(tx *bolt.Tx) error {
 		b := tx.Bucket(r.bucket)
@@ -59,6 +54,10 @@ func (r *SnapshotRepo) List() ([]domain.Snapshot, error) {
 			err := json.Unmarshal(v, &sn)
 			if err != nil {
 				return err
+			}
+
+			if !inVolumes(vIDs, sn.VolumeID) {
+				return nil
 			}
 
 			snaps = append(snaps, sn)
@@ -76,4 +75,14 @@ func (r *SnapshotRepo) Delete(ph string) error {
 
 		return b.Delete([]byte(ph))
 	})
+}
+
+func inVolumes(vIDs []string, v string) bool {
+	for i := range vIDs {
+		if vIDs[i] == v {
+			return true
+		}
+	}
+
+	return false
 }

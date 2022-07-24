@@ -48,7 +48,7 @@ type snapshot struct {
 
 type snapshotRepo interface {
 	Put(sn domain.Snapshot) error
-	List() ([]domain.Snapshot, error)
+	List(vIDs []string) ([]domain.Snapshot, error)
 	Delete(path string) error
 }
 
@@ -83,10 +83,6 @@ func New(st *shared.State, sr snapshotRepo) (*Model, error) {
 	itemD := itemDelegate{
 		model: &m,
 	}
-	itemD.SetCallback(func() error {
-		m.list.Select(itemD.getIndex())
-		return nil
-	})
 
 	itemsModel := list.New([]list.Item{}, &itemD, 0, 0)
 	itemsModel.SetFilteringEnabled(false)
@@ -206,7 +202,7 @@ func (m *Model) updateDialog(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m *Model) UpdateList() {
-	snaps, err := m.snapshotRepo.List()
+	snaps, err := m.snapshotRepo.List(m.state.GetActiveVolumesIDs())
 	if err != nil {
 		m.err = err
 
@@ -226,6 +222,12 @@ func (m *Model) UpdateList() {
 	}
 
 	m.list.SetItems(items)
+}
+
+func (m *Model) selectByIndex(idx int) error {
+	m.list.Select(idx)
+
+	return nil
 }
 
 func (m *Model) getHeight() int {

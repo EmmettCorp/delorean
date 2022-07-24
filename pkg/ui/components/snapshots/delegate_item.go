@@ -104,6 +104,9 @@ func (d itemDelegate) setRowClickable(index, perPage int) {
 		X2: d.model.state.ScreenWidth,
 		Y2: itemY + spacing,
 	})
+	d.SetCallback(func() error {
+		return d.model.selectByIndex(d.getIndex())
+	})
 
 	err := d.model.state.AppendClickable(shared.SnapshotsList, &d)
 	if err != nil {
