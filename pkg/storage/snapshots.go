@@ -10,11 +10,13 @@ import (
 
 const snapBucketName = "snapshots"
 
+// SnapshotRepo is a repository for snapshots.
 type SnapshotRepo struct {
 	db     *bolt.DB
 	bucket []byte
 }
 
+// NewSnapshotRepo creates a new snapshot repository.
 func NewSnapshotRepo(db *bolt.DB) (*SnapshotRepo, error) {
 	err := db.Update(func(tx *bolt.Tx) error {
 		_, err := tx.CreateBucketIfNotExists([]byte(snapBucketName))
@@ -27,12 +29,14 @@ func NewSnapshotRepo(db *bolt.DB) (*SnapshotRepo, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	return &SnapshotRepo{
 		db:     db,
 		bucket: []byte(snapBucketName),
 	}, nil
 }
 
+// Put creates a new snapshot info record.
 func (r *SnapshotRepo) Put(sn domain.Snapshot) error {
 	return r.db.Update(func(tx *bolt.Tx) error {
 		b := tx.Bucket(r.bucket)
@@ -45,10 +49,12 @@ func (r *SnapshotRepo) Put(sn domain.Snapshot) error {
 	})
 }
 
+// List returns the list of snapshots filtered by volume ids.
 func (r *SnapshotRepo) List(vIDs []string) ([]domain.Snapshot, error) {
 	snaps := []domain.Snapshot{}
 	err := r.db.View(func(tx *bolt.Tx) error {
 		b := tx.Bucket(r.bucket)
+
 		return b.ForEach(func(_, v []byte) error {
 			sn := domain.Snapshot{}
 			err := json.Unmarshal(v, &sn)
@@ -69,6 +75,7 @@ func (r *SnapshotRepo) List(vIDs []string) ([]domain.Snapshot, error) {
 	return snaps, err
 }
 
+// Delete removes snapshot info record by path.
 func (r *SnapshotRepo) Delete(ph string) error {
 	return r.db.Update(func(tx *bolt.Tx) error {
 		b := tx.Bucket(r.bucket)

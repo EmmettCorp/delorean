@@ -7,11 +7,13 @@ import (
 	bolt "go.etcd.io/bbolt"
 )
 
+// VolumeRepo is repository for subvolumes.
 type VolumeRepo struct {
 	db     *bolt.DB
 	bucket []byte
 }
 
+// NewVolumeRepo creates a new VolumeRepo.
 func NewVolumeRepo(db *bolt.DB) *VolumeRepo {
 	return &VolumeRepo{
 		db:     db,

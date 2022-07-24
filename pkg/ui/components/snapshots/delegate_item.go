@@ -125,9 +125,7 @@ func (d itemDelegate) setRowClickable(index, perPage int) {
 	})
 
 	deleteItem.SetCallback(func() error {
-		d.model.deleteWithDialog(d.index)
-
-		return nil
+		return d.model.deleteWithDialog(d.index)
 	})
 	err = d.model.state.AppendClickable(shared.SnapshotsList, &deleteItem)
 	if err != nil {

@@ -4,6 +4,7 @@ Package dialog keeps helpers to create a standard dialog window.
 package dialog
 
 import (
+	"github.com/EmmettCorp/delorean/pkg/logger"
 	"github.com/EmmettCorp/delorean/pkg/ui/shared"
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
@@ -65,7 +66,10 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case key.Matches(msg, m.keys.Right):
 			m.confirm(false)
 		case key.Matches(msg, m.keys.Enter):
-			m.getActiveButton().OnClick()
+			err := m.getActiveButton().OnClick()
+			if err != nil {
+				logger.Client.ErrLog.Printf("error on push `%s` button: %v", m.getActiveButton().Text, err)
+			}
 		}
 	}
 

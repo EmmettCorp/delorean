@@ -21,8 +21,7 @@ type createButton struct {
 	// Limiter for create button is needed to allow to finish create snapshot operation.
 	// There is no real point in real life doing snapshots every second.
 	// If allow user to call btrfs.CreateSnapshot several times a second it could cause a exec.Command call error.
-	limiter  *rate.Limiter
-	callback func() error
+	limiter *rate.Limiter
 }
 
 func newCreateButton(st *shared.State, title string, coords shared.Coords) *createButton {

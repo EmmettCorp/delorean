@@ -330,12 +330,14 @@ func (m *Model) createSnapshot() error {
 		err := btrfs.CreateSnapshot(vol.Device.MountPoint, snap)
 		if err != nil {
 			logger.Client.ErrLog.Printf("can't create snapshot for %s: %v", vol.Device.MountPoint, err)
+
 			return fmt.Errorf("can't create snapshot for %s: %v", snap.Path, err)
 		}
 
 		err = m.snapshotRepo.Put(snap)
 		if err != nil {
 			logger.Client.ErrLog.Printf("can't put snapshot %s: %v", snap.Path, err)
+
 			return err
 		}
 	}

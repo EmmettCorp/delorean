@@ -65,8 +65,6 @@ func New() (*Config, error) {
 
 	err = cfg.checkIfKernelSupportsBtrfs()
 	if err != nil {
-		logger.Client.ErrLog.Printf("can't check if btrfs is supported by kernel: %v", err)
-
 		return nil, fmt.Errorf("can't check if btrfs is supported by kernel: %v", err)
 	}
 

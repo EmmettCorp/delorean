@@ -21,11 +21,7 @@ type Snapshot struct {
 	Kernel      string `json:"kernel"`
 }
 
-// NewSnapshot creates a new snapshot object by path to snapshot, volume label and volume id.
-// It is supposed that path to snapshots looks like `**/<volume>/<snapshot_type>/<snapshot_id>`.
-// Example:
-// 			/run/delorean/.snapshots/@/manual/2022-02-16_16:17:45
-//
+// NewSnapshot creates a new snapshot object.
 func NewSnapshot(phToSnapshots, sType, vLabel, vID, kernel string) Snapshot {
 	ts := time.Now()
 	label := ts.Format(SnapshotFormat)
@@ -43,7 +39,7 @@ func NewSnapshot(phToSnapshots, sType, vLabel, vID, kernel string) Snapshot {
 	return sn
 }
 
-// NewSnapshot creates a new snapshot object by path to snapshot, volume label and volume id.
+// SnapshotByPath builds a snapshot object by path to snapshot, volume label and volume id.
 // It is supposed that path to snapshots looks like `**/<volume>/<snapshot_type>/<snapshot_id>`.
 // Example:
 // 			/run/delorean/.snapshots/@/manual/2022-02-16_16:17:45
