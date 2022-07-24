@@ -2,15 +2,35 @@ package shared
 
 import (
 	"errors"
-
-	tea "github.com/charmbracelet/bubbletea"
 )
 
 // Clickable is a ui component that can be clicked.
 type Clickable interface {
 	GetCoords() Coords
 	SetCoords(c Coords)
-	OnClick(event tea.MouseMsg) error
+	SetCallback(callback func() error)
+	OnClick() error
+}
+
+type ClickableItem struct {
+	callback func() error
+	coords   Coords
+}
+
+func (ci *ClickableItem) GetCoords() Coords {
+	return ci.coords
+}
+
+func (ci *ClickableItem) SetCoords(c Coords) {
+	ci.coords = c
+}
+
+func (ci *ClickableItem) SetCallback(callback func() error) {
+	ci.callback = callback
+}
+
+func (ci *ClickableItem) OnClick() error {
+	return ci.callback()
 }
 
 // Coords are coordinates of a clickable ui component.

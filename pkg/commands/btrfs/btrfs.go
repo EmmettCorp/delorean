@@ -12,7 +12,6 @@ import (
 	"path"
 	"sort"
 	"strings"
-	"time"
 
 	"github.com/EmmettCorp/delorean/pkg/domain"
 	"github.com/EmmettCorp/delorean/pkg/logger"
@@ -25,10 +24,9 @@ func (ss sortableSnapshots) Swap(i, j int)      { ss[i], ss[j] = ss[j], ss[i] }
 func (ss sortableSnapshots) Less(i, j int) bool { return ss[i].Timestamp > ss[j].Timestamp }
 
 // CreateSnapshot creates a new snapshot.
-func CreateSnapshot(sv, ph string) error {
+func CreateSnapshot(subvolume string, snap domain.Snapshot) error {
 	// nolint:gosec // we pass commands here from code only.
-	cmd := exec.Command("btrfs", "subvolume", "snapshot", "-r",
-		sv, path.Join(ph, time.Now().Format(domain.SnapshotFormat)))
+	cmd := exec.Command("btrfs", "subvolume", "snapshot", "-r", subvolume, snap.Path)
 	var cmdErr bytes.Buffer
 	cmd.Stderr = &cmdErr
 	err := cmd.Run()
@@ -92,7 +90,7 @@ func snapshotsListByVolume(volume domain.Volume) ([]domain.Snapshot, error) {
 	}
 
 	for i := range sn {
-		sn, err := domain.NewSnapshot(sn[i], volume.Label, volume.ID)
+		sn, err := domain.SnapshotByPath(sn[i], volume.Label, volume.ID)
 		if err != nil {
 			return nil, err
 		}

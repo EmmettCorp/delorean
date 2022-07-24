@@ -28,16 +28,15 @@ const (
 )
 
 type rowButton struct {
-	action rowAction
-	row    *itemDelegate
-	coords shared.Coords
+	shared.ClickableItem
+	row *itemDelegate
 }
 
 // itemDelegate is responsible for item rendering.
 type itemDelegate struct {
-	index  int
-	model  *Model
-	coords shared.Coords
+	shared.ClickableItem
+	index int
+	model *Model
 }
 
 func (d *itemDelegate) Height() int  { return itemDelegateHeight }
@@ -71,7 +70,11 @@ func (d *itemDelegate) Render(w io.Writer, m list.Model, index int, listItem lis
 
 	var description string
 	if s.VolumeLabel == "Root" {
-		description = fmt.Sprintf("volume: %s | kernel: %s ", s.VolumeLabel, s.Kernel)
+		krn := s.Kernel
+		if krn == d.model.state.Config.KernelVersion {
+			krn = "current"
+		}
+		description = fmt.Sprintf("volume: %s | kernel: %s ", s.VolumeLabel, krn)
 	} else {
 		description = fmt.Sprintf("volume: %s", s.VolumeLabel)
 	}
@@ -95,12 +98,16 @@ func (d itemDelegate) setRowClickable(index, perPage int) {
 	d.index = index
 	itemY := d.getFirstItemY() + (spacing+itemDelegateHeight)*(index%perPage)
 
-	d.coords = shared.Coords{
+	d.SetCoords(shared.Coords{
 		X1: spacing,
 		Y1: itemY,
 		X2: d.model.state.ScreenWidth,
 		Y2: itemY + spacing,
-	}
+	})
+	d.SetCallback(func() error {
+		return d.model.selectByIndex(d.getIndex())
+	})
+
 	err := d.model.state.AppendClickable(shared.SnapshotsList, &d)
 	if err != nil {
 		logger.Client.ErrLog.Printf("append clickable row `%d`: %v", index, err)
@@ -108,14 +115,18 @@ func (d itemDelegate) setRowClickable(index, perPage int) {
 
 	deleteX1 := d.getRowButtonX1(deleteItem)
 	deleteItem := rowButton{
-		coords: shared.Coords{
-			X1: deleteX1,
-			Y1: itemY,
-			X2: deleteX1 + lipgloss.Width(deleteIcon),
-			Y2: itemY + itemDelegateHeight,
-		},
 		row: &d,
 	}
+	deleteItem.SetCoords(shared.Coords{
+		X1: deleteX1,
+		Y1: itemY,
+		X2: deleteX1 + lipgloss.Width(deleteIcon),
+		Y2: itemY + itemDelegateHeight,
+	})
+
+	deleteItem.SetCallback(func() error {
+		return d.model.deleteWithDialog(d.index)
+	})
 	err = d.model.state.AppendClickable(shared.SnapshotsList, &deleteItem)
 	if err != nil {
 		logger.Client.ErrLog.Printf("append clickable delete button `%d`: %v", index, err)
@@ -135,39 +146,6 @@ func (d *itemDelegate) getRowButtonX1(action rowAction) int {
 	}
 }
 
-func (d *itemDelegate) OnClick(event tea.MouseMsg) error {
-	d.model.list.Select(d.index)
-
-	return nil
-}
-
-func (d *itemDelegate) GetCoords() shared.Coords {
-	return d.coords
-}
-
-func (d *itemDelegate) SetCoords(coords shared.Coords) {
-	d.coords = coords
-}
-
-func (re *rowButton) OnClick(event tea.MouseMsg) error {
-	switch re.action {
-	case deleteItem:
-		return re.deleteItem()
-	case restoreItem:
-		return nil // not implemented yet
-	}
-
-	return nil
-}
-
-func (re *rowButton) GetCoords() shared.Coords {
-	return re.coords
-}
-
-func (re *rowButton) SetCoords(coords shared.Coords) {
-	re.coords = coords
-}
-
-func (re *rowButton) deleteItem() error {
-	return re.row.model.deleteWithDialog(re.row.index)
+func (d *itemDelegate) getIndex() int {
+	return d.index
 }

@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/EmmettCorp/delorean/pkg/commands/btrfs"
+	"github.com/EmmettCorp/delorean/pkg/domain"
 	"github.com/EmmettCorp/delorean/pkg/logger"
 	"github.com/EmmettCorp/delorean/pkg/ui/shared"
 	"github.com/EmmettCorp/delorean/pkg/ui/shared/elements/dialog"
@@ -36,12 +37,6 @@ const (
 	infoColumnsWidth = infoColumnWidth + idColumnWidth + typeColumnWidth + minColumnGapLen
 )
 
-type buttonModel interface {
-	shared.Clickable
-	SetTitle(title string)
-	Render() string
-}
-
 type snapshot struct {
 	Label       string
 	VolumeLabel string
@@ -51,12 +46,18 @@ type snapshot struct {
 	Path        string
 }
 
+type snapshotRepo interface {
+	Put(sn domain.Snapshot) error
+	List(vIDs []string) ([]domain.Snapshot, error)
+	Delete(path string) error
+}
+
 func (s *snapshot) FilterValue() string { return s.Label }
 func (s *snapshot) GetPath() string     { return s.Path }
 
 type Model struct {
 	state           *shared.State
-	createBtn       buttonModel
+	createBtn       *createButton
 	list            list.Model
 	keys            keyMap
 	styles          list.DefaultItemStyles
@@ -66,20 +67,24 @@ type Model struct {
 	updateClickable bool
 	err             error
 	dialog          *dialog.Model
+	snapshotRepo    snapshotRepo
 }
 
-func New(st *shared.State) (*Model, error) {
+func New(st *shared.State, sr snapshotRepo) (*Model, error) {
 	m := Model{
-		state:       st,
-		currentPage: -1,
-		itemsCount:  -1,
-		styles:      list.NewDefaultItemStyles(),
-		keys:        getKeyMaps(),
+		state:        st,
+		currentPage:  -1,
+		itemsCount:   -1,
+		styles:       list.NewDefaultItemStyles(),
+		keys:         getKeyMaps(),
+		snapshotRepo: sr,
 	}
 
-	itemsModel := list.New([]list.Item{}, &itemDelegate{
+	itemD := itemDelegate{
 		model: &m,
-	}, 0, 0)
+	}
+
+	itemsModel := list.New([]list.Item{}, &itemD, 0, 0)
 	itemsModel.SetFilteringEnabled(false)
 	itemsModel.SetShowFilter(false)
 	itemsModel.SetShowTitle(false)
@@ -94,8 +99,9 @@ func New(st *shared.State) (*Model, error) {
 		Y1: createButtonY1,
 		X2: lipgloss.Width(btnTitle) + 3,            // nolint:gomnd // left and right borders + 1
 		Y2: createButtonY1 + createButtonHeight - 1, // we don't need make bottom border line clickable
-	}, m.UpdateList)
+	})
 	m.createBtn = createBtn
+	m.createBtn.SetCallback(m.createSnapshot)
 	err := st.AppendClickable(shared.SnapshotsButtonsBar, createBtn)
 	if err != nil {
 		return nil, err
@@ -196,7 +202,7 @@ func (m *Model) updateDialog(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m *Model) UpdateList() {
-	snaps, err := btrfs.SnapshotsList(m.state.Config.Volumes)
+	snaps, err := m.snapshotRepo.List(m.state.GetActiveVolumesIDs())
 	if err != nil {
 		m.err = err
 
@@ -211,10 +217,17 @@ func (m *Model) UpdateList() {
 			Type:        snaps[i].Type,
 			VolumeID:    snaps[i].VolumeID,
 			Path:        snaps[i].Path,
+			Kernel:      snaps[i].Kernel,
 		}
 	}
 
 	m.list.SetItems(items)
+}
+
+func (m *Model) selectByIndex(idx int) error {
+	m.list.Select(idx)
+
+	return nil
 }
 
 func (m *Model) getHeight() int {
@@ -233,22 +246,31 @@ func (m *Model) deleteWithDialog(idx int) error {
 
 	m.dialog = dialog.New(fmt.Sprintf("Remove snapshot %s?", sn.Label), "Ok", "Cancel", m.state.ScreenWidth,
 		m.state.ScreenHeight,
-		func() {
+		func() error {
 			err := m.deleteByIndex(idx)
 			if err != nil {
-				logger.Client.ErrLog.Printf("can't delete by index `%d`: %v", idx, err)
+				return fmt.Errorf("can't delete by index `%d`: %v", idx, err)
 			}
 			m.dialog = nil
 			m.updateClickable = true
-		}, func() {
+
+			return nil
+		}, func() error {
 			m.list.Select(idx)
 			m.dialog = nil
 			m.updateClickable = true
+
+			return nil
 		})
 
 	m.state.CleanClickable(shared.SnapshotsList)
 
-	return m.state.AppendClickable(shared.SnapshotsList, m.dialog.OkButton, m.dialog.CancelButton)
+	err = m.state.AppendClickable(shared.SnapshotsList, m.dialog.OkButton, m.dialog.CancelButton)
+	if err != nil {
+		return fmt.Errorf("can't append delete with dialog: %v", err)
+	}
+
+	return nil
 }
 
 func (m *Model) deleteByIndex(idx int) error {
@@ -257,9 +279,15 @@ func (m *Model) deleteByIndex(idx int) error {
 		return fmt.Errorf("can't get snapshot by index `%d`: %v", idx, err)
 	}
 
-	err = btrfs.DeleteSnapshot(sn.GetPath())
+	ph := sn.GetPath()
+	err = btrfs.DeleteSnapshot(ph)
 	if err != nil {
-		return err
+		return fmt.Errorf("can't delete from btrfs: %v", err)
+	}
+
+	err = m.snapshotRepo.Delete(ph)
+	if err != nil {
+		return fmt.Errorf("can't delete info from storage: %v", err)
 	}
 
 	m.list.RemoveItem(idx)
@@ -279,6 +307,51 @@ func (m *Model) getSnapshotByIndex(idx int) (*snapshot, error) {
 	}
 
 	return sn, nil
+}
+
+func (m *Model) createSnapshot() error {
+	if !m.createBtn.Available() {
+		// TODO: consider to return errors.New("too many create calls per second")
+		// and write it to to status bar
+		return nil
+	}
+
+	var activeVolumeFound bool
+
+	for _, vol := range m.state.Config.Volumes {
+		if !vol.Active {
+			continue
+		}
+
+		activeVolumeFound = true
+
+		snap := domain.NewSnapshot(vol.SnapshotsPath, domain.Manual, vol.Label, vol.ID, m.state.Config.KernelVersion)
+
+		err := btrfs.CreateSnapshot(vol.Device.MountPoint, snap)
+		if err != nil {
+			logger.Client.ErrLog.Printf("can't create snapshot for %s: %v", vol.Device.MountPoint, err)
+
+			return fmt.Errorf("can't create snapshot for %s: %v", snap.Path, err)
+		}
+
+		err = m.snapshotRepo.Put(snap)
+		if err != nil {
+			logger.Client.ErrLog.Printf("can't put snapshot %s: %v", snap.Path, err)
+
+			return err
+		}
+	}
+
+	if !activeVolumeFound {
+		// TODO: after creation write message to the status bar
+		// put the message to a status bar errors.New("there are no active volumes")
+
+		return nil
+	}
+
+	m.UpdateList()
+
+	return nil
 }
 
 func getSnapshotsHeader() string {

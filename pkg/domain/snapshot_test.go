@@ -13,7 +13,7 @@ func TestNewSnapshot(t *testing.T) {
 	t.Run("err: empty path", func(t *testing.T) {
 		t.Parallel()
 
-		_, err := NewSnapshot("", "some_label", "some_id")
+		_, err := SnapshotByPath("", "some_label", "some_id")
 
 		rq.Error(err)
 	})
@@ -21,7 +21,7 @@ func TestNewSnapshot(t *testing.T) {
 	t.Run("err: invalid snapshot id", func(t *testing.T) {
 		t.Parallel()
 
-		_, err := NewSnapshot("manual/invalid snapshot id", "some_label", "some_id")
+		_, err := SnapshotByPath("manual/invalid snapshot id", "some_label", "some_id")
 
 		rq.Error(err)
 	})
@@ -29,7 +29,7 @@ func TestNewSnapshot(t *testing.T) {
 	t.Run("err: invalid snapshot id", func(t *testing.T) {
 		t.Parallel()
 
-		sn, err := NewSnapshot("/run/delorean/.snapshots/@/manual/2022-01-25_16:56:37", "some_label", "some_id")
+		sn, err := SnapshotByPath("/run/delorean/.snapshots/@/manual/2022-01-25_16:56:37", "some_label", "some_id")
 
 		rq.NoError(err)
 		rq.Equal("/run/delorean/.snapshots/@/manual/2022-01-25_16:56:37", sn.Path)

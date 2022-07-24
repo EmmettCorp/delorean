@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	"github.com/EmmettCorp/delorean/pkg/config"
+	"github.com/EmmettCorp/delorean/pkg/storage"
 	"github.com/EmmettCorp/delorean/pkg/ui"
 	tea "github.com/charmbracelet/bubbletea"
 )
@@ -24,7 +25,16 @@ func New() (*App, error) {
 		return nil, fmt.Errorf("can't get new config: %v", err)
 	}
 
-	model, err := ui.NewModel(cfg)
+	db, err := storage.New(cfg.DBPath)
+	if err != nil {
+		return nil, fmt.Errorf("can't init storage: %v", err)
+	}
+	sr, err := storage.NewSnapshotRepo(db)
+	if err != nil {
+		return nil, fmt.Errorf("can't init bucket: %v", err)
+	}
+
+	model, err := ui.NewModel(sr, cfg)
 	if err != nil {
 		return nil, err
 	}

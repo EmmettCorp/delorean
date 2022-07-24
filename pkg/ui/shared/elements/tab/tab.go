@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	"github.com/EmmettCorp/delorean/pkg/ui/shared"
-	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 )
 
@@ -16,43 +15,22 @@ const (
 )
 
 type Tab struct {
-	id     shared.TabItem
-	state  *shared.State
-	coords shared.Coords
-	title  string
+	shared.ClickableItem
+	id    shared.TabItem
+	state *shared.State
+	title string
 }
 
-func New(state *shared.State, id shared.TabItem, coords shared.Coords) (*Tab, error) {
-	t := Tab{
+func New(state *shared.State, id shared.TabItem) *Tab {
+	return &Tab{
 		title: id.String(),
 		state: state,
 		id:    id,
 	}
-	t.SetCoords(coords)
-	err := t.state.AppendClickable(shared.TabHeader, &t)
-	if err != nil {
-		return nil, err
-	}
-
-	return &t, nil
 }
 
 func (t *Tab) GetID() shared.TabItem {
 	return t.id
-}
-
-func (t *Tab) GetCoords() shared.Coords {
-	return t.coords
-}
-
-func (t *Tab) SetCoords(c shared.Coords) {
-	t.coords = c
-}
-
-func (t *Tab) OnClick(event tea.MouseMsg) error {
-	t.state.Update(t.id)
-
-	return nil
 }
 
 func (t *Tab) Render() string {

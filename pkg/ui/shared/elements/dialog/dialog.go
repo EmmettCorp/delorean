@@ -4,6 +4,7 @@ Package dialog keeps helpers to create a standard dialog window.
 package dialog
 
 import (
+	"github.com/EmmettCorp/delorean/pkg/logger"
 	"github.com/EmmettCorp/delorean/pkg/ui/shared"
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
@@ -26,23 +27,23 @@ type Model struct {
 }
 
 // New creates and returns a new dialog model.
-func New(title, okText, cancelText string, w, h int, okFunc, cancelFunc func()) *Model {
+func New(title, okText, cancelText string, w, h int, okFunc, cancelFunc func() error) *Model {
 	m := Model{
 		Title: title,
 		OkButton: &Button{
-			Text:     okText,
-			Callback: okFunc,
-			active:   true,
+			Text:   okText,
+			active: true,
 		},
 		CancelButton: &Button{
-			Text:     cancelText,
-			Callback: cancelFunc,
-			active:   false,
+			Text:   cancelText,
+			active: false,
 		},
 		w:    w,
 		h:    h - dHeight,
 		keys: getKeyMaps(),
 	}
+	m.OkButton.SetCallback(okFunc)
+	m.CancelButton.SetCallback(cancelFunc)
 	m.setButtonsCoords()
 
 	return &m
@@ -65,7 +66,10 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case key.Matches(msg, m.keys.Right):
 			m.confirm(false)
 		case key.Matches(msg, m.keys.Enter):
-			m.getActiveButton().Callback()
+			err := m.getActiveButton().OnClick()
+			if err != nil {
+				logger.Client.ErrLog.Printf("error on push `%s` button: %v", m.getActiveButton().Text, err)
+			}
 		}
 	}
 

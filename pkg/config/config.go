@@ -25,11 +25,13 @@ type (
 	Config struct {
 		RootDevice     string          `json:"root_device"`
 		Path           string          `json:"path"` // needs to save config file from app.
+		DBPath         string          `json:"db_path"`
 		ToRemove       []string        `json:"to_remove"`
 		BtrfsSupported bool            `json:"btrfs_supported"`
 		Schedule       domain.Schedule `json:"schedule"`
 		Volumes        []domain.Volume `json:"volumes"`
 		FileMode       os.FileMode     `json:"file_mode"`
+		KernelVersion  string
 	}
 )
 
@@ -54,11 +56,15 @@ func New() (*Config, error) {
 	}
 	cfg.Path = configPath
 	cfg.FileMode = domain.RWFileMode
+	cfg.DBPath = path.Join(domain.DeloreanPath, "db")
+
+	cfg.KernelVersion, err = commands.KernelVersion()
+	if err != nil {
+		return nil, fmt.Errorf("can't get kernel version: %v", err)
+	}
 
 	err = cfg.checkIfKernelSupportsBtrfs()
 	if err != nil {
-		logger.Client.ErrLog.Printf("can't check if btrfs is supported by kernel: %v", err)
-
 		return nil, fmt.Errorf("can't check if btrfs is supported by kernel: %v", err)
 	}
 

@@ -25,5 +25,10 @@ func initPaths() error {
 		return fmt.Errorf("can't create systemd directory: %v", err)
 	}
 
+	err = domain.CheckDir(path.Join(domain.DeloreanPath, "db"), domain.RWFileMode)
+	if err != nil {
+		return fmt.Errorf("can't create db directory: %v", err)
+	}
+
 	return nil
 }

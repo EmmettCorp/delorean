@@ -90,3 +90,14 @@ func (s *State) getAvailableClickable() []Clickable {
 
 	return elements
 }
+
+func (s *State) GetActiveVolumesIDs() []string {
+	ids := []string{}
+	for i := range s.Config.Volumes {
+		if s.Config.Volumes[i].Active {
+			ids = append(ids, s.Config.Volumes[i].ID)
+		}
+	}
+
+	return ids
+}
