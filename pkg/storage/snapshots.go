@@ -3,6 +3,7 @@ package storage
 import (
 	"encoding/json"
 	"fmt"
+	"sort"
 
 	"github.com/EmmettCorp/delorean/pkg/domain"
 	bolt "go.etcd.io/bbolt"
@@ -51,7 +52,7 @@ func (r *SnapshotRepo) Put(sn domain.Snapshot) error {
 
 // List returns the list of snapshots filtered by volume ids.
 func (r *SnapshotRepo) List(vIDs []string) ([]domain.Snapshot, error) {
-	snaps := []domain.Snapshot{}
+	snaps := domain.SortableSnapshots{}
 	err := r.db.View(func(tx *bolt.Tx) error {
 		b := tx.Bucket(r.bucket)
 
@@ -71,6 +72,8 @@ func (r *SnapshotRepo) List(vIDs []string) ([]domain.Snapshot, error) {
 			return nil
 		})
 	})
+
+	sort.Sort(snaps)
 
 	return snaps, err
 }
