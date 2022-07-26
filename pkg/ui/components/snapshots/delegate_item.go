@@ -20,7 +20,7 @@ const (
 )
 
 const (
-	restoreIcon        = "↻"
+	restoreIcon        = "⟲"
 	deleteIcon         = "✖"
 	iconsGap           = 4
 	itemDelegateHeight = 2

@@ -17,12 +17,6 @@ import (
 	"github.com/EmmettCorp/delorean/pkg/logger"
 )
 
-type sortableSnapshots []domain.Snapshot
-
-func (ss sortableSnapshots) Len() int           { return len(ss) }
-func (ss sortableSnapshots) Swap(i, j int)      { ss[i], ss[j] = ss[j], ss[i] }
-func (ss sortableSnapshots) Less(i, j int) bool { return ss[i].Timestamp > ss[j].Timestamp }
-
 // CreateSnapshot creates a new snapshot.
 func CreateSnapshot(subvolume string, snap domain.Snapshot) error {
 	// nolint:gosec // we pass commands here from code only.
@@ -65,7 +59,7 @@ func DeleteSnapshot(ph string) error {
 
 // SnapshotsList returns the snapshots list for all active subvolumes with desc sort.
 func SnapshotsList(volumes []domain.Volume) ([]domain.Snapshot, error) {
-	snaps := sortableSnapshots{}
+	snaps := domain.SortableSnapshots{}
 	for _, v := range volumes {
 		if !v.Active {
 			continue

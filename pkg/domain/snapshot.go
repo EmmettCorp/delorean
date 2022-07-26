@@ -21,6 +21,12 @@ type Snapshot struct {
 	Kernel      string `json:"kernel"`
 }
 
+type SortableSnapshots []Snapshot
+
+func (ss SortableSnapshots) Len() int           { return len(ss) }
+func (ss SortableSnapshots) Swap(i, j int)      { ss[i], ss[j] = ss[j], ss[i] }
+func (ss SortableSnapshots) Less(i, j int) bool { return ss[i].Timestamp > ss[j].Timestamp }
+
 // NewSnapshot creates a new snapshot object.
 func NewSnapshot(phToSnapshots, sType, vLabel, vID, kernel string) Snapshot {
 	ts := time.Now()
