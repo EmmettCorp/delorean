@@ -6,11 +6,12 @@ package snapshots
 import (
 	"errors"
 	"fmt"
+	"os"
+	"path"
 	"strings"
 
 	"github.com/EmmettCorp/delorean/pkg/commands/btrfs"
 	"github.com/EmmettCorp/delorean/pkg/domain"
-	"github.com/EmmettCorp/delorean/pkg/logger"
 	"github.com/EmmettCorp/delorean/pkg/ui/shared"
 	"github.com/EmmettCorp/delorean/pkg/ui/shared/elements/dialog"
 	"github.com/EmmettCorp/delorean/pkg/ui/shared/elements/divider"
@@ -37,20 +38,26 @@ const (
 	infoColumnsWidth = infoColumnWidth + idColumnWidth + typeColumnWidth + minColumnGapLen
 )
 
-type snapshot struct {
-	Label       string
-	VolumeLabel string
-	Type        string
-	VolumeID    string
-	Kernel      string
-	Path        string
-}
+type (
+	snapshot struct {
+		Label       string
+		VolumeLabel string
+		Type        string
+		VolumeID    string
+		Kernel      string
+		Path        string
+	}
 
-type snapshotRepo interface {
-	Put(sn domain.Snapshot) error
-	List(vIDs []string) ([]domain.Snapshot, error)
-	Delete(path string) error
-}
+	snapshotRepo interface {
+		Put(sn domain.Snapshot) error
+		List(vIDs []string) ([]domain.Snapshot, error)
+		Delete(path string) error
+	}
+
+	garbageRepo interface {
+		Put(ph string) error
+	}
+)
 
 func (s *snapshot) FilterValue() string { return s.Label }
 func (s *snapshot) GetPath() string     { return s.Path }
@@ -68,9 +75,10 @@ type Model struct {
 	err             error
 	dialog          *dialog.Model
 	snapshotRepo    snapshotRepo
+	garbageRepo     garbageRepo
 }
 
-func New(st *shared.State, sr snapshotRepo) (*Model, error) {
+func New(st *shared.State, sr snapshotRepo, gr garbageRepo) (*Model, error) {
 	m := Model{
 		state:        st,
 		currentPage:  -1,
@@ -78,6 +86,7 @@ func New(st *shared.State, sr snapshotRepo) (*Model, error) {
 		styles:       list.NewDefaultItemStyles(),
 		keys:         getKeyMaps(),
 		snapshotRepo: sr,
+		garbageRepo:  gr,
 	}
 
 	itemD := itemDelegate{
@@ -101,7 +110,7 @@ func New(st *shared.State, sr snapshotRepo) (*Model, error) {
 		Y2: createButtonY1 + createButtonHeight - 1, // we don't need make bottom border line clickable
 	})
 	m.createBtn = createBtn
-	m.createBtn.SetCallback(m.createSnapshot)
+	m.createBtn.SetCallback(m.createSnapshots)
 	err := st.AppendClickable(shared.SnapshotsButtonsBar, createBtn)
 	if err != nil {
 		return nil, err
@@ -295,6 +304,49 @@ func (m *Model) deleteByIndex(idx int) error {
 	return nil
 }
 
+func (m *Model) restoreByIndex(idx int) error {
+	sn, err := m.getSnapshotByIndex(idx)
+	if err != nil {
+		return fmt.Errorf("can't get snapshot by index `%d`: %v", idx, err)
+	}
+
+	vol, err := m.getVolumeByID(sn.VolumeID)
+	if err != nil {
+		return err
+	}
+
+	if !m.state.Config.VolumeInRootFs(vol) {
+		return fmt.Errorf("volume %s is not a child subvolume top level subvolume", vol.Label)
+	}
+
+	err = m.createSnapshotForVolume(vol, domain.Restore)
+	if err != nil {
+		return err
+	}
+
+	subvolumeDelorianMountPoint := path.Join(domain.DeloreanMountPoint, vol.Subvol)
+	oldFsDelorianMountPoint := path.Join(domain.DeloreanMountPoint, fmt.Sprintf("%s.old", vol.Subvol))
+
+	err = os.Rename(subvolumeDelorianMountPoint, oldFsDelorianMountPoint)
+	if err != nil {
+		return fmt.Errorf("can't rename directory %s: %v", oldFsDelorianMountPoint, err)
+	}
+
+	err = btrfs.Restore(sn.GetPath(), subvolumeDelorianMountPoint)
+	if err != nil {
+		return fmt.Errorf("can't create snapshot for %s: %v", vol.Device.MountPoint, err)
+	}
+
+	err = m.garbageRepo.Put(oldFsDelorianMountPoint)
+	if err != nil {
+		return fmt.Errorf("can't put old filesystem path to garbage storage %s: %v", oldFsDelorianMountPoint, err)
+	}
+
+	// force reboot logic
+
+	return nil
+}
+
 func (m *Model) getSnapshotByIndex(idx int) (*snapshot, error) {
 	items := m.list.Items()
 	if idx >= len(items) {
@@ -309,7 +361,7 @@ func (m *Model) getSnapshotByIndex(idx int) (*snapshot, error) {
 	return sn, nil
 }
 
-func (m *Model) createSnapshot() error {
+func (m *Model) createSnapshots() error {
 	if !m.createBtn.Available() {
 		// TODO: consider to return errors.New("too many create calls per second")
 		// and write it to to status bar
@@ -325,19 +377,8 @@ func (m *Model) createSnapshot() error {
 
 		activeVolumeFound = true
 
-		snap := domain.NewSnapshot(vol.SnapshotsPath, domain.Manual, vol.Label, vol.ID, m.state.Config.KernelVersion)
-
-		err := btrfs.CreateSnapshot(vol.Device.MountPoint, snap)
+		err := m.createSnapshotForVolume(vol, domain.Manual)
 		if err != nil {
-			logger.Client.ErrLog.Printf("can't create snapshot for %s: %v", vol.Device.MountPoint, err)
-
-			return fmt.Errorf("can't create snapshot for %s: %v", snap.Path, err)
-		}
-
-		err = m.snapshotRepo.Put(snap)
-		if err != nil {
-			logger.Client.ErrLog.Printf("can't put snapshot %s: %v", snap.Path, err)
-
 			return err
 		}
 	}
@@ -352,6 +393,32 @@ func (m *Model) createSnapshot() error {
 	m.UpdateList()
 
 	return nil
+}
+
+func (m *Model) createSnapshotForVolume(vol domain.Volume, snapType string) error {
+	snap := domain.NewSnapshot(vol.SnapshotsPath, snapType, vol.Label, vol.ID, m.state.Config.KernelVersion)
+
+	err := btrfs.CreateSnapshot(vol.Device.MountPoint, snap)
+	if err != nil {
+		return fmt.Errorf("can't create snapshot for %s: %v", snap.Path, err)
+	}
+
+	err = m.snapshotRepo.Put(snap)
+	if err != nil {
+		return fmt.Errorf("can't put snapshot to storage with path %s: %v", snap.Path, err)
+	}
+
+	return nil
+}
+
+func (m *Model) getVolumeByID(id string) (domain.Volume, error) {
+	for i := range m.state.Config.Volumes {
+		if m.state.Config.Volumes[i].ID == id {
+			return m.state.Config.Volumes[i], nil
+		}
+	}
+
+	return domain.Volume{}, fmt.Errorf("can't find volume by id `%s`", id)
 }
 
 func getSnapshotsHeader() string {

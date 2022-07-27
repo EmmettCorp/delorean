@@ -31,10 +31,14 @@ func New() (*App, error) {
 	}
 	sr, err := storage.NewSnapshotRepo(db)
 	if err != nil {
-		return nil, fmt.Errorf("can't init bucket: %v", err)
+		return nil, fmt.Errorf("can't init snapshots repo: %v", err)
+	}
+	gr, err := storage.NewGarbageRepo(db)
+	if err != nil {
+		return nil, fmt.Errorf("can't init garbage repo: %v", err)
 	}
 
-	model, err := ui.NewModel(sr, cfg)
+	model, err := ui.NewModel(sr, gr, cfg)
 	if err != nil {
 		return nil, err
 	}
