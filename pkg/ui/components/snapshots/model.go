@@ -282,6 +282,41 @@ func (m *Model) deleteWithDialog(idx int) error {
 	return nil
 }
 
+func (m *Model) restoreWithDialog(idx int) error {
+	sn, err := m.getSnapshotByIndex(idx)
+	if err != nil {
+		return fmt.Errorf("can't get snapshot by index `%d`: %v", idx, err)
+	}
+
+	m.dialog = dialog.New(fmt.Sprintf("Restore from snapshot %s?", sn.Label), "Ok", "Cancel", m.state.ScreenWidth,
+		m.state.ScreenHeight,
+		func() error {
+			err := m.restoreByIndex(idx)
+			if err != nil {
+				return fmt.Errorf("can't restore by index `%d`: %v", idx, err)
+			}
+			m.dialog = nil
+			m.updateClickable = true
+
+			return nil
+		}, func() error {
+			m.list.Select(idx)
+			m.dialog = nil
+			m.updateClickable = true
+
+			return nil
+		})
+
+	m.state.CleanClickable(shared.SnapshotsList)
+
+	err = m.state.AppendClickable(shared.SnapshotsList, m.dialog.OkButton, m.dialog.CancelButton)
+	if err != nil {
+		return fmt.Errorf("can't append restore with dialog: %v", err)
+	}
+
+	return nil
+}
+
 func (m *Model) deleteByIndex(idx int) error {
 	sn, err := m.getSnapshotByIndex(idx)
 	if err != nil {

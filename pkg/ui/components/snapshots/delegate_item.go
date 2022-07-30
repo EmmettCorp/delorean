@@ -113,23 +113,49 @@ func (d itemDelegate) setRowClickable(index, perPage int) {
 		logger.Client.ErrLog.Printf("append clickable row `%d`: %v", index, err)
 	}
 
+	d.setDeleteIcon(itemY)
+	d.setRestoreIcon(itemY)
+}
+
+func (d *itemDelegate) setDeleteIcon(itemY int) {
 	deleteX1 := d.getRowButtonX1(deleteItem)
-	deleteItem := rowButton{
-		row: &d,
+	deleteBtn := rowButton{
+		row: d,
 	}
-	deleteItem.SetCoords(shared.Coords{
+	deleteBtn.SetCoords(shared.Coords{
 		X1: deleteX1,
 		Y1: itemY,
 		X2: deleteX1 + lipgloss.Width(deleteIcon),
 		Y2: itemY + itemDelegateHeight,
 	})
 
-	deleteItem.SetCallback(func() error {
+	deleteBtn.SetCallback(func() error {
 		return d.model.deleteWithDialog(d.index)
 	})
-	err = d.model.state.AppendClickable(shared.SnapshotsList, &deleteItem)
+	err := d.model.state.AppendClickable(shared.SnapshotsList, &deleteBtn)
 	if err != nil {
-		logger.Client.ErrLog.Printf("append clickable delete button `%d`: %v", index, err)
+		logger.Client.ErrLog.Printf("append clickable delete button `%d`: %v", d.index, err)
+	}
+}
+
+func (d *itemDelegate) setRestoreIcon(itemY int) {
+	restoreX1 := d.getRowButtonX1(restoreItem)
+	restoreBtn := rowButton{
+		row: d,
+	}
+	restoreBtn.SetCoords(shared.Coords{
+		X1: restoreX1,
+		Y1: itemY,
+		X2: restoreX1 + lipgloss.Width(restoreIcon),
+		Y2: itemY + itemDelegateHeight,
+	})
+
+	restoreBtn.SetCallback(func() error {
+		return d.model.deleteWithDialog(d.index)
+	})
+	err := d.model.state.AppendClickable(shared.SnapshotsList, &restoreBtn)
+	if err != nil {
+		logger.Client.ErrLog.Printf("append clickable delete button `%d`: %v", d.index, err)
 	}
 }
 
