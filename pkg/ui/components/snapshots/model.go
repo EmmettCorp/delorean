@@ -291,7 +291,7 @@ func (m *Model) restoreWithDialog(idx int) error {
 	m.dialog = dialog.New(fmt.Sprintf("Restore from snapshot %s?", sn.Label), "Ok", "Cancel", m.state.ScreenWidth,
 		m.state.ScreenHeight,
 		func() error {
-			err := m.restoreByIndex(idx)
+			err := m.deleteByIndex(idx)
 			if err != nil {
 				return fmt.Errorf("can't restore by index `%d`: %v", idx, err)
 			}

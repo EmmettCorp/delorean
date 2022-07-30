@@ -151,7 +151,7 @@ func (d *itemDelegate) setRestoreIcon(itemY int) {
 	})
 
 	restoreBtn.SetCallback(func() error {
-		return d.model.deleteWithDialog(d.index)
+		return d.model.restoreWithDialog(d.getIndex())
 	})
 	err := d.model.state.AppendClickable(shared.SnapshotsList, &restoreBtn)
 	if err != nil {
