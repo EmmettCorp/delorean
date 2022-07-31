@@ -8,7 +8,6 @@ import (
 	"strings"
 
 	"github.com/EmmettCorp/delorean/pkg/config"
-	"github.com/EmmettCorp/delorean/pkg/logger"
 	"github.com/EmmettCorp/delorean/pkg/storage"
 	"github.com/EmmettCorp/delorean/pkg/ui/components/help"
 	"github.com/EmmettCorp/delorean/pkg/ui/components/settings"
@@ -183,7 +182,6 @@ func (a *App) onWindowSizeChanged(msg tea.WindowSizeMsg) {
 	a.state.ScreenWidth = msg.Width
 	a.state.ScreenHeight = msg.Height
 	a.state.ResizeAreas()
-	logger.Client.InfoLog.Println(a.state.ScreenWidth, a.state.ScreenHeight)
 }
 
 func (a *App) windowTooSmall() bool {

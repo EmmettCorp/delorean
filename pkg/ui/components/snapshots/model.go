@@ -210,7 +210,7 @@ func (m *Model) updateDialog(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m *Model) UpdateList() {
-	snaps, err := m.snapshotRepo.List(m.state.GetActiveVolumesIDs())
+	snaps, err := m.snapshotRepo.List(m.state.GetActiveVolumesUIDs())
 	if err != nil {
 		m.err = err
 

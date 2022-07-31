@@ -56,7 +56,11 @@ func New() (*Config, error) {
 	}
 	cfg.Path = configPath
 	cfg.FileMode = domain.RWFileMode
-	cfg.DBPath = path.Join(domain.DeloreanPath, "db")
+	cfg.DBPath = path.Join(domain.DeloreanMountPoint, "db")
+	err = domain.CheckDir(cfg.DBPath, domain.RWFileMode)
+	if err != nil {
+		return nil, fmt.Errorf("can't create default snapshots dir: %v", err)
+	}
 
 	cfg.KernelVersion, err = commands.KernelVersion()
 	if err != nil {
