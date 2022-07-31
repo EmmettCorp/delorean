@@ -8,7 +8,6 @@ import (
 	"strings"
 
 	"github.com/EmmettCorp/delorean/pkg/config"
-	"github.com/EmmettCorp/delorean/pkg/logger"
 	"github.com/EmmettCorp/delorean/pkg/storage"
 	"github.com/EmmettCorp/delorean/pkg/ui/components/help"
 	"github.com/EmmettCorp/delorean/pkg/ui/components/settings"
@@ -42,7 +41,7 @@ type App struct {
 	config     *config.Config
 }
 
-func NewModel(sr *storage.SnapshotRepo, cfg *config.Config) (*App, error) {
+func NewModel(sr *storage.SnapshotRepo, gr *storage.GarbageRepo, cfg *config.Config) (*App, error) {
 	var err error
 	st := shared.NewState(cfg)
 	st.ScreenWidth, st.ScreenHeight, err = term.GetSize(int(os.Stdout.Fd()))
@@ -54,7 +53,7 @@ func NewModel(sr *storage.SnapshotRepo, cfg *config.Config) (*App, error) {
 	if err != nil {
 		return &App{}, err
 	}
-	snapshotsCmp, err := snapshots.New(st, sr)
+	snapshotsCmp, err := snapshots.New(st, sr, gr)
 	if err != nil {
 		return &App{}, err
 	}
@@ -183,7 +182,6 @@ func (a *App) onWindowSizeChanged(msg tea.WindowSizeMsg) {
 	a.state.ScreenWidth = msg.Width
 	a.state.ScreenHeight = msg.Height
 	a.state.ResizeAreas()
-	logger.Client.InfoLog.Println(a.state.ScreenWidth, a.state.ScreenHeight)
 }
 
 func (a *App) windowTooSmall() bool {

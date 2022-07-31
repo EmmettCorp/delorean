@@ -91,11 +91,11 @@ func (s *State) getAvailableClickable() []Clickable {
 	return elements
 }
 
-func (s *State) GetActiveVolumesIDs() []string {
+func (s *State) GetActiveVolumesUIDs() []string {
 	ids := []string{}
 	for i := range s.Config.Volumes {
 		if s.Config.Volumes[i].Active {
-			ids = append(ids, s.Config.Volumes[i].ID)
+			ids = append(ids, s.Config.Volumes[i].Device.UUID)
 		}
 	}
 

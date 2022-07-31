@@ -51,7 +51,7 @@ func (r *SnapshotRepo) Put(sn domain.Snapshot) error {
 }
 
 // List returns the list of snapshots filtered by volume ids.
-func (r *SnapshotRepo) List(vIDs []string) ([]domain.Snapshot, error) {
+func (r *SnapshotRepo) List(vUIDs []string) ([]domain.Snapshot, error) {
 	snaps := domain.SortableSnapshots{}
 	err := r.db.View(func(tx *bolt.Tx) error {
 		b := tx.Bucket(r.bucket)
@@ -63,7 +63,7 @@ func (r *SnapshotRepo) List(vIDs []string) ([]domain.Snapshot, error) {
 				return err
 			}
 
-			if !inVolumes(vIDs, sn.VolumeID) {
+			if !inVolumes(vUIDs, sn.Volume.Device.UUID) {
 				return nil
 			}
 

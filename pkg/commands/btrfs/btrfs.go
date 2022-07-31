@@ -9,8 +9,6 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
-	"path"
-	"sort"
 	"strings"
 
 	"github.com/EmmettCorp/delorean/pkg/domain"
@@ -32,6 +30,7 @@ func CreateSnapshot(subvolume string, snap domain.Snapshot) error {
 }
 
 // Restore creates a new snapshot.
+// The idea is not to just move snapshot data to subvolume (like @ or @home) but make a snapshot for it.
 func Restore(snapPath, mountPoint string) error {
 	cmd := exec.Command("btrfs", "subvolume", "snapshot", snapPath, mountPoint)
 	var cmdErr bytes.Buffer
@@ -55,43 +54,6 @@ func DeleteSnapshot(ph string) error {
 	}
 
 	return nil
-}
-
-// SnapshotsList returns the snapshots list for all active subvolumes with desc sort.
-func SnapshotsList(volumes []domain.Volume) ([]domain.Snapshot, error) {
-	snaps := domain.SortableSnapshots{}
-	for _, v := range volumes {
-		if !v.Active {
-			continue
-		}
-		sn, err := snapshotsListByVolume(v)
-		if err != nil {
-			return nil, err
-		}
-		snaps = append(snaps, sn...)
-	}
-
-	sort.Sort(snaps)
-
-	return snaps, nil
-}
-
-func snapshotsListByVolume(volume domain.Volume) ([]domain.Snapshot, error) {
-	snaps := []domain.Snapshot{}
-	sn, err := getSnapshots(volume.SnapshotsPath)
-	if err != nil {
-		return nil, err
-	}
-
-	for i := range sn {
-		sn, err := domain.SnapshotByPath(sn[i], volume.Label, volume.ID)
-		if err != nil {
-			return nil, err
-		}
-		snaps = append(snaps, sn)
-	}
-
-	return snaps, nil
 }
 
 // SupportedByKernel checks if kernel supports btrfs.
@@ -140,46 +102,4 @@ func GetVolumeID(ph string) (string, error) {
 	}
 
 	return "", fmt.Errorf("can't find volume id from path %s", ph)
-}
-
-func getSnapshots(ph string) ([]string, error) {
-	dirs, err := osReadDir(ph)
-	if err != nil {
-		return nil, err
-	}
-	snaps := []string{}
-	for i := range dirs {
-		sp := path.Join(ph, dirs[i])
-		snap, err := osReadDir(sp)
-		if err != nil {
-			return nil, err
-		}
-
-		for j := range snap {
-			snaps = append(snaps, path.Join(sp, snap[j]))
-		}
-	}
-
-	return snaps, nil
-}
-
-func osReadDir(root string) ([]string, error) {
-	files := []string{}
-	f, err := os.Open(path.Clean(root))
-	if err != nil {
-		return files, err
-	}
-	defer logger.Client.CloseOrLog(f)
-	fileInfo, err := f.Readdir(-1)
-	if err != nil {
-		return files, err
-	}
-
-	for _, file := range fileInfo {
-		if file.IsDir() {
-			files = append(files, file.Name())
-		}
-	}
-
-	return files, nil
 }
