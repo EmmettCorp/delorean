@@ -56,43 +56,11 @@ func New() (*Config, error) {
 	}
 	cfg.Path = configPath
 	cfg.FileMode = domain.RWFileMode
-	cfg.DBPath = path.Join(domain.DeloreanMountPoint, "db")
-	err = domain.CheckDir(cfg.DBPath, domain.RWFileMode)
-	if err != nil {
-		return nil, fmt.Errorf("can't create default snapshots dir: %v", err)
-	}
 
-	cfg.KernelVersion, err = commands.KernelVersion()
-	if err != nil {
-		return nil, fmt.Errorf("can't get kernel version: %v", err)
-	}
-
-	err = cfg.checkIfKernelSupportsBtrfs()
-	if err != nil {
-		return nil, fmt.Errorf("can't check if btrfs is supported by kernel: %v", err)
-	}
-
-	vv, err := findmnt.GetVolumes()
-	if err != nil {
-		return nil, fmt.Errorf("can't get volumes: %v", err)
-	}
-
-	err = cfg.setupVolumes(vv)
-	if err != nil {
-		return nil, fmt.Errorf("can't setup volumes: %v", err)
-	}
-
-	err = mountTopLevelSubvolume(cfg.RootDevice, domain.RWFileMode)
-	if err != nil {
-		return nil, fmt.Errorf("can't mount top level subvolume: %v", err)
-	}
-
-	err = cfg.createSnapshotsPaths(domain.RWFileMode)
+	err = cfg.setDefaults()
 	if err != nil {
 		return nil, err
 	}
-
-	cfg.removeOldSubvolumes()
 
 	err = cfg.Save()
 	if err != nil {
@@ -100,6 +68,48 @@ func New() (*Config, error) {
 	}
 
 	return &cfg, nil
+}
+
+func (cfg *Config) setDefaults() error {
+	cfg.DBPath = path.Join(domain.DeloreanMountPoint, "db")
+	err := domain.CheckDir(cfg.DBPath, domain.RWFileMode)
+	if err != nil {
+		return fmt.Errorf("can't create default snapshots dir: %v", err)
+	}
+
+	cfg.KernelVersion, err = commands.KernelVersion()
+	if err != nil {
+		return fmt.Errorf("can't get kernel version: %v", err)
+	}
+
+	err = cfg.checkIfKernelSupportsBtrfs()
+	if err != nil {
+		return fmt.Errorf("can't check if btrfs is supported by kernel: %v", err)
+	}
+
+	vv, err := findmnt.GetVolumes()
+	if err != nil {
+		return fmt.Errorf("can't get volumes: %v", err)
+	}
+
+	err = cfg.setupVolumes(vv)
+	if err != nil {
+		return fmt.Errorf("can't setup volumes: %v", err)
+	}
+
+	err = mountTopLevelSubvolume(cfg.RootDevice, domain.RWFileMode)
+	if err != nil {
+		return fmt.Errorf("can't mount top level subvolume: %v", err)
+	}
+
+	err = cfg.createSnapshotsPaths(domain.RWFileMode)
+	if err != nil {
+		return err
+	}
+
+	cfg.removeOldSubvolumes()
+
+	return nil
 }
 
 func (cfg *Config) createSnapshotsPaths(fm fs.FileMode) error {
