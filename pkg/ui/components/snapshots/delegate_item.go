@@ -58,8 +58,8 @@ func (d *itemDelegate) Render(w io.Writer, m list.Model, index int, listItem lis
 	var rowBuilder strings.Builder
 	rowBuilder.WriteString(s.Label)
 	rowBuilder.WriteString(strings.Repeat(" ", infoColumnWidth-lipgloss.Width(s.Label)-minColumnGapLen))
-	rowBuilder.WriteString(s.VolumeID)
-	rowBuilder.WriteString(strings.Repeat(" ", idColumnWidth-lipgloss.Width(s.VolumeID)))
+	rowBuilder.WriteString(s.Volume.ID)
+	rowBuilder.WriteString(strings.Repeat(" ", idColumnWidth-lipgloss.Width(s.Volume.ID)))
 	rowBuilder.WriteString(s.Type)
 	row := rowBuilder.String()
 	// restoreItem is left most button in row
@@ -69,14 +69,14 @@ func (d *itemDelegate) Render(w io.Writer, m list.Model, index int, listItem lis
 	itemRow := lipgloss.JoinHorizontal(lipgloss.Left, row, gap, restoreIcon, strings.Repeat(" ", iconsGap), deleteIcon)
 
 	var description string
-	if s.VolumeLabel == "Root" {
+	if s.Volume.Label == "Root" {
 		krn := s.Kernel
 		if krn == d.model.state.Config.KernelVersion {
 			krn = "current"
 		}
-		description = fmt.Sprintf("volume: %s | kernel: %s ", s.VolumeLabel, krn)
+		description = fmt.Sprintf("volume: %s | kernel: %s ", s.Volume.Label, krn)
 	} else {
-		description = fmt.Sprintf("volume: %s", s.VolumeLabel)
+		description = fmt.Sprintf("volume: %s", s.Volume.Label)
 	}
 
 	if index == m.Index() {

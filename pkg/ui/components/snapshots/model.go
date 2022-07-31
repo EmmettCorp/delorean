@@ -40,12 +40,11 @@ const (
 
 type (
 	snapshot struct {
-		Label       string
-		VolumeLabel string
-		Type        string
-		VolumeID    string
-		Kernel      string
-		Path        string
+		Label  string
+		Type   string
+		Path   string
+		Kernel string
+		Volume domain.Volume
 	}
 
 	snapshotRepo interface {
@@ -221,12 +220,11 @@ func (m *Model) UpdateList() {
 	items := make([]list.Item, len(snaps))
 	for i := range snaps {
 		items[i] = &snapshot{
-			Label:       snaps[i].Label,
-			VolumeLabel: snaps[i].VolumeLabel,
-			Type:        snaps[i].Type,
-			VolumeID:    snaps[i].VolumeID,
-			Path:        snaps[i].Path,
-			Kernel:      snaps[i].Kernel,
+			Label:  snaps[i].Label,
+			Type:   snaps[i].Type,
+			Path:   snaps[i].Path,
+			Kernel: snaps[i].Kernel,
+			Volume: snaps[i].Volume,
 		}
 	}
 
@@ -345,7 +343,7 @@ func (m *Model) restoreByIndex(idx int) error {
 		return fmt.Errorf("can't get snapshot by index `%d`: %v", idx, err)
 	}
 
-	vol, err := m.getVolumeByID(sn.VolumeID)
+	vol, err := m.getVolumeByDeviceUUID(sn.Volume.Device.UUID)
 	if err != nil {
 		return err
 	}
@@ -431,7 +429,7 @@ func (m *Model) createSnapshots() error {
 }
 
 func (m *Model) createSnapshotForVolume(vol domain.Volume, snapType string) error {
-	snap := domain.NewSnapshot(vol.SnapshotsPath, snapType, vol.Label, vol.ID, m.state.Config.KernelVersion)
+	snap := domain.NewSnapshot(vol.SnapshotsPath, snapType, m.state.Config.KernelVersion, vol)
 
 	err := btrfs.CreateSnapshot(vol.Device.MountPoint, snap)
 	if err != nil {
@@ -446,14 +444,14 @@ func (m *Model) createSnapshotForVolume(vol domain.Volume, snapType string) erro
 	return nil
 }
 
-func (m *Model) getVolumeByID(id string) (domain.Volume, error) {
+func (m *Model) getVolumeByDeviceUUID(uid string) (domain.Volume, error) {
 	for i := range m.state.Config.Volumes {
-		if m.state.Config.Volumes[i].ID == id {
+		if m.state.Config.Volumes[i].Device.UUID == uid {
 			return m.state.Config.Volumes[i], nil
 		}
 	}
 
-	return domain.Volume{}, fmt.Errorf("can't find volume by id `%s`", id)
+	return domain.Volume{}, fmt.Errorf("can't find volume by id `%s`", uid)
 }
 
 func getSnapshotsHeader() string {
