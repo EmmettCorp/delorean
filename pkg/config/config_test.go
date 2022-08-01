@@ -58,25 +58,25 @@ func TestCreateSnapshotsPaths(t *testing.T) {
 		err := createSnapshotsPaths(ph, 0o777)
 		rq.NoError(err)
 
-		_, err = os.Stat(path.Join(ph, domain.Manual))
+		_, err = os.Stat(path.Join(ph, domain.Manual.String()))
 		rq.NoError(err)
 
-		_, err = os.Stat(path.Join(ph, domain.Monthly))
+		_, err = os.Stat(path.Join(ph, domain.Monthly.String()))
 		rq.NoError(err)
 
-		_, err = os.Stat(path.Join(ph, domain.Weekly))
+		_, err = os.Stat(path.Join(ph, domain.Weekly.String()))
 		rq.NoError(err)
 
-		_, err = os.Stat(path.Join(ph, domain.Daily))
+		_, err = os.Stat(path.Join(ph, domain.Daily.String()))
 		rq.NoError(err)
 
-		_, err = os.Stat(path.Join(ph, domain.Hourly))
+		_, err = os.Stat(path.Join(ph, domain.Hourly.String()))
 		rq.NoError(err)
 
-		_, err = os.Stat(path.Join(ph, domain.Boot))
+		_, err = os.Stat(path.Join(ph, domain.Boot.String()))
 		rq.NoError(err)
 
-		_, err = os.Stat(path.Join(ph, domain.Restore))
+		_, err = os.Stat(path.Join(ph, domain.Restore.String()))
 		rq.NoError(err)
 
 		err = os.RemoveAll(ph)

@@ -7,8 +7,8 @@ import (
 	"os"
 	"strings"
 
+	"github.com/EmmettCorp/delorean/pkg/bl"
 	"github.com/EmmettCorp/delorean/pkg/config"
-	"github.com/EmmettCorp/delorean/pkg/storage"
 	"github.com/EmmettCorp/delorean/pkg/ui/components/help"
 	"github.com/EmmettCorp/delorean/pkg/ui/components/settings"
 	"github.com/EmmettCorp/delorean/pkg/ui/components/snapshots"
@@ -41,7 +41,7 @@ type App struct {
 	config     *config.Config
 }
 
-func NewModel(sr *storage.SnapshotRepo, gr *storage.GarbageRepo, cfg *config.Config) (*App, error) {
+func NewModel(srv *bl.Service, cfg *config.Config) (*App, error) {
 	var err error
 	st := shared.NewState(cfg)
 	st.ScreenWidth, st.ScreenHeight, err = term.GetSize(int(os.Stdout.Fd()))
@@ -53,7 +53,7 @@ func NewModel(sr *storage.SnapshotRepo, gr *storage.GarbageRepo, cfg *config.Con
 	if err != nil {
 		return &App{}, err
 	}
-	snapshotsCmp, err := snapshots.New(st, sr, gr)
+	snapshotsCmp, err := snapshots.New(st, srv)
 	if err != nil {
 		return &App{}, err
 	}

@@ -205,7 +205,7 @@ func removeOld(dir string) {
 }
 
 func createSnapshotsPaths(p string, fm fs.FileMode) error {
-	for _, v := range []string{
+	for _, v := range []domain.SnapshotType{
 		domain.Manual,
 		domain.Monthly,
 		domain.Weekly,
@@ -214,7 +214,7 @@ func createSnapshotsPaths(p string, fm fs.FileMode) error {
 		domain.Boot,
 		domain.Restore,
 	} {
-		err := domain.CheckDir(path.Join(p, v), fm)
+		err := domain.CheckDir(path.Join(p, v.String()), fm)
 		if err != nil {
 			return fmt.Errorf("can't create snapshot directory for %s: %v", v, err)
 		}

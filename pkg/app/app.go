@@ -6,6 +6,7 @@ package app
 import (
 	"fmt"
 
+	"github.com/EmmettCorp/delorean/pkg/bl"
 	"github.com/EmmettCorp/delorean/pkg/config"
 	"github.com/EmmettCorp/delorean/pkg/storage"
 	"github.com/EmmettCorp/delorean/pkg/ui"
@@ -38,7 +39,9 @@ func New() (*App, error) {
 		return nil, fmt.Errorf("can't init garbage repo: %v", err)
 	}
 
-	model, err := ui.NewModel(sr, gr, cfg)
+	blService := bl.New(sr, gr, cfg)
+
+	model, err := ui.NewModel(blService, cfg)
 	if err != nil {
 		return nil, err
 	}

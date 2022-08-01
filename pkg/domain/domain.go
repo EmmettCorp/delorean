@@ -27,15 +27,17 @@ const (
 	SystemdDirectoryName = "systemd"
 )
 
+type SnapshotType string
+
 // Snapshots types.
 const (
-	Monthly = "monthly"
-	Weekly  = "weekly"
-	Daily   = "daily"
-	Hourly  = "hourly"
-	Boot    = "boot"
-	Manual  = "manual"
-	Restore = "restore"
+	Monthly SnapshotType = "monthly"
+	Weekly  SnapshotType = "weekly"
+	Daily   SnapshotType = "daily"
+	Hourly  SnapshotType = "hourly"
+	Boot    SnapshotType = "boot"
+	Manual  SnapshotType = "manual"
+	Restore SnapshotType = "restore"
 )
 
 const RWFileMode = 0o600
@@ -48,4 +50,8 @@ func CheckDir(ph string, fm fs.FileMode) error {
 	}
 
 	return err
+}
+
+func (s SnapshotType) String() string {
+	return string(s)
 }

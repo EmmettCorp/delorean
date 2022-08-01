@@ -60,7 +60,7 @@ func (d *itemDelegate) Render(w io.Writer, m list.Model, index int, listItem lis
 	rowBuilder.WriteString(strings.Repeat(" ", infoColumnWidth-lipgloss.Width(s.Label)-minColumnGapLen))
 	rowBuilder.WriteString(s.Volume.ID)
 	rowBuilder.WriteString(strings.Repeat(" ", idColumnWidth-lipgloss.Width(s.Volume.ID)))
-	rowBuilder.WriteString(s.Type)
+	rowBuilder.WriteString(s.Type.String())
 	row := rowBuilder.String()
 	// restoreItem is left most button in row
 	// minus 1 here because getRowButtonX1 for restore button returns it's x1 value, we need get -1 of it
