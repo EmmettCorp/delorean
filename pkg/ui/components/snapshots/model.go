@@ -6,11 +6,8 @@ package snapshots
 import (
 	"errors"
 	"fmt"
-	"os"
-	"path"
 	"strings"
 
-	"github.com/EmmettCorp/delorean/pkg/commands/btrfs"
 	"github.com/EmmettCorp/delorean/pkg/domain"
 	"github.com/EmmettCorp/delorean/pkg/ui/shared"
 	"github.com/EmmettCorp/delorean/pkg/ui/shared/elements/dialog"
@@ -40,21 +37,19 @@ const (
 
 type (
 	snapshot struct {
-		Label  string
-		Type   string
-		Path   string
-		Kernel string
-		Volume domain.Volume
+		Label     string
+		Type      domain.SnapshotType
+		Path      string
+		Kernel    string
+		Timestamp int64
+		Volume    domain.Volume
 	}
 
-	snapshotRepo interface {
-		Put(sn domain.Snapshot) error
-		List(vIDs []string) ([]domain.Snapshot, error)
-		Delete(path string) error
-	}
-
-	garbageRepo interface {
-		Put(ph string) error
+	service interface {
+		CreateSnapshotForVolume(vol domain.Volume, snapType domain.SnapshotType) error
+		DeleteSnapshot(snap domain.Snapshot) error
+		Restore(snap domain.Snapshot) error
+		SnapshotsList(vUIDs []string) ([]domain.Snapshot, error)
 	}
 )
 
@@ -73,19 +68,17 @@ type Model struct {
 	updateClickable bool
 	err             error
 	dialog          *dialog.Model
-	snapshotRepo    snapshotRepo
-	garbageRepo     garbageRepo
+	service         service
 }
 
-func New(st *shared.State, sr snapshotRepo, gr garbageRepo) (*Model, error) {
+func New(st *shared.State, srv service) (*Model, error) {
 	m := Model{
-		state:        st,
-		currentPage:  -1,
-		itemsCount:   -1,
-		styles:       list.NewDefaultItemStyles(),
-		keys:         getKeyMaps(),
-		snapshotRepo: sr,
-		garbageRepo:  gr,
+		state:       st,
+		currentPage: -1,
+		itemsCount:  -1,
+		styles:      list.NewDefaultItemStyles(),
+		keys:        getKeyMaps(),
+		service:     srv,
 	}
 
 	itemD := itemDelegate{
@@ -210,7 +203,7 @@ func (m *Model) updateDialog(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m *Model) UpdateList() {
-	snaps, err := m.snapshotRepo.List(m.state.GetActiveVolumesUIDs())
+	snaps, err := m.service.SnapshotsList(m.state.GetActiveVolumesUIDs())
 	if err != nil {
 		m.err = err
 
@@ -220,11 +213,12 @@ func (m *Model) UpdateList() {
 	items := make([]list.Item, len(snaps))
 	for i := range snaps {
 		items[i] = &snapshot{
-			Label:  snaps[i].Label,
-			Type:   snaps[i].Type,
-			Path:   snaps[i].Path,
-			Kernel: snaps[i].Kernel,
-			Volume: snaps[i].Volume,
+			Label:     snaps[i].Label,
+			Type:      snaps[i].Type,
+			Path:      snaps[i].Path,
+			Timestamp: snaps[i].Timestamp,
+			Kernel:    snaps[i].Kernel,
+			Volume:    snaps[i].Volume,
 		}
 	}
 
@@ -251,24 +245,7 @@ func (m *Model) deleteWithDialog(idx int) error {
 		return fmt.Errorf("can't get snapshot by index `%d`: %v", idx, err)
 	}
 
-	m.dialog = dialog.New(fmt.Sprintf("Remove snapshot %s?", sn.Label), "Ok", "Cancel", m.state.ScreenWidth,
-		m.state.ScreenHeight,
-		func() error {
-			err := m.deleteByIndex(idx)
-			if err != nil {
-				return fmt.Errorf("can't delete by index `%d`: %v", idx, err)
-			}
-			m.dialog = nil
-			m.updateClickable = true
-
-			return nil
-		}, func() error {
-			m.list.Select(idx)
-			m.dialog = nil
-			m.updateClickable = true
-
-			return nil
-		})
+	m.prepareDeleteDialog(idx, sn.Label)
 
 	m.state.CleanClickable(shared.SnapshotsList)
 
@@ -280,30 +257,37 @@ func (m *Model) deleteWithDialog(idx int) error {
 	return nil
 }
 
+func (m *Model) prepareDeleteDialog(idx int, snapLabel string) {
+	okFunc := func() error {
+		err := m.deleteByIndex(idx)
+		if err != nil {
+			return fmt.Errorf("can't delete by index `%d`: %v", idx, err)
+		}
+		m.dialog = nil
+		m.updateClickable = true
+
+		return nil
+	}
+
+	cancelFunc := func() error {
+		m.list.Select(idx)
+		m.dialog = nil
+		m.updateClickable = true
+
+		return nil
+	}
+
+	m.dialog = dialog.New(fmt.Sprintf("Remove snapshot %s?", snapLabel), "Ok", "Cancel", m.state.ScreenWidth,
+		m.state.ScreenHeight, okFunc, cancelFunc)
+}
+
 func (m *Model) restoreWithDialog(idx int) error {
 	sn, err := m.getSnapshotByIndex(idx)
 	if err != nil {
 		return fmt.Errorf("can't get snapshot by index `%d`: %v", idx, err)
 	}
 
-	m.dialog = dialog.New(fmt.Sprintf("Restore from snapshot %s?", sn.Label), "Ok", "Cancel", m.state.ScreenWidth,
-		m.state.ScreenHeight,
-		func() error {
-			err := m.restoreByIndex(idx)
-			if err != nil {
-				return fmt.Errorf("can't restore by index `%d`: %v", idx, err)
-			}
-			m.dialog = nil
-			m.updateClickable = true
-
-			return nil
-		}, func() error {
-			m.list.Select(idx)
-			m.dialog = nil
-			m.updateClickable = true
-
-			return nil
-		})
+	m.prepareRestoreDialog(idx, sn.Label)
 
 	m.state.CleanClickable(shared.SnapshotsList)
 
@@ -315,21 +299,39 @@ func (m *Model) restoreWithDialog(idx int) error {
 	return nil
 }
 
+func (m *Model) prepareRestoreDialog(idx int, snapLabel string) {
+	okFunc := func() error {
+		err := m.restoreByIndex(idx)
+		if err != nil {
+			return fmt.Errorf("can't restore by index `%d`: %v", idx, err)
+		}
+		m.dialog = nil
+		m.updateClickable = true
+
+		return nil
+	}
+
+	cancelFunc := func() error {
+		m.list.Select(idx)
+		m.dialog = nil
+		m.updateClickable = true
+
+		return nil
+	}
+
+	m.dialog = dialog.New(fmt.Sprintf("Restore from snapshot %s?", snapLabel), "Ok", "Cancel", m.state.ScreenWidth,
+		m.state.ScreenHeight, okFunc, cancelFunc)
+}
+
 func (m *Model) deleteByIndex(idx int) error {
 	sn, err := m.getSnapshotByIndex(idx)
 	if err != nil {
 		return fmt.Errorf("can't get snapshot by index `%d`: %v", idx, err)
 	}
 
-	ph := sn.GetPath()
-	err = btrfs.DeleteSnapshot(ph)
+	err = m.service.DeleteSnapshot(sn.toDomain())
 	if err != nil {
-		return fmt.Errorf("can't delete from btrfs: %v", err)
-	}
-
-	err = m.snapshotRepo.Delete(ph)
-	if err != nil {
-		return fmt.Errorf("can't delete info from storage: %v", err)
+		return fmt.Errorf("can't delete snapshot: %v", err)
 	}
 
 	m.list.RemoveItem(idx)
@@ -338,46 +340,12 @@ func (m *Model) deleteByIndex(idx int) error {
 }
 
 func (m *Model) restoreByIndex(idx int) error {
-	sn, err := m.getSnapshotByIndex(idx)
+	snap, err := m.getSnapshotByIndex(idx)
 	if err != nil {
 		return fmt.Errorf("can't get snapshot by index `%d`: %v", idx, err)
 	}
 
-	vol, err := m.getVolumeByDeviceUUID(sn.Volume.Device.UUID)
-	if err != nil {
-		return err
-	}
-
-	if !m.state.Config.VolumeInRootFs(vol) {
-		return fmt.Errorf("volume %s is not a child subvolume top level subvolume", vol.Label)
-	}
-
-	err = m.createSnapshotForVolume(vol, domain.Restore)
-	if err != nil {
-		return err
-	}
-
-	subvolumeDelorianMountPoint := path.Join(domain.DeloreanMountPoint, vol.Subvol)
-	oldFsDelorianMountPoint := path.Join(domain.DeloreanMountPoint, fmt.Sprintf("%s.old", vol.Subvol))
-
-	err = os.Rename(subvolumeDelorianMountPoint, oldFsDelorianMountPoint)
-	if err != nil {
-		return fmt.Errorf("can't rename directory %s: %v", oldFsDelorianMountPoint, err)
-	}
-
-	err = btrfs.Restore(sn.GetPath(), subvolumeDelorianMountPoint)
-	if err != nil {
-		return fmt.Errorf("can't create snapshot for %s: %v", vol.Device.MountPoint, err)
-	}
-
-	err = m.garbageRepo.Put(oldFsDelorianMountPoint)
-	if err != nil {
-		return fmt.Errorf("can't put old filesystem path to garbage storage %s: %v", oldFsDelorianMountPoint, err)
-	}
-
-	// force reboot logic
-
-	return nil
+	return m.service.Restore(snap.toDomain())
 }
 
 func (m *Model) getSnapshotByIndex(idx int) (*snapshot, error) {
@@ -410,7 +378,7 @@ func (m *Model) createSnapshots() error {
 
 		activeVolumeFound = true
 
-		err := m.createSnapshotForVolume(vol, domain.Manual)
+		err := m.service.CreateSnapshotForVolume(vol, domain.Manual)
 		if err != nil {
 			return err
 		}
@@ -428,32 +396,6 @@ func (m *Model) createSnapshots() error {
 	return nil
 }
 
-func (m *Model) createSnapshotForVolume(vol domain.Volume, snapType string) error {
-	snap := domain.NewSnapshot(vol.SnapshotsPath, snapType, m.state.Config.KernelVersion, vol)
-
-	err := btrfs.CreateSnapshot(vol.Device.MountPoint, snap)
-	if err != nil {
-		return fmt.Errorf("can't create snapshot for %s: %v", snap.Path, err)
-	}
-
-	err = m.snapshotRepo.Put(snap)
-	if err != nil {
-		return fmt.Errorf("can't put snapshot to storage with path %s: %v", snap.Path, err)
-	}
-
-	return nil
-}
-
-func (m *Model) getVolumeByDeviceUUID(uid string) (domain.Volume, error) {
-	for i := range m.state.Config.Volumes {
-		if m.state.Config.Volumes[i].Device.UUID == uid {
-			return m.state.Config.Volumes[i], nil
-		}
-	}
-
-	return domain.Volume{}, fmt.Errorf("can't find volume by id `%s`", uid)
-}
-
 func getSnapshotsHeader() string {
 	var header strings.Builder
 	header.WriteString(minColumnGap)
@@ -464,4 +406,14 @@ func getSnapshotsHeader() string {
 	header.WriteString(typeTitle)
 
 	return header.String()
+}
+
+func (sn *snapshot) toDomain() domain.Snapshot {
+	return domain.Snapshot{
+		Path:   sn.Path,
+		Label:  sn.Label,
+		Type:   sn.Type,
+		Kernel: sn.Kernel,
+		Volume: sn.Volume,
+	}
 }
